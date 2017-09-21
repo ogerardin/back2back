@@ -1,7 +1,6 @@
 package org.ogerardin.b2b;
 
 import com.mongodb.MongoClient;
-import cz.jirutka.spring.embedmongo.EmbeddedMongoFactoryBean;
 import org.ogerardin.b2b.domain.FileSource;
 import org.ogerardin.b2b.repo.SourceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,11 +15,16 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 
 import java.io.IOException;
+import java.net.*;
+import java.util.Iterator;
+import java.util.List;
 
 @SpringBootApplication
 @ComponentScan(basePackages = {"storage", "org.ogerardin.b2b"})
 @EnableConfigurationProperties(StorageProperties.class)
 public class Main {
+
+
 
     @Autowired
     SourceRepository sourceRepository;
