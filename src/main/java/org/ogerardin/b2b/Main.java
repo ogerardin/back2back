@@ -20,10 +20,10 @@ import java.util.Iterator;
 import java.util.List;
 
 @SpringBootApplication
-@ComponentScan(basePackages = {"storage", "org.ogerardin.b2b"})
+@ComponentScan(basePackages = {"storage",
+        "org.ogerardin.b2b", "org.ogerardin.b2b.mongo"})
 @EnableConfigurationProperties(StorageProperties.class)
 public class Main {
-
 
 
     @Autowired

@@ -37,13 +37,11 @@ public class RestUploadController {
         logger.debug("Single file upload!");
 
         if (uploadfile.isEmpty()) {
-            return new ResponseEntity<>("please select a file!", HttpStatus.OK);
+            return new ResponseEntity<>("please select a file!", HttpStatus.BAD_REQUEST);
         }
 
         try {
-
             saveUploadedFiles(Collections.singletonList(uploadfile));
-
         } catch (IOException e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -66,7 +64,7 @@ public class RestUploadController {
                 .filter(x -> !StringUtils.isEmpty(x)).collect(Collectors.joining(" , "));
 
         if (StringUtils.isEmpty(uploadedFileName)) {
-            return new ResponseEntity<>("please select a file!", HttpStatus.OK);
+            return new ResponseEntity<>("please select a file!", HttpStatus.BAD_REQUEST);
         }
 
         try {
