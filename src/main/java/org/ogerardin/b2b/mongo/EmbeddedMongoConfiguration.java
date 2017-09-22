@@ -69,17 +69,20 @@ public class EmbeddedMongoConfiguration {
      * We use proxy-vole to get proxy configuration, see: https://github.com/MarkusBernhardt/proxy-vole
      */
     private static IProxyFactory detectProxyFactory(Logger logger) {
-        com.github.markusbernhardt.proxy.util.Logger.setBackend(new LogBackEnd() {
-            @Override
-            public void log(Class<?> clazz, com.github.markusbernhardt.proxy.util.Logger.LogLevel loglevel, String msg, Object... params) {
-                logger.info(MessageFormat.format(msg, params));
-            }
+        // if the logger is enabled for debug, provide debug logging of proxy-vole
+        if (logger.isDebugEnabled()) {
+            com.github.markusbernhardt.proxy.util.Logger.setBackend(new LogBackEnd() {
+                @Override
+                public void log(Class<?> clazz, com.github.markusbernhardt.proxy.util.Logger.LogLevel loglevel, String msg, Object... params) {
+                    logger.debug(MessageFormat.format(msg, params));
+                }
 
-            @Override
-            public boolean isLogginEnabled(com.github.markusbernhardt.proxy.util.Logger.LogLevel logLevel) {
-                return true;
-            }
-        });
+                @Override
+                public boolean isLogginEnabled(com.github.markusbernhardt.proxy.util.Logger.LogLevel logLevel) {
+                    return true;
+                }
+            });
+        }
 
         ProxySearch proxySearch = ProxySearch.getDefaultProxySearch();
         ProxySelector proxySelector = proxySearch.getProxySelector();
