@@ -1,6 +1,7 @@
-package org.ogerardin.b2b.repo;
+package org.ogerardin.b2b.mongo;
 
 import org.ogerardin.b2b.domain.FileSource;
+import org.ogerardin.b2b.repo.SourceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;

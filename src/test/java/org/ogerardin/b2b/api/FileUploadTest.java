@@ -1,12 +1,9 @@
-package org.ogerardin.b2b;
-
-import java.nio.file.Paths;
-import java.util.stream.Stream;
+package org.ogerardin.b2b.api;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
+import org.ogerardin.b2b.storage.StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,16 +12,15 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.io.FileNotFoundException;
+import java.nio.file.Paths;
+import java.util.stream.Stream;
+
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.fileUpload;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import storage.StorageFileNotFoundException;
-import storage.StorageService;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @RunWith(SpringRunner.class)
 @AutoConfigureMockMvc
@@ -62,8 +58,8 @@ public class FileUploadTest {
     @SuppressWarnings("unchecked")
     @Test
     public void should404WhenMissingFile() throws Exception {
-        given(this.storageService.loadAsResource("test.txt"))
-                .willThrow(StorageFileNotFoundException.class);
+        given(this.storageService.getAsResource("test.txt"))
+                .willThrow(FileNotFoundException.class);
 
         this.mvc.perform(get("/api/files/test.txt")).andExpect(status().isNotFound());
     }

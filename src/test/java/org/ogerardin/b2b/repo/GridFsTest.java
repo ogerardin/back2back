@@ -50,8 +50,7 @@ public class GridFsTest implements CommandLineRunner {
 
         for (File file : new File("/Users/olivier/Downloads").listFiles((dir, name) -> name.endsWith(".pdf"))) {
             if (file.isFile()) {
-                InputStream is = null;
-                is = new BufferedInputStream(new FileInputStream(file));
+                InputStream is = new BufferedInputStream(new FileInputStream(file));
                 gridFsTemplate.store(is, file.getCanonicalPath());
             }
         }

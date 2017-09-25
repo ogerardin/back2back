@@ -1,8 +1,8 @@
-package storage;
+package org.ogerardin.b2b.storage.filesystem;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties("storage")
+@ConfigurationProperties("org/ogerardin/b2b/storage/filesystem")
 public class StorageProperties {
 
     /**

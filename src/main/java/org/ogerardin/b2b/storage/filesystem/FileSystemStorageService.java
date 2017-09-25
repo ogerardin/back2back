@@ -1,21 +1,24 @@
-package storage;
+package org.ogerardin.b2b.storage.filesystem;
 
+import org.ogerardin.b2b.storage.StorageException;
+import org.ogerardin.b2b.storage.StorageService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Service;
+import org.springframework.util.FileSystemUtils;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.MalformedURLException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.stream.Stream;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
-import org.springframework.stereotype.Service;
-import org.springframework.util.FileSystemUtils;
-import org.springframework.util.StringUtils;
-import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class FileSystemStorageService implements StorageService {
@@ -29,21 +32,19 @@ public class FileSystemStorageService implements StorageService {
 
     @Override
     public void store(MultipartFile file) {
+        if (file.isEmpty()) {
+            throw new IllegalArgumentException("empty file " + file);
+        }
         String filename = StringUtils.cleanPath(file.getOriginalFilename());
+        if (filename.contains("..")) {
+            // This is a security check
+            throw new IllegalArgumentException("relative path outside current directory " + filename);
+        }
         try {
-            if (file.isEmpty()) {
-                throw new StorageException("Failed to store empty file " + filename);
-            }
-            if (filename.contains("..")) {
-                // This is a security check
-                throw new StorageException(
-                        "Cannot store file with relative path outside current directory "
-                                + filename);
-            }
             Files.copy(file.getInputStream(), this.rootLocation.resolve(filename),
                     StandardCopyOption.REPLACE_EXISTING);
         }
-        catch (IOException e) {
+        catch (Exception e) {
             throw new StorageException("Failed to store file " + filename, e);
         }
     }
@@ -53,7 +54,7 @@ public class FileSystemStorageService implements StorageService {
         try {
             return Files.walk(this.rootLocation, 1)
                     .filter(path -> !path.equals(this.rootLocation))
-                    .map(path -> this.rootLocation.relativize(path));
+                    .map(this.rootLocation::relativize);
         }
         catch (IOException e) {
             throw new StorageException("Failed to read stored files", e);
@@ -62,27 +63,14 @@ public class FileSystemStorageService implements StorageService {
     }
 
     @Override
-    public Path load(String filename) {
-        return rootLocation.resolve(filename);
+    public InputStream getAsInputStream(String filename) throws FileNotFoundException {
+        return new FileInputStream(rootLocation.resolve(filename).toFile());
     }
 
     @Override
-    public Resource loadAsResource(String filename) {
-        try {
-            Path file = load(filename);
-            Resource resource = new UrlResource(file.toUri());
-            if (resource.exists() || resource.isReadable()) {
-                return resource;
-            }
-            else {
-                throw new StorageFileNotFoundException(
-                        "Could not read file: " + filename);
-
-            }
-        }
-        catch (MalformedURLException e) {
-            throw new StorageFileNotFoundException("Could not read file: " + filename, e);
-        }
+    public Resource getAsResource(String filename) throws FileNotFoundException {
+        InputStream is = getAsInputStream(filename);
+        return new InputStreamResource(is);
     }
 
     @Override

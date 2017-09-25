@@ -1,26 +1,20 @@
 package org.ogerardin.b2b;
 
-import com.mongodb.MongoClient;
 import org.ogerardin.b2b.domain.FileSource;
 import org.ogerardin.b2b.repo.SourceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import storage.StorageProperties;
-import storage.StorageService;
+import org.ogerardin.b2b.storage.filesystem.StorageProperties;
+import org.ogerardin.b2b.storage.StorageService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
-import java.io.IOException;
-import java.net.*;
-import java.util.Iterator;
-import java.util.List;
-
 @SpringBootApplication
-@ComponentScan(basePackages = {"storage",
+@ComponentScan(basePackages = {"org.ogerardin.b2b.storage",
         "org.ogerardin.b2b", "org.ogerardin.b2b.mongo"})
 @EnableConfigurationProperties(StorageProperties.class)
 public class Main {
@@ -34,7 +28,7 @@ public class Main {
     }
 
     @Bean
-    CommandLineRunner init(StorageService storageService) {
+    CommandLineRunner init(@Qualifier("fileSystemStorageService") StorageService storageService) {
         return (args) -> {
             storageService.init();
 //            storageService.deleteAll();

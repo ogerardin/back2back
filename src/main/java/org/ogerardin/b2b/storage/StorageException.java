@@ -1,4 +1,4 @@
-package storage;
+package org.ogerardin.b2b.storage;
 
 public class StorageException extends RuntimeException {
 

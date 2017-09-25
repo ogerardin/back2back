@@ -1,4 +1,4 @@
-package org.ogerardin.b2b;
+package org.ogerardin.b2b.rest_api;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -17,7 +17,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureMockMvc
-public class BackupProviderTest {
+public class BackupProviderControllerTest {
 
     @Autowired
     private MockMvc mvc;
