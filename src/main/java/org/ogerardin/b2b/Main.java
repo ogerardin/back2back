@@ -14,8 +14,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
-@ComponentScan(basePackages = {"org.ogerardin.b2b.storage",
-        "org.ogerardin.b2b", "org.ogerardin.b2b.mongo"})
+@ComponentScan(basePackages = {"org.ogerardin.b2b"})
 @EnableConfigurationProperties(StorageProperties.class)
 public class Main {
 

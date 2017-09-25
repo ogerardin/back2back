@@ -10,10 +10,7 @@ import org.springframework.util.FileSystemUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -76,6 +73,23 @@ public class FileSystemStorageService implements StorageService {
     @Override
     public void deleteAll() {
         FileSystemUtils.deleteRecursively(rootLocation.toFile());
+    }
+
+    @Override
+    public void store(File file) throws IOException {
+        Files.copy(new FileInputStream(file), this.rootLocation.resolve(file.getCanonicalPath()),
+                StandardCopyOption.REPLACE_EXISTING);
+    }
+
+    @Override
+    public void store(Path path) throws IOException {
+        Files.copy(path, this.rootLocation.resolve(path), StandardCopyOption.REPLACE_EXISTING);
+
+    }
+
+    @Override
+    public void store(InputStream inputStream, String canonicalPath) throws IOException {
+        Files.copy(inputStream, this.rootLocation.resolve(canonicalPath), StandardCopyOption.REPLACE_EXISTING);
     }
 
     @Override

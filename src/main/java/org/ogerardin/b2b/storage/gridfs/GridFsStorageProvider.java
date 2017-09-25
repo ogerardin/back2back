@@ -1,5 +1,6 @@
 package org.ogerardin.b2b.storage.gridfs;
 
+import com.mongodb.MongoClient;
 import com.mongodb.gridfs.GridFSDBFile;
 import com.mongodb.gridfs.GridFSFile;
 import org.ogerardin.b2b.storage.StorageException;
@@ -14,12 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.BufferedInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.*;
+import java.nio.file.*;
 import java.util.stream.Stream;
 
 @Service
@@ -79,5 +76,20 @@ public class GridFsStorageProvider implements StorageService {
     @Override
     public void deleteAll() {
         gridFsTemplate.delete(new Query());
+    }
+
+    @Override
+    public void store(File file) throws IOException {
+        store(new FileInputStream(file), file.getCanonicalPath());
+    }
+
+    @Override
+    public void store(Path path) throws IOException {
+        store(Files.newInputStream(path, StandardOpenOption.READ), path.toFile().getCanonicalPath());
+    }
+
+    @Override
+    public void store(InputStream inputStream, String canonicalPath) {
+        gridFsTemplate.store(inputStream, canonicalPath);
     }
 }
