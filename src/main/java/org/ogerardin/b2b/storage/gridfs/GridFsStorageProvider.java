@@ -5,6 +5,8 @@ import com.mongodb.gridfs.GridFSFile;
 import org.ogerardin.b2b.storage.StorageException;
 import org.ogerardin.b2b.storage.StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.mongodb.MongoDbFactory;
@@ -24,6 +26,8 @@ import java.nio.file.StandardOpenOption;
 import java.util.stream.Stream;
 
 @Service
+@Configuration
+@EnableConfigurationProperties({GridFsStorageProperties.class})
 public class GridFsStorageProvider implements StorageService {
 
     private final GridFsStorageProperties properties;

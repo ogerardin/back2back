@@ -23,7 +23,7 @@ import java.util.List;
 @RunWith(SpringRunner.class)
 @DataMongoTest
 @SpringBootTest
-public class RepoTest {
+public class BackupSourceRepositoryTest {
 
     private static final String FILESET_RSC = "/fileset";
 
@@ -45,7 +45,7 @@ public class RepoTest {
         File dir = new File(url.toURI());
         BackupSource fileSource = new FilesystemSource(dir);
 
-        backupSourceRepository.insert(fileSource);
+        backupSourceRepository.save(fileSource);
 
         List<BackupSource> fetchedSources = backupSourceRepository.findAll();
 

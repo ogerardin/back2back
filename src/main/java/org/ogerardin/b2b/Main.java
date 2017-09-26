@@ -1,6 +1,7 @@
 package org.ogerardin.b2b;
 
 import org.ogerardin.b2b.config.BackupSourceRepository;
+import org.ogerardin.b2b.config.BackupTargetRepository;
 import org.ogerardin.b2b.storage.StorageService;
 import org.ogerardin.b2b.storage.gridfs.GridFsStorageProperties;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,24 +15,32 @@ import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
 @ComponentScan(basePackages = {"org.ogerardin.b2b"})
-@EnableConfigurationProperties({GridFsStorageProperties.class})
 public class Main {
 
 
     @Autowired
     BackupSourceRepository sourceRepository;
 
+    @Autowired
+    BackupTargetRepository targetRepository;
+
     public static void main(String[] args) {
         SpringApplication.run(Main.class, args);
     }
 
     @Bean
-    CommandLineRunner init(@Qualifier("gridFsStorageProvider") StorageService storageService) {
+    CommandLineRunner init(StorageService storageService) {
         return (args) -> {
             storageService.init();
+
+            startWorkers();
         };
     }
 
+    private void startWorkers() {
+        sourceRepository.findAll().forEach(System.out::println);
+        targetRepository.findAll().forEach(System.out::println);
+    }
 
 
 }
