@@ -22,7 +22,7 @@ public class UploadController {
     private final StorageService storageService;
 
     @Autowired
-    public UploadController(@Qualifier("fileSystemStorageService") StorageService storageService) {
+    public UploadController(@Qualifier("gridFsStorageProvider") StorageService storageService) {
         this.storageService = storageService;
     }
 

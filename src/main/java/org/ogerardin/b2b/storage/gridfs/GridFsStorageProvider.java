@@ -1,6 +1,5 @@
 package org.ogerardin.b2b.storage.gridfs;
 
-import com.mongodb.MongoClient;
 import com.mongodb.gridfs.GridFSDBFile;
 import com.mongodb.gridfs.GridFSFile;
 import org.ogerardin.b2b.storage.StorageException;
@@ -8,6 +7,8 @@ import org.ogerardin.b2b.storage.StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
+import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.core.convert.MongoConverter;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.gridfs.GridFsCriteria;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
@@ -16,15 +17,23 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.stream.Stream;
 
 @Service
 public class GridFsStorageProvider implements StorageService {
 
-    @Autowired
-    private GridFsTemplate gridFsTemplate;
+    private final GridFsStorageProperties properties;
+    private final GridFsTemplate gridFsTemplate;
 
+    @Autowired
+    public GridFsStorageProvider(GridFsStorageProperties properties, MongoDbFactory mongoDbFactory, MongoConverter mongoConverter) {
+        this.properties = properties;
+        this.gridFsTemplate = new GridFsTemplate(mongoDbFactory, mongoConverter, properties.getBucket());
+    }
 
     @Override
     public void init() {
@@ -59,8 +68,7 @@ public class GridFsStorageProvider implements StorageService {
 
     @Override
     public InputStream getAsInputStream(String filename) throws FileNotFoundException {
-        String cleanfilename = StringUtils.cleanPath(filename);
-        GridFSDBFile fsdbFile = gridFsTemplate.findOne(new Query(GridFsCriteria.whereFilename().is(cleanfilename)));
+        GridFSDBFile fsdbFile = gridFsTemplate.findOne(new Query(GridFsCriteria.whereFilename().is(filename)));
         if (fsdbFile == null) {
             throw new FileNotFoundException(filename);
         }

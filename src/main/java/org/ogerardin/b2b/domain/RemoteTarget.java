@@ -2,12 +2,11 @@ package org.ogerardin.b2b.domain;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.ToString;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-@ToString
-public class NetworkTarget extends Target {
+public class RemoteTarget extends BackupTarget {
+    String name;
     String hostname;
     long port;
 }
