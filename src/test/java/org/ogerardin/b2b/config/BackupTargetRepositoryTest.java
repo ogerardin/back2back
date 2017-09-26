@@ -40,7 +40,10 @@ public class BackupTargetRepositoryTest {
         NetworkTarget target1 = new NetworkTarget("127.0.0.1", 80);
         List<BackupTarget> targets = Arrays.asList(target0, target1);
 
-        backupTargetRepository.save(targets);
+        backupTargetRepository.deleteAll();
+
+        backupTargetRepository.insert(target0);
+        backupTargetRepository.insert(target1);
 
         List<BackupTarget> fetchedTargets = backupTargetRepository.findAll();
 

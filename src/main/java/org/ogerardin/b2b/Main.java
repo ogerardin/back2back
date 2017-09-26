@@ -18,11 +18,15 @@ import org.springframework.context.annotation.ComponentScan;
 public class Main {
 
 
-    @Autowired
-    BackupSourceRepository sourceRepository;
+    private final BackupSourceRepository sourceRepository;
+
+    private final BackupTargetRepository targetRepository;
 
     @Autowired
-    BackupTargetRepository targetRepository;
+    public Main(BackupSourceRepository sourceRepository, BackupTargetRepository targetRepository) {
+        this.sourceRepository = sourceRepository;
+        this.targetRepository = targetRepository;
+    }
 
     public static void main(String[] args) {
         SpringApplication.run(Main.class, args);

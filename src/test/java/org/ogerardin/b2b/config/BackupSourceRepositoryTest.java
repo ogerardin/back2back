@@ -45,7 +45,9 @@ public class BackupSourceRepositoryTest {
         File dir = new File(url.toURI());
         BackupSource fileSource = new FilesystemSource(dir);
 
-        backupSourceRepository.save(fileSource);
+        backupSourceRepository.deleteAll();
+
+        backupSourceRepository.insert(fileSource);
 
         List<BackupSource> fetchedSources = backupSourceRepository.findAll();
 
