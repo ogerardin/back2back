@@ -12,12 +12,17 @@ import org.ogerardin.b2b.worker.BackupWorkerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Condition;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.core.task.TaskExecutor;
 
 @SpringBootApplication
+@EnableAutoConfiguration(exclude={DataSourceAutoConfiguration.class})
 @ComponentScan(basePackages = {"org.ogerardin.b2b"})
 public class Main {
 

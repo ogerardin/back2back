@@ -9,5 +9,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public abstract class BackupSource {
 
     @Id
-    String id;
+    private String id;
+
+    private String name;
 }
