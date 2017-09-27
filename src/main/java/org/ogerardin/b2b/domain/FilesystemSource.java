@@ -14,17 +14,13 @@ import java.util.stream.Collectors;
 @Data
 public class FilesystemSource extends BackupSource {
 
-    private List<String> paths;
-
-    public FilesystemSource(String... paths) {
-        this.paths = Arrays.stream(paths)
-                .collect(Collectors.toList());
-    }
-    public FilesystemSource(List<String> paths) {
-        this.paths = paths;
-    }
+    private String path;
 
     public FilesystemSource() {
+    }
+
+    public FilesystemSource(String path) {
+        this.path = path;
     }
 
     public FilesystemSource(File dir) throws IOException {
