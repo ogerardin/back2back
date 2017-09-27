@@ -1,4 +1,4 @@
-package org.ogerardin.b2b;
+package org.ogerardin.b2b.api;
 
 import org.ogerardin.b2b.storage.StorageService;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -7,8 +7,7 @@ import org.ogerardin.b2b.config.BackupTargetRepository;
 import org.ogerardin.b2b.domain.BackupSource;
 import org.ogerardin.b2b.domain.BackupTarget;
 import org.ogerardin.b2b.storage.StorageService;
-import org.ogerardin.b2b.worker.BackupWorker;
-import org.ogerardin.b2b.worker.LocalBackupWorker;
+import org.ogerardin.b2b.worker.BackupWorkerBase;
 import org.ogerardin.b2b.worker.BackupWorkerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -29,12 +28,15 @@ public class Main {
 
     private final TaskExecutor taskExecutor;
 
+    private final BackupWorkerFactory backupWorkerFactory;
+
 
     @Autowired
-    public Main(BackupSourceRepository sourceRepository, BackupTargetRepository targetRepository, TaskExecutor taskExecutor) {
+    public Main(BackupSourceRepository sourceRepository, BackupTargetRepository targetRepository, TaskExecutor taskExecutor, BackupWorkerFactory backupWorkerFactory) {
         this.sourceRepository = sourceRepository;
         this.targetRepository = targetRepository;
         this.taskExecutor = taskExecutor;
+        this.backupWorkerFactory = backupWorkerFactory;
     }
 
     public static void main(String[] args) {
@@ -59,7 +61,7 @@ public class Main {
             try {
                 startWorker(source, target);
             } catch (B2BException e) {
-                logger.error("Failed to start worker for " +source + ", "+ target, e);
+                logger.error("Failed to start worker for " + source + ", " + target, e);
             }
         });
 
@@ -67,7 +69,7 @@ public class Main {
 
     private void startWorker(BackupSource source, BackupTarget target) throws B2BException {
 
-        BackupWorker worker = BackupWorkerFactory.newWorker(source, target);
+        BackupWorkerBase worker = backupWorkerFactory.newWorker(source, target);
 
         taskExecutor.execute(worker);
 

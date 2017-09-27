@@ -11,31 +11,18 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class LocalBackupWorker extends BackupWorker implements Runnable {
+public class LocalBackupWorker extends BackupWorkerBase<LocalTarget> implements Runnable {
 
     private static final Log logger = LogFactory.getLog(LocalBackupWorker.class);
 
-
-    private final FilesystemSource source;
-    private final LocalTarget target;
-
     public LocalBackupWorker(FilesystemSource source, LocalTarget target) {
-        this.source = source;
-        this.target = target;
+        super(source, target);
     }
 
     @Override
     public void run() {
-        Path path = Paths.get(source.getPath());
-
-        try {
-            Files.walk(path)
-                    .forEach(p -> {
-                        System.out.println(" FAKE backing up " + p);
-                    });
-        } catch (IOException e) {
-            logger.error("Exception while walking directory " + path);
-        }
+        dryRun(logger);
 
     }
+
 }

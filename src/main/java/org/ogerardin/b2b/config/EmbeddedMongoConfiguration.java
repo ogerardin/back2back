@@ -1,11 +1,10 @@
-package org.ogerardin.b2b.mongo;
+package org.ogerardin.b2b.config;
 
 import com.github.markusbernhardt.proxy.ProxySearch;
 import com.github.markusbernhardt.proxy.util.Logger.LogBackEnd;
 import de.flapdoodle.embed.mongo.Command;
 import de.flapdoodle.embed.mongo.config.DownloadConfigBuilder;
 import de.flapdoodle.embed.mongo.config.ExtractedArtifactStoreBuilder;
-import de.flapdoodle.embed.mongo.config.IMongodConfig;
 import de.flapdoodle.embed.mongo.config.RuntimeConfigBuilder;
 import de.flapdoodle.embed.process.config.IRuntimeConfig;
 import de.flapdoodle.embed.process.config.io.ProcessOutput;
@@ -53,10 +52,14 @@ public class EmbeddedMongoConfiguration {
                 .build();
     }
 
+    /**
+     * Returns an {@link ArtifactStoreBuilder} configured with the detected proxy
+     */
     private static ArtifactStoreBuilder getArtifactStore(Logger logger) {
         IProxyFactory proxyFactory = detectProxyFactory(logger);
 
-        return new ExtractedArtifactStoreBuilder().defaults(Command.MongoD)
+        return new ExtractedArtifactStoreBuilder()
+                .defaults(Command.MongoD)
                 .download(new DownloadConfigBuilder()
                         .defaultsForCommand(Command.MongoD)
                         .proxyFactory(proxyFactory)
@@ -65,18 +68,17 @@ public class EmbeddedMongoConfiguration {
     }
 
     /**
-     * Return an {@link IProxyFactory} matching the system's proxy settings.
+     * Returns an {@link IProxyFactory} matching the system's proxy settings.
      * We use proxy-vole to get proxy configuration, see: https://github.com/MarkusBernhardt/proxy-vole
      */
     private static IProxyFactory detectProxyFactory(Logger logger) {
-        // if the logger is enabled for debug, provide debug logging of proxy-vole
+        // if the logger is enabled for debug, set an adapter to log debug output of proxy-vole
         if (logger.isDebugEnabled()) {
             com.github.markusbernhardt.proxy.util.Logger.setBackend(new LogBackEnd() {
                 @Override
                 public void log(Class<?> clazz, com.github.markusbernhardt.proxy.util.Logger.LogLevel loglevel, String msg, Object... params) {
                     logger.debug(MessageFormat.format(msg, params));
                 }
-
                 @Override
                 public boolean isLogginEnabled(com.github.markusbernhardt.proxy.util.Logger.LogLevel logLevel) {
                     return true;

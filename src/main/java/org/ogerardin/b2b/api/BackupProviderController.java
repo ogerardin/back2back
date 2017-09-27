@@ -1,9 +1,7 @@
-package org.ogerardin.b2b.backup_provider;
+package org.ogerardin.b2b.api;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Date;
 
 @RestController
 public class BackupProviderController {
