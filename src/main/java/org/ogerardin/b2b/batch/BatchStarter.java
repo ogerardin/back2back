@@ -1,69 +1,43 @@
 package org.ogerardin.b2b.batch;
 
-import org.ogerardin.b2b.files.RecursivePathCollector;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.ogerardin.b2b.worker.SingleFileProcessor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.*;
-import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
-import org.springframework.batch.core.launch.support.SimpleJobLauncher;
 import org.springframework.batch.core.listener.JobExecutionListenerSupport;
-import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.item.ItemProcessor;
-import org.springframework.batch.item.support.ListItemReader;
+import org.springframework.batch.item.ItemReader;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.task.AsyncTaskExecutor;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collection;
 
-@Configuration
-@EnableBatchProcessing
-public class BatchConfigurationProvider {
+@Component
+public class BatchStarter {
 
-    private static final Logger logger = LoggerFactory.getLogger(BatchConfigurationProvider.class);
+    private static final Log logger = LogFactory.getLog(BatchStarter.class);
 
     private final JobBuilderFactory jobBuilderFactory;
     private final JobLauncher jobLauncher;
     private final StepBuilderFactory stepBuilderFactory;
 
+
     @Autowired
-    public BatchConfigurationProvider(JobBuilderFactory jobBuilderFactory,
-                                      @Qualifier("asyncJobLauncher") JobLauncher asyncJobLauncher,
-                                      StepBuilderFactory stepBuilderFactory) {
+    public BatchStarter(JobBuilderFactory jobBuilderFactory, JobLauncher jobLauncher, StepBuilderFactory stepBuilderFactory) {
         this.jobBuilderFactory = jobBuilderFactory;
-        this.jobLauncher = asyncJobLauncher;
+        this.jobLauncher = jobLauncher;
         this.stepBuilderFactory = stepBuilderFactory;
     }
 
-    @Bean
-    @Qualifier("asyncJobLauncher")
-    static JobLauncher asyncJobLauncher(AsyncTaskExecutor asyncTaskExecutor, JobRepository jobRepository) {
-        SimpleJobLauncher simpleJobLauncher = new SimpleJobLauncher();
-        simpleJobLauncher.setTaskExecutor(asyncTaskExecutor);
-        simpleJobLauncher.setJobRepository(jobRepository);
-        return simpleJobLauncher;
-    }
-
-    private static ListItemReader<Path> newReader() throws IOException {
+    private static ItemReader<Path> newReader() throws IOException {
         Path root = Paths.get(System.getProperty("user.home"));
-        logger.info("Collecting all files under " + root);
-        RecursivePathCollector pathCollector = new RecursivePathCollector(root);
-        pathCollector.walkTree();
-        Collection<Path> paths = pathCollector.getPaths();
-        logger.info("Found " + paths.size() + " files");
-
-        return new ListItemReader<>(new ArrayList<>(paths));
+        return new FileTreeWalkerItemReader(root);
     }
 
     private static ItemProcessor<Path, Path> newProcessor(SingleFileProcessor fileProcessor) {
@@ -111,4 +85,5 @@ public class BatchConfigurationProvider {
         Job job = newBackupJob(fileProcessor, listener());
         return jobLauncher.run(job, new JobParameters());
     }
+
 }

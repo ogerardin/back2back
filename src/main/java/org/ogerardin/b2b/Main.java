@@ -2,7 +2,7 @@ package org.ogerardin.b2b;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.ogerardin.b2b.batch.BatchConfigurationProvider;
+import org.ogerardin.b2b.batch.BatchStarter;
 import org.ogerardin.b2b.config.BackupSourceRepository;
 import org.ogerardin.b2b.config.BackupTargetRepository;
 import org.ogerardin.b2b.domain.BackupSource;
@@ -35,17 +35,20 @@ public class Main {
     private final BackupSourceRepository sourceRepository;
     private final BackupTargetRepository targetRepository;
     private final BackupWorkerFactory backupWorkerFactory;
-    private final BatchConfigurationProvider batchConfigurationProvider;
+    private final BatchStarter batchStarter;
 
 
     @Autowired
-    public Main(AsyncTaskExecutor
-                        taskExecutor, BatchConfigurationProvider batchConfigurationProvider, BackupSourceRepository sourceRepository, BackupTargetRepository targetRepository, BackupWorkerFactory backupWorkerFactory) {
+    public Main(AsyncTaskExecutor taskExecutor,
+                BackupSourceRepository sourceRepository,
+                BackupTargetRepository targetRepository,
+                BackupWorkerFactory backupWorkerFactory,
+                BatchStarter batchStarter) {
         this.sourceRepository = sourceRepository;
         this.targetRepository = targetRepository;
         this.taskExecutor = taskExecutor;
         this.backupWorkerFactory = backupWorkerFactory;
-        this.batchConfigurationProvider = batchConfigurationProvider;
+        this.batchStarter = batchStarter;
     }
 
     public static void main(String[] args) {
@@ -63,7 +66,7 @@ public class Main {
     }
 
     private void startJob() throws JobExecutionException, IOException {
-        batchConfigurationProvider.startBackupJob(f -> {
+        batchStarter.startBackupJob(f -> {
             // nop
         });
     }

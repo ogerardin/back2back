@@ -14,6 +14,9 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Recursively walks a filesystem directory and collects the {@link Path} of all files.
+ */
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class RecursivePathCollector extends SimpleFileVisitor<Path> {
@@ -28,7 +31,10 @@ public class RecursivePathCollector extends SimpleFileVisitor<Path> {
     }
 
     public void walkTree() throws IOException {
+        logger.info("Collecting all files under " + rootDir);
         Files.walkFileTree(rootDir,this);
+        logger.info("Found " + paths.size() + " files");
+
     }
 
     @Override
