@@ -1,15 +1,13 @@
-package org.ogerardin.b2b.worker;
+package org.ogerardin.b2b.worker.local;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.ogerardin.b2b.domain.BackupTarget;
 import org.ogerardin.b2b.domain.FilesystemSource;
 import org.ogerardin.b2b.domain.LocalTarget;
+import org.ogerardin.b2b.worker.BackupWorkerBase;
+import org.ogerardin.b2b.worker.SingleFileProcessor;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.File;
 
 public class LocalBackupWorker extends BackupWorkerBase<LocalTarget> implements Runnable {
 
@@ -22,7 +20,13 @@ public class LocalBackupWorker extends BackupWorkerBase<LocalTarget> implements 
     @Override
     public void run() {
         dryRun(logger);
+    }
 
+    public static class FileProcessor implements SingleFileProcessor {
+        @Override
+        public void process(File f) {
+            logger.info(" FAKE processing " + f);
+        }
     }
 
 }

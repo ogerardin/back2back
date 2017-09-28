@@ -4,6 +4,8 @@ import org.ogerardin.b2b.B2BException;
 import org.ogerardin.b2b.domain.BackupSource;
 import org.ogerardin.b2b.domain.BackupTarget;
 import org.ogerardin.b2b.util.Factory;
+import org.ogerardin.b2b.worker.local.LocalBackupWorker;
+import org.ogerardin.b2b.worker.peer.PeerBackupWorker;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 

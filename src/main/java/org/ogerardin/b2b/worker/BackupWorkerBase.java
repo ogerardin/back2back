@@ -16,12 +16,12 @@ public abstract class BackupWorkerBase<T extends BackupTarget> implements Runnab
     private final FilesystemSource source;
     private final T target;
 
-    BackupWorkerBase(FilesystemSource source, T target) {
+    protected BackupWorkerBase(FilesystemSource source, T target) {
         this.source = source;
         this.target = target;
     }
 
-    void dryRun(Log logger) {
+    protected void dryRun(Log logger) {
         Path path = Paths.get(source.getPath());
 
         //noinspection InfiniteLoopStatement
