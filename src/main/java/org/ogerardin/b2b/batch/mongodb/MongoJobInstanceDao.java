@@ -30,7 +30,7 @@ import static com.mongodb.BasicDBObjectBuilder.start;
  * @authoer vfouzdar
  */
 @Repository
-public class MongoJobInstanceDao extends AbstractMongoDao implements JobInstanceDao {
+public class MongoJobInstanceDao extends AbstractMongoBatchMetadataDao implements JobInstanceDao {
 
     public MongoJobInstanceDao() {
         super(JobInstance.class);

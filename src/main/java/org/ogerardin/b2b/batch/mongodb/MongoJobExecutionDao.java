@@ -25,7 +25,7 @@ import static com.mongodb.BasicDBObjectBuilder.start;
  * @author vfouzdar
  */
 @Repository
-public class MongoJobExecutionDao extends AbstractMongoDao implements JobExecutionDao {
+public class MongoJobExecutionDao extends AbstractMongoBatchMetadataDao implements JobExecutionDao {
 
     private static final Logger LOG = LoggerFactory.getLogger(MongoJobExecutionDao.class);
 

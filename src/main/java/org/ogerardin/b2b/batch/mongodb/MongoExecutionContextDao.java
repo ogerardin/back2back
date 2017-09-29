@@ -27,7 +27,7 @@ import java.util.Map;
  * @author vfouzdar
  */
 @Repository
-public class MongoExecutionContextDao extends AbstractMongoDao implements
+public class MongoExecutionContextDao extends AbstractMongoBatchMetadataDao implements
         ExecutionContextDao {
 
     private static final Logger LOG = LoggerFactory.getLogger(MongoExecutionContextDao.class);

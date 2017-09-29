@@ -25,7 +25,7 @@ import static com.mongodb.BasicDBObjectBuilder.start;
  * @authoer vfouzdar
  */
 @Repository
-public class MongoStepExecutionDao extends AbstractMongoDao implements StepExecutionDao {
+public class MongoStepExecutionDao extends AbstractMongoBatchMetadataDao implements StepExecutionDao {
 
     public MongoStepExecutionDao() {
         super(StepExecution.class);

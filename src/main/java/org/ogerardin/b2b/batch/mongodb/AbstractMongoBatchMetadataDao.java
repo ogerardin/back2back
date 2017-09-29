@@ -21,7 +21,9 @@ import java.util.Map;
  * @author Baruch S.
  */
 @Component
-public abstract class AbstractMongoDao {
+public abstract class AbstractMongoBatchMetadataDao {
+
+    public static final String DEFAULT_COLLECTION_PREFIX = "batch_";
 
     static final String VERSION_KEY = "version";
     static final String START_TIME_KEY = "startTime";
@@ -65,23 +67,24 @@ public abstract class AbstractMongoDao {
     private static final String ID_KEY = "_id";
     private static final String NS_KEY = "_ns";
 
+
     @Autowired
     protected MongoTemplate mongoTemplate;
 
-    private String prefix = "batch";
+    private String prefix = DEFAULT_COLLECTION_PREFIX;
 
     private final String collectionName;
 
 
-    protected AbstractMongoDao(String collectionName) {
+    protected AbstractMongoBatchMetadataDao(String collectionName) {
         this.collectionName = getPrefixedCollectionName(collectionName);
     }
 
     private String getPrefixedCollectionName(String collectionName) {
-        return prefix.isEmpty() ? collectionName : (prefix + "_" + collectionName);
+        return prefix.isEmpty() ? collectionName : (prefix + collectionName);
     }
 
-    public AbstractMongoDao(Class clazz) {
+    public AbstractMongoBatchMetadataDao(Class clazz) {
         this(clazz.getSimpleName());
     }
 
