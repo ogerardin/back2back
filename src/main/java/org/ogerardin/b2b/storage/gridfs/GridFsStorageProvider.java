@@ -26,7 +26,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.stream.Stream;
 
 @Service
-@Configuration
+//@Configuration
 @EnableConfigurationProperties({GridFsStorageProperties.class})
 public class GridFsStorageProvider implements StorageService {
 

@@ -2,16 +2,12 @@ package org.ogerardin.b2b.batch.mongodb;
 
 
 import com.mongodb.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.repository.dao.StepExecutionDao;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.OptimisticLockingFailureException;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
 
@@ -20,28 +16,22 @@ import java.util.Collection;
 import java.util.Date;
 
 import static com.mongodb.BasicDBObjectBuilder.start;
-import static org.springframework.util.Assert.notNull;
 
 /**
  * Uses MongoTemplate to perform CRUD on Springbatch's Step Execution Data to
  * Mongo DB. <br/>MongoTemplate needs to be set as a property during bean definition
- * 
+ *
  * @author Baruch S.
  * @authoer vfouzdar
  */
 @Repository
 public class MongoStepExecutionDao extends AbstractMongoDao implements StepExecutionDao {
-    
-    private static final Logger LOG = LoggerFactory.getLogger(MongoStepExecutionDao.class);
 
-    @Autowired
-	private MongoTemplate mongoTemplate;
-	    
-    public void setMongoTemplate(MongoTemplate mongoTemplate) {
-		this.mongoTemplate = mongoTemplate;
-	}
+    public MongoStepExecutionDao() {
+        super(StepExecution.class);
+    }
 
-	@PostConstruct
+    @PostConstruct
     public void init() {
         getCollection().createIndex(BasicDBObjectBuilder.start().add(STEP_EXECUTION_ID_KEY, 1).add(JOB_EXECUTION_ID_KEY, 1).get());
 
@@ -157,25 +147,20 @@ public class MongoStepExecutionDao extends AbstractMongoDao implements StepExecu
         }
     }
 
-    @Override
-    protected DBCollection getCollection() {
-        return mongoTemplate.getCollection(StepExecution.class.getSimpleName());
-    }
-
     private void validateStepExecution(StepExecution stepExecution) {
-        notNull(stepExecution);
-        notNull(stepExecution.getStepName(), "StepExecution step name cannot be null.");
-        notNull(stepExecution.getStartTime(), "StepExecution start time cannot be null.");
-        notNull(stepExecution.getStatus(), "StepExecution status cannot be null.");
+        Assert.notNull(stepExecution);
+        Assert.notNull(stepExecution.getStepName(), "StepExecution step name cannot be null.");
+        Assert.notNull(stepExecution.getStartTime(), "StepExecution start time cannot be null.");
+        Assert.notNull(stepExecution.getStatus(), "StepExecution status cannot be null.");
     }
 
-	@Override
-	public void saveStepExecutions(Collection<StepExecution> stepExecutions) {
-		Assert.notNull(stepExecutions,"Attempt to save an null collect of step executions");
-		for (StepExecution stepExecution: stepExecutions) {
-			saveStepExecution(stepExecution);
-		}
-		
-	}
+    @Override
+    public void saveStepExecutions(Collection<StepExecution> stepExecutions) {
+        Assert.notNull(stepExecutions, "Attempt to save an null collect of step executions");
+        for (StepExecution stepExecution : stepExecutions) {
+            saveStepExecution(stepExecution);
+        }
+
+    }
 
 }

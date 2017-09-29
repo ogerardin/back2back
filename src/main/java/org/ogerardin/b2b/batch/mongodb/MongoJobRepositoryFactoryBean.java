@@ -19,17 +19,16 @@ import org.springframework.stereotype.Component;
  * <li>{@link MongoJobExecutionDao}</li>
  * <li>{@link MongoJobInstanceDao}</li>
  * <li>{@link MongoStepExecutionDao}</li>
- * </ul>  
- * 
+ * </ul>
+ *
  * @author vfouzdar
  * @author ogerardin
- *
  */
 @Component
 public class MongoJobRepositoryFactoryBean extends AbstractJobRepositoryFactoryBean implements InitializingBean {
 
     @Autowired
-	private MongoExecutionContextDao executionContextDao;
+    private MongoExecutionContextDao executionContextDao;
     @Autowired
     private MongoJobExecutionDao jobExecutionDao;
     @Autowired
@@ -42,24 +41,24 @@ public class MongoJobRepositoryFactoryBean extends AbstractJobRepositoryFactoryB
     }
 
     @Override
-	protected JobInstanceDao createJobInstanceDao() {
+    protected JobInstanceDao createJobInstanceDao() {
         return jobInstanceDao;
-	}
+    }
 
-	@Override
-	protected JobExecutionDao createJobExecutionDao() {
-		return jobExecutionDao;
-	}
+    @Override
+    protected JobExecutionDao createJobExecutionDao() {
+        return jobExecutionDao;
+    }
 
-	@Override
-	protected StepExecutionDao createStepExecutionDao() {
-		return stepExecutionDao;
-	}
+    @Override
+    protected StepExecutionDao createStepExecutionDao() {
+        return stepExecutionDao;
+    }
 
-	@Override
-	protected ExecutionContextDao createExecutionContextDao() {
-		return executionContextDao;
-	}
+    @Override
+    protected ExecutionContextDao createExecutionContextDao() {
+        return executionContextDao;
+    }
 
     public MongoExecutionContextDao getExecutionContextDao() {
         return executionContextDao;

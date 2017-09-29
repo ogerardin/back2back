@@ -2,7 +2,6 @@ package org.ogerardin.b2b.batch.mongodb;
 
 
 import com.mongodb.BasicDBObject;
-import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import org.springframework.batch.core.JobExecution;
@@ -11,8 +10,6 @@ import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.launch.NoSuchJobException;
 import org.springframework.batch.core.repository.dao.JobInstanceDao;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
 
@@ -28,24 +25,20 @@ import static com.mongodb.BasicDBObjectBuilder.start;
 /**
  * Uses MongoTemplate to perform CRUD on Springbatch's Job Instance Data to
  * Mongo DB. <br/>MongoTemplate needs to be set as a property during bean definition
- * 
+ *
  * @author Baruch S.
  * @authoer vfouzdar
  */
 @Repository
 public class MongoJobInstanceDao extends AbstractMongoDao implements JobInstanceDao {
 
-    @Autowired
-	 private MongoTemplate mongoTemplate;
-	 
-	 public void setMongoTemplate(MongoTemplate mongoTemplate){
-		this.mongoTemplate = mongoTemplate; 
-	 }
-	 
-	 
+    public MongoJobInstanceDao() {
+        super(JobInstance.class);
+    }
+
     @PostConstruct
     public void init() {
-        getCollection(). createIndex(jobInstanceIdObj(1L));
+        getCollection().createIndex(jobInstanceIdObj(1L));
     }
 
     public JobInstance createJobInstance(String jobName, final JobParameters jobParameters) {
@@ -135,11 +128,6 @@ public class MongoJobInstanceDao extends AbstractMongoDao implements JobInstance
         }
     }
 
-    @Override
-    protected DBCollection getCollection() {
-        return mongoTemplate.getCollection(JobInstance.class.getSimpleName());
-    }
-
     private List<JobInstance> mapJobInstances(DBCursor dbCursor) {
         List<JobInstance> results = new ArrayList<JobInstance>();
         while (dbCursor.hasNext()) {
@@ -159,7 +147,7 @@ public class MongoJobInstanceDao extends AbstractMongoDao implements JobInstance
             if (jobParameters == null) {
                 jobParameters = getJobParameters(id, mongoTemplate);
             }
-            
+
             jobInstance = new JobInstance(id, (String) dbObject.get(JOB_NAME_KEY)); // should always be at version=0 because they never get updated
             jobInstance.incrementVersion();
         }
@@ -167,45 +155,45 @@ public class MongoJobInstanceDao extends AbstractMongoDao implements JobInstance
     }
 
 
-	@Override
-	public List<JobInstance> findJobInstancesByName(String jobName, int start,
+    @Override
+    public List<JobInstance> findJobInstancesByName(String jobName, int start,
                                                     int count) {
-		List<JobInstance> result = new ArrayList<JobInstance>();
-		List<JobInstance> jobInstances = mapJobInstances(getCollection().find(
-				new BasicDBObject(JOB_NAME_KEY, jobName)).sort(
-				jobInstanceIdObj(-1L)));
-		for (JobInstance instanceEntry : jobInstances) {
-			String key = instanceEntry.getJobName();
-			String curJobName = key.substring(0, key.lastIndexOf("|"));
+        List<JobInstance> result = new ArrayList<JobInstance>();
+        List<JobInstance> jobInstances = mapJobInstances(getCollection().find(
+                new BasicDBObject(JOB_NAME_KEY, jobName)).sort(
+                jobInstanceIdObj(-1L)));
+        for (JobInstance instanceEntry : jobInstances) {
+            String key = instanceEntry.getJobName();
+            String curJobName = key.substring(0, key.lastIndexOf("|"));
 
-			if(curJobName.equals(jobName)) {
-				result.add(instanceEntry);
-			}
-		}
-		return result;
-	}
+            if (curJobName.equals(jobName)) {
+                result.add(instanceEntry);
+            }
+        }
+        return result;
+    }
 
-	@Override
-	public int getJobInstanceCount(String jobName) throws NoSuchJobException {
+    @Override
+    public int getJobInstanceCount(String jobName) throws NoSuchJobException {
 
-		int count = 0;
-		List<JobInstance> jobInstances = mapJobInstances(getCollection().find(
-				new BasicDBObject(JOB_NAME_KEY, jobName)).sort(
-				jobInstanceIdObj(-1L)));
-		for (JobInstance instanceEntry : jobInstances) {
-			String key = instanceEntry.getJobName();
-			String curJobName = key.substring(0, key.lastIndexOf("|"));
+        int count = 0;
+        List<JobInstance> jobInstances = mapJobInstances(getCollection().find(
+                new BasicDBObject(JOB_NAME_KEY, jobName)).sort(
+                jobInstanceIdObj(-1L)));
+        for (JobInstance instanceEntry : jobInstances) {
+            String key = instanceEntry.getJobName();
+            String curJobName = key.substring(0, key.lastIndexOf("|"));
 
-			if(curJobName.equals(jobName)) {
-				count++;
-			}
-		}
+            if (curJobName.equals(jobName)) {
+                count++;
+            }
+        }
 
-		if(count == 0) {
-			throw new NoSuchJobException("No job instances for job name " + jobName + " were found");
-		} else {
-			return count;
-		}
-	}
+        if (count == 0) {
+            throw new NoSuchJobException("No job instances for job name " + jobName + " were found");
+        } else {
+            return count;
+        }
+    }
 
 }

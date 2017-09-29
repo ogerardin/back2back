@@ -6,114 +6,138 @@ import com.mongodb.DBObject;
 import org.springframework.batch.core.JobInstance;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-
 /**
  * Parent class for all DAO used to store SpringBatch Infrastructure data to Mongo DB.
- *  
+ *
  * @author vfouzdar
  * @author Baruch S.
  */
+@Component
 public abstract class AbstractMongoDao {
 
-    
-    public static final String UPDATED_EXISTING_STATUS = "updatedExisting";
-    public static final String VERSION_KEY = "version";
-    public static final String START_TIME_KEY = "startTime";
-    public static final String END_TIME_KEY = "endTime";
-    public static final String EXIT_CODE_KEY = "exitCode";
-    public static final String EXIT_MESSAGE_KEY = "exitMessage";
-    public static final String LAST_UPDATED_KEY = "lastUpdated";
-    public static final String STATUS_KEY = "status";
-    public static final String SEQUENCES_COLLECTION_NAME = "Sequences";
-    public static final String ID_KEY = "_id";
-    public static final String NS_KEY = "_ns";
-    public static final String DOT_ESCAPE_STRING = "\\{dot\\}";
-    public static final String DOT_STRING = "\\.";
-    
-    // Job Constants    
-    public static final String JOB_NAME_KEY = "jobName";
-    public static final String JOB_INSTANCE_ID_KEY = "jobInstanceId";
-    public static final String JOB_KEY_KEY = "jobKey";
-    public static final String JOB_PARAMETERS_KEY = "jobParameters";
-    
-    // Job Execution Constants
-    public static final String JOB_EXECUTION_ID_KEY = "jobExecutionId";
-	public static final String CREATE_TIME_KEY = "createTime";
-	
-	// Job Execution Contexts Constants
-	public static final String STEP_EXECUTION_ID_KEY = "stepExecutionId";	
-	public static final String TYPE_SUFFIX = "_TYPE";
+    static final String VERSION_KEY = "version";
+    static final String START_TIME_KEY = "startTime";
+    static final String END_TIME_KEY = "endTime";
+    static final String EXIT_CODE_KEY = "exitCode";
+    static final String EXIT_MESSAGE_KEY = "exitMessage";
+    static final String LAST_UPDATED_KEY = "lastUpdated";
+    static final String STATUS_KEY = "status";
 
-	// Step Execution Constants
-    public static final String STEP_NAME_KEY = "stepName";
-    public static final String COMMIT_COUNT_KEY = "commitCount";
-    public static final String READ_COUNT_KEY = "readCount";
-    public static final String FILTER_COUT_KEY = "filterCout";
-    public static final String WRITE_COUNT_KEY = "writeCount";
-    public static final String READ_SKIP_COUNT_KEY = "readSkipCount";
-    public static final String WRITE_SKIP_COUNT_KEY = "writeSkipCount";
-    public static final String PROCESS_SKIP_COUT_KEY = "processSkipCout";
-    public static final String ROLLBACK_COUNT_KEY = "rollbackCount";
-            
-    protected abstract DBCollection getCollection();
-    
-        
-    protected Long getNextId(String name, MongoTemplate mongoTemplate) {
-        DBCollection collection = mongoTemplate.getDb().getCollection(SEQUENCES_COLLECTION_NAME);
+    // Dot escaping
+    static final String DOT_ESCAPE_STRING = "\\{dot\\}";
+    static final String DOT_STRING = "\\.";
+
+    // Job Constants    
+    static final String JOB_NAME_KEY = "jobName";
+    static final String JOB_INSTANCE_ID_KEY = "jobInstanceId";
+    static final String JOB_KEY_KEY = "jobKey";
+    static final String JOB_PARAMETERS_KEY = "jobParameters";
+
+    // Job Execution Constants
+    static final String JOB_EXECUTION_ID_KEY = "jobExecutionId";
+    static final String CREATE_TIME_KEY = "createTime";
+
+    // Job Execution Contexts Constants
+    static final String STEP_EXECUTION_ID_KEY = "stepExecutionId";
+    static final String TYPE_SUFFIX = "_TYPE";
+
+    // Step Execution Constants
+    static final String STEP_NAME_KEY = "stepName";
+    static final String COMMIT_COUNT_KEY = "commitCount";
+    static final String READ_COUNT_KEY = "readCount";
+    static final String FILTER_COUT_KEY = "filterCout";
+    static final String WRITE_COUNT_KEY = "writeCount";
+    static final String READ_SKIP_COUNT_KEY = "readSkipCount";
+    static final String WRITE_SKIP_COUNT_KEY = "writeSkipCount";
+    static final String PROCESS_SKIP_COUT_KEY = "processSkipCout";
+    static final String ROLLBACK_COUNT_KEY = "rollbackCount";
+
+    // Sequences
+    private static final String SEQUENCES_COLLECTION_NAME = "Sequences";
+    private static final String ID_KEY = "_id";
+    private static final String NS_KEY = "_ns";
+
+    @Autowired
+    protected MongoTemplate mongoTemplate;
+
+    private String prefix = "batch";
+
+    private final String collectionName;
+
+
+    protected AbstractMongoDao(String collectionName) {
+        this.collectionName = getPrefixedCollectionName(collectionName);
+    }
+
+    private String getPrefixedCollectionName(String collectionName) {
+        return prefix.isEmpty() ? collectionName : (prefix + "_" + collectionName);
+    }
+
+    public AbstractMongoDao(Class clazz) {
+        this(clazz.getSimpleName());
+    }
+
+    final DBCollection getCollection(){
+        return mongoTemplate.getCollection(collectionName);
+    }
+
+    Long getNextId(String name, MongoTemplate mongoTemplate) {
+        DBCollection collection = mongoTemplate.getDb().getCollection(getPrefixedCollectionName(SEQUENCES_COLLECTION_NAME));
         BasicDBObject sequence = new BasicDBObject("name", name);
         collection.update(sequence, new BasicDBObject("$inc", new BasicDBObject("value", 1L)), true, false);
         return (Long) collection.findOne(sequence).get("value");
     }
 
-    protected void removeSystemFields(DBObject dbObject) {
+    void removeSystemFields(DBObject dbObject) {
         dbObject.removeField(ID_KEY);
         dbObject.removeField(NS_KEY);
     }
-    
-    protected BasicDBObject jobInstanceIdObj(Long id) {
+
+    BasicDBObject jobInstanceIdObj(Long id) {
         return new BasicDBObject(MongoJobInstanceDao.JOB_INSTANCE_ID_KEY, id);
     }
-    
-    protected BasicDBObject jobExecutionIdObj(Long id) {
-		return new BasicDBObject(JOB_EXECUTION_ID_KEY, id);
-	}
-    
-    @SuppressWarnings({"unchecked"})
-    protected JobParameters getJobParameters(Long jobInstanceId, MongoTemplate mongoTemplate) {
-		 DBObject jobParamObj = mongoTemplate
-				.getCollection(JobInstance.class.getSimpleName())
-				.findOne(new BasicDBObject(jobInstanceIdObj(jobInstanceId)));
 
-		if (jobParamObj != null && jobParamObj.get(MongoJobInstanceDao.JOB_PARAMETERS_KEY) != null){
-			
-			Map<String, ?> jobParamsMap = (Map<String, ?>) jobParamObj.get(MongoJobInstanceDao.JOB_PARAMETERS_KEY);
-					
-			Map<String, JobParameter> map = new HashMap<String, JobParameter>(
-					jobParamsMap.size());
-			for (Map.Entry<String, ?> entry : jobParamsMap.entrySet()) {
-				Object param = entry.getValue();
-				String key = entry.getKey().replaceAll(DOT_ESCAPE_STRING,
-						DOT_STRING);
-				if (param instanceof String) {
-					map.put(key, new JobParameter((String) param));
-				} else if (param instanceof Long) {
-					map.put(key, new JobParameter((Long) param));
-				} else if (param instanceof Double) {
-					map.put(key, new JobParameter((Double) param));
-				} else if (param instanceof Date) {
-					map.put(key, new JobParameter((Date) param));
-				} else {
-					map.put(key, null);
-				}
-			}
-			return new JobParameters(map);
-		}
-		return null;
-	}
+    BasicDBObject jobExecutionIdObj(Long id) {
+        return new BasicDBObject(JOB_EXECUTION_ID_KEY, id);
+    }
+
+    @SuppressWarnings({"unchecked"})
+    JobParameters getJobParameters(Long jobInstanceId, MongoTemplate mongoTemplate) {
+        DBObject jobParamObj = mongoTemplate
+                .getCollection(JobInstance.class.getSimpleName())
+                .findOne(new BasicDBObject(jobInstanceIdObj(jobInstanceId)));
+
+        if (jobParamObj != null && jobParamObj.get(MongoJobInstanceDao.JOB_PARAMETERS_KEY) != null) {
+
+            Map<String, ?> jobParamsMap = (Map<String, ?>) jobParamObj.get(MongoJobInstanceDao.JOB_PARAMETERS_KEY);
+
+            Map<String, JobParameter> map = new HashMap<String, JobParameter>(
+                    jobParamsMap.size());
+            for (Map.Entry<String, ?> entry : jobParamsMap.entrySet()) {
+                Object param = entry.getValue();
+                String key = entry.getKey().replaceAll(DOT_ESCAPE_STRING, DOT_STRING);
+                if (param instanceof String) {
+                    map.put(key, new JobParameter((String) param));
+                } else if (param instanceof Long) {
+                    map.put(key, new JobParameter((Long) param));
+                } else if (param instanceof Double) {
+                    map.put(key, new JobParameter((Double) param));
+                } else if (param instanceof Date) {
+                    map.put(key, new JobParameter((Date) param));
+                } else {
+                    map.put(key, null);
+                }
+            }
+            return new JobParameters(map);
+        }
+        return null;
+    }
 }
