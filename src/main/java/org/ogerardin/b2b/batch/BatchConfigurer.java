@@ -1,18 +1,33 @@
 package org.ogerardin.b2b.batch;
 
-import org.springframework.batch.core.configuration.annotation.DefaultBatchConfigurer;
+import org.ogerardin.b2b.batch.mongodb.MongoJobRepositoryFactoryBean;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
+import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.support.SimpleJobLauncher;
+import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.support.transaction.ResourcelessTransactionManager;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.AsyncTaskExecutor;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.PlatformTransactionManager;
 
-@Configuration
+import javax.annotation.PostConstruct;
+
+@Component
 @EnableBatchProcessing
-public class BatchConfigurer extends DefaultBatchConfigurer {
+public class BatchConfigurer implements org.springframework.batch.core.configuration.annotation.BatchConfigurer {
 
     private final AsyncTaskExecutor asyncTaskExecutor;
+
+    private PlatformTransactionManager transactionManager;
+    private JobRepository jobRepository;
+    private JobLauncher jobLauncher;
+    private JobExplorer jobExplorer;
+
+    @Autowired
+    private MongoJobRepositoryFactoryBean mongoJobRepositoryFactoryBean;
+
 
     @Autowired
     public BatchConfigurer(AsyncTaskExecutor asyncTaskExecutor) {
@@ -20,13 +35,38 @@ public class BatchConfigurer extends DefaultBatchConfigurer {
     }
 
 
-    @Override
-    public JobLauncher createJobLauncher() throws Exception {
-        JobLauncher jobLauncher = super.createJobLauncher();
-        // we assume DefaultBatchConfigurer.createJobLauncher returns a SimpleJobLauncher because
-        // we want to change the TaskExecutor to an AsyncTaskExecutor.
-        ((SimpleJobLauncher)jobLauncher).setTaskExecutor(asyncTaskExecutor);
+    private JobLauncher createJobLauncher() throws Exception {
+        SimpleJobLauncher jobLauncher = new SimpleJobLauncher();
+        jobLauncher.setJobRepository(jobRepository);
+        jobLauncher.setTaskExecutor(asyncTaskExecutor);
+        jobLauncher.afterPropertiesSet();
         return jobLauncher;
     }
 
+    @PostConstruct
+    public void initialize() throws Exception {
+        this.jobRepository = mongoJobRepositoryFactoryBean.getObject();
+        this.transactionManager = mongoJobRepositoryFactoryBean.getTransactionManager();
+        this.jobLauncher = createJobLauncher();
+    }
+
+    @Override
+    public JobRepository getJobRepository() {
+        return jobRepository;
+    }
+
+    @Override
+    public PlatformTransactionManager getTransactionManager() {
+        return transactionManager;
+    }
+
+    @Override
+    public JobLauncher getJobLauncher() {
+        return jobLauncher;
+    }
+
+    @Override
+    public JobExplorer getJobExplorer() {
+        return jobExplorer;
+    }
 }

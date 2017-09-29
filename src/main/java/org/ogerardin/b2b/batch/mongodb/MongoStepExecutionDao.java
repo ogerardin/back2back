@@ -9,6 +9,7 @@ import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.repository.dao.StepExecutionDao;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Repository;
@@ -32,7 +33,8 @@ import static org.springframework.util.Assert.notNull;
 public class MongoStepExecutionDao extends AbstractMongoDao implements StepExecutionDao {
     
     private static final Logger LOG = LoggerFactory.getLogger(MongoStepExecutionDao.class);
-    
+
+    @Autowired
 	private MongoTemplate mongoTemplate;
 	    
     public void setMongoTemplate(MongoTemplate mongoTemplate) {

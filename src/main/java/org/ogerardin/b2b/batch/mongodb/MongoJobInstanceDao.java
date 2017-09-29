@@ -11,6 +11,7 @@ import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.launch.NoSuchJobException;
 import org.springframework.batch.core.repository.dao.JobInstanceDao;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
@@ -34,6 +35,7 @@ import static com.mongodb.BasicDBObjectBuilder.start;
 @Repository
 public class MongoJobInstanceDao extends AbstractMongoDao implements JobInstanceDao {
 
+    @Autowired
 	 private MongoTemplate mongoTemplate;
 	 
 	 public void setMongoTemplate(MongoTemplate mongoTemplate){

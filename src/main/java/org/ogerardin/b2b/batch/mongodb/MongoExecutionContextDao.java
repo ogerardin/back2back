@@ -10,6 +10,7 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.repository.dao.ExecutionContextDao;
 import org.springframework.batch.item.ExecutionContext;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
@@ -39,6 +40,7 @@ public class MongoExecutionContextDao extends AbstractMongoDao implements
 	 * mongoTemplate is used to CRUD Job execution data in Mongo db. This bean
 	 * needs to be set during bean definition for MongoExecutionContextDao
 	 */
+	@Autowired
 	private MongoTemplate mongoTemplate;
 
 	public void setMongoTemplate(MongoTemplate mongoTemplate) {

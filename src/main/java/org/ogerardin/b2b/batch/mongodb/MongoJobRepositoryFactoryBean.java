@@ -6,7 +6,10 @@ import org.springframework.batch.core.repository.dao.JobExecutionDao;
 import org.springframework.batch.core.repository.dao.JobInstanceDao;
 import org.springframework.batch.core.repository.dao.StepExecutionDao;
 import org.springframework.batch.core.repository.support.AbstractJobRepositoryFactoryBean;
+import org.springframework.batch.support.transaction.ResourcelessTransactionManager;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * Job Factory responsible to provide execution/Job DAOs for storing Springbatch metadata in Mongo DB. <br/>
@@ -19,77 +22,58 @@ import org.springframework.beans.factory.InitializingBean;
  * </ul>  
  * 
  * @author vfouzdar
+ * @author ogerardin
  *
  */
+@Component
 public class MongoJobRepositoryFactoryBean extends AbstractJobRepositoryFactoryBean implements InitializingBean {
-	
-	/**
-	 * To store sprinbatch metadata in MongoDB this should hold an instance of {@link MongoExecutionContextDao}
-	 */
-    private ExecutionContextDao executionContextDao;
 
-    /**
-	 * To store sprinbatch metadata in MongoDB this should hold an instance of {@link MongoJobExecutionDao}
-	 */
-    private JobExecutionDao jobExecutionDao;
+    @Autowired
+	private MongoExecutionContextDao executionContextDao;
+    @Autowired
+    private MongoJobExecutionDao jobExecutionDao;
+    @Autowired
+    private MongoJobInstanceDao jobInstanceDao;
+    @Autowired
+    private MongoStepExecutionDao stepExecutionDao;
 
-    /**
-	 * To store sprinbatch metadata in MongoDB this should hold an instance of {@link MongoJobInstanceDao}
-	 */
-    private JobInstanceDao jobInstanceDao;
+    public MongoJobRepositoryFactoryBean() {
+        setTransactionManager(new ResourcelessTransactionManager());
+    }
 
-    /**
-	 * To store sprinbatch metadata in MongoDB this should hold an instance of {@link MongoStepExecutionDao}
-	 */
-    private StepExecutionDao stepExecutionDao;
-    
-    /**
-	 * Should hold an instance of {@link MongoExecutionContextDao}
-	 */
-	public void setExecutionContextDao(ExecutionContextDao executionContextDao) {
-		this.executionContextDao = executionContextDao;
-	}
-
-	/**
-	 * Should hold an instance of {@link MongoJobExecutionDao}
-	 */
-	public void setJobExecutionDao(JobExecutionDao jobExecutionDao) {
-		this.jobExecutionDao = jobExecutionDao;
-	}
-
-	/**
-	 * Should hold an instance of {@link MongoJobInstanceDao}
-	 */
-	public void setJobInstanceDao(JobInstanceDao jobInstanceDao) {
-		this.jobInstanceDao = jobInstanceDao;
-	}
-
-	/**
-	 * Should hold an instance of {@link MongoStepExecutionDao}
-	 */
-	public void setStepExecutionDao(StepExecutionDao stepExecutionDao) {
-		this.stepExecutionDao = stepExecutionDao;
+    @Override
+	protected JobInstanceDao createJobInstanceDao() {
+        return jobInstanceDao;
 	}
 
 	@Override
-	protected JobInstanceDao createJobInstanceDao() throws Exception {
-		return jobInstanceDao;
-	}
-
-	@Override
-	protected JobExecutionDao createJobExecutionDao() throws Exception {
+	protected JobExecutionDao createJobExecutionDao() {
 		return jobExecutionDao;
 	}
 
 	@Override
-	protected StepExecutionDao createStepExecutionDao() throws Exception {
+	protected StepExecutionDao createStepExecutionDao() {
 		return stepExecutionDao;
 	}
 
 	@Override
-	protected ExecutionContextDao createExecutionContextDao() throws Exception {
+	protected ExecutionContextDao createExecutionContextDao() {
 		return executionContextDao;
 	}
 
+    public MongoExecutionContextDao getExecutionContextDao() {
+        return executionContextDao;
+    }
 
+    public MongoJobExecutionDao getJobExecutionDao() {
+        return jobExecutionDao;
+    }
+
+    public MongoJobInstanceDao getJobInstanceDao() {
+        return jobInstanceDao;
+    }
+
+    public MongoStepExecutionDao getStepExecutionDao() {
+        return stepExecutionDao;
+    }
 }

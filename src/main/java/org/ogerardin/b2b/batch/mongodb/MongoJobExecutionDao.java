@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.*;
 import org.springframework.batch.core.repository.dao.JobExecutionDao;
 import org.springframework.batch.core.repository.dao.NoSuchObjectException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Repository;
@@ -33,6 +34,7 @@ public class MongoJobExecutionDao extends AbstractMongoDao implements
 	private static final Logger LOG = LoggerFactory
 			.getLogger(MongoJobExecutionDao.class);
 
+	@Autowired
 	private MongoTemplate mongoTemplate;
 
 	public void setMongoTemplate(MongoTemplate mongoTemplate) {
