@@ -16,6 +16,10 @@ import org.springframework.transaction.PlatformTransactionManager;
 import javax.annotation.PostConstruct;
 import java.lang.reflect.Proxy;
 
+/**
+ * Provides a customized Spring batch environment. The main customization is to replace the default
+ * synchronous {@link org.springframework.core.task.TaskExecutor} with an Asynchronous one.
+ */
 @Component
 @Configuration
 @EnableBatchProcessing
@@ -31,6 +35,7 @@ public class BatchConfigurer implements org.springframework.batch.core.configura
     @Autowired
     private MongoJobRepositoryFactoryBean mongoJobRepositoryFactoryBean;
 
+    //TODO move somewhere else
     @Bean
     public BackupJobBuilder proxyBackupJobBuilder(BackupBuilderInvocationHandler invocationHandler) {
         BackupJobBuilder proxy =

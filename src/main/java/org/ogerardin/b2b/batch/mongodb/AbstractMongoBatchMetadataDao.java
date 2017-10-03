@@ -22,7 +22,7 @@ import java.util.Map;
  */
 public abstract class AbstractMongoBatchMetadataDao {
 
-    public static final String DEFAULT_COLLECTION_PREFIX = "batch_";
+    private static final String DEFAULT_COLLECTION_PREFIX = "batch_";
 
     static final String VERSION_KEY = "version";
     static final String START_TIME_KEY = "startTime";
@@ -87,7 +87,7 @@ public abstract class AbstractMongoBatchMetadataDao {
         this(clazz.getSimpleName());
     }
 
-    final DBCollection getCollection(){
+    DBCollection getCollection(){
         return mongoTemplate.getCollection(collectionName);
     }
 

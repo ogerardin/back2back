@@ -4,6 +4,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
@@ -39,6 +40,8 @@ public class MetaInvocationHandler<T> implements InvocationHandler {
                 R result = (R) candidateMethod.invoke(candidate, args);
                 logger.debug("    Success!");
                 return result;
+            } catch (InvocationTargetException e) {
+                logger.debug("    " + e.getCause().toString());
             } catch (Exception e) {
                 logger.debug("    " + e.toString());
             }
