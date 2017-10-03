@@ -25,6 +25,7 @@ import java.util.Map;
  *
  * @author Baruch S.
  * @author vfouzdar
+ * @author ogerardin
  */
 @Repository
 public class MongoExecutionContextDao extends AbstractMongoBatchMetadataDao implements

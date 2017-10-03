@@ -3,10 +3,12 @@ package org.ogerardin.b2b.batch;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.ogerardin.b2b.worker.SingleFileProcessor;
-import org.springframework.batch.core.*;
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.JobExecutionListener;
+import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
-import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.listener.JobExecutionListenerSupport;
 import org.springframework.batch.item.ItemProcessor;
@@ -19,35 +21,29 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @Component
-public class BatchStarter {
+public abstract class BackupJobBuilderBase {
 
-    private static final Log logger = LogFactory.getLog(BatchStarter.class);
-
-    private final JobBuilderFactory jobBuilderFactory;
-    private final JobLauncher jobLauncher;
-    private final StepBuilderFactory stepBuilderFactory;
-
+    private static final Log logger = LogFactory.getLog(BackupJobBuilderBase.class);
 
     @Autowired
-    public BatchStarter(JobBuilderFactory jobBuilderFactory, JobLauncher jobLauncher, StepBuilderFactory stepBuilderFactory) {
-        this.jobBuilderFactory = jobBuilderFactory;
-        this.jobLauncher = jobLauncher;
-        this.stepBuilderFactory = stepBuilderFactory;
-    }
+    private JobBuilderFactory jobBuilderFactory;
+    @Autowired
+    private StepBuilderFactory stepBuilderFactory;
 
-    private static ItemReader<Path> newReader() throws IOException {
+
+    protected static ItemReader<Path> newReader() throws IOException {
         Path root = Paths.get(System.getProperty("user.home"));
         return new FileTreeWalkerItemReader(root);
     }
 
-    private static ItemProcessor<Path, Path> newProcessor(SingleFileProcessor fileProcessor) {
+    protected ItemProcessor<Path, Path> newProcessor(SingleFileProcessor fileProcessor) {
         return item -> {
             fileProcessor.process(item.toFile());
             return item;
         };
     }
 
-    private Job newBackupJob(SingleFileProcessor fileProcessor, JobExecutionListener listener) throws IOException {
+    protected Job newBackupJob(SingleFileProcessor fileProcessor, JobExecutionListener listener) throws IOException {
         return jobBuilderFactory.get("backupJob")
                 .incrementer(new RunIdIncrementer())
                 .listener(listener)
@@ -56,7 +52,7 @@ public class BatchStarter {
                 .build();
     }
 
-    private Step newFileProcessingStep(SingleFileProcessor fileProcessor) throws IOException {
+    protected Step newFileProcessingStep(SingleFileProcessor fileProcessor) throws IOException {
         return stepBuilderFactory.get("fileProcessingStep")
                 .<Path, Path> chunk(10)
                 .reader(newReader())
@@ -67,7 +63,7 @@ public class BatchStarter {
 
 
 
-    private JobExecutionListener listener() {
+    protected JobExecutionListener listener() {
         return new JobExecutionListenerSupport() {
             @Override
             public void beforeJob(JobExecution jobExecution) {
@@ -79,11 +75,6 @@ public class BatchStarter {
                 logger.info("FAKE backup job terminated with status: " + jobExecution.getStatus());
             }
         };
-    }
-
-    public JobExecution startBackupJob(SingleFileProcessor fileProcessor) throws IOException, JobExecutionException {
-        Job job = newBackupJob(fileProcessor, listener());
-        return jobLauncher.run(job, new JobParameters());
     }
 
 }

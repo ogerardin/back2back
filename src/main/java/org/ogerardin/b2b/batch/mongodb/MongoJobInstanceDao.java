@@ -27,7 +27,8 @@ import static com.mongodb.BasicDBObjectBuilder.start;
  * Mongo DB. <br/>MongoTemplate needs to be set as a property during bean definition
  *
  * @author Baruch S.
- * @authoer vfouzdar
+ * @author vfouzdar
+ * @author ogerardin
  */
 @Repository
 public class MongoJobInstanceDao extends AbstractMongoBatchMetadataDao implements JobInstanceDao {

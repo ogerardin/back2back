@@ -6,15 +6,18 @@ import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.support.SimpleJobLauncher;
 import org.springframework.batch.core.repository.JobRepository;
-import org.springframework.batch.support.transaction.ResourcelessTransactionManager;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.annotation.PostConstruct;
+import java.lang.reflect.Proxy;
 
 @Component
+@Configuration
 @EnableBatchProcessing
 public class BatchConfigurer implements org.springframework.batch.core.configuration.annotation.BatchConfigurer {
 
@@ -28,6 +31,13 @@ public class BatchConfigurer implements org.springframework.batch.core.configura
     @Autowired
     private MongoJobRepositoryFactoryBean mongoJobRepositoryFactoryBean;
 
+    @Bean
+    public BackupJobBuilder proxyBackupJobBuilder(BackupBuilderInvocationHandler invocationHandler) {
+        BackupJobBuilder proxy = (BackupJobBuilder) Proxy.newProxyInstance(getClass().getClassLoader(),
+                new Class[]{BackupJobBuilder.class},
+                invocationHandler);
+        return proxy;
+    }
 
     @Autowired
     public BatchConfigurer(AsyncTaskExecutor asyncTaskExecutor) {

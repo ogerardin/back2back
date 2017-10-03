@@ -8,7 +8,6 @@ import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -19,8 +18,8 @@ import java.util.Map;
  *
  * @author vfouzdar
  * @author Baruch S.
+ * @author ogerardin
  */
-@Component
 public abstract class AbstractMongoBatchMetadataDao {
 
     public static final String DEFAULT_COLLECTION_PREFIX = "batch_";

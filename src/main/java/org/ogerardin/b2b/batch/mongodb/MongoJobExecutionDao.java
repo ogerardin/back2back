@@ -23,6 +23,7 @@ import static com.mongodb.BasicDBObjectBuilder.start;
  *
  * @author Baruch S.
  * @author vfouzdar
+ * @author ogerardin
  */
 @Repository
 public class MongoJobExecutionDao extends AbstractMongoBatchMetadataDao implements JobExecutionDao {
