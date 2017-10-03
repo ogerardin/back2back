@@ -10,10 +10,12 @@ import java.util.Arrays;
 public class BackupBuilderInvocationHandler extends MetaInvocationHandler<BackupJobBuilder> {
 
     @Autowired
-    public BackupBuilderInvocationHandler(LocalToPeerBackupJobBuilder localToPeerBackupJobBuilder) {
+    public BackupBuilderInvocationHandler(LocalToPeerBackupJobBuilder localToPeerBackupJobBuilder,
+                                          LocalToLocalBackupJobBuilder localToLocalBackupJobBuilder) {
         super(
                 Arrays.asList(
-                        localToPeerBackupJobBuilder
+                        localToPeerBackupJobBuilder,
+                        localToLocalBackupJobBuilder
                 ));
     }
 

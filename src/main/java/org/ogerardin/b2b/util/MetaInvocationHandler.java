@@ -8,6 +8,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 
+/**
+ * An implementation of {@link InvocationHandler} that tries to delegate each invocation to a set of candidate instances
+ * sequentially until one of them succeeds (meaning: does not throw an exception).
+ *
+ * @param <T> the common type of candidate instances
+ */
 public class MetaInvocationHandler<T> implements InvocationHandler {
 
     private static final Log logger = LogFactory.getLog(MetaInvocationHandler.class);
@@ -19,6 +25,7 @@ public class MetaInvocationHandler<T> implements InvocationHandler {
     }
 
     public <R> R invoke(Method method, Object... args) throws NoSuchMethodException {
+        //TODO invocations of toString and such should not be delegated
         logger.debug("Trying to find candidate to handle : " + method.getName());
         // get an array of argument classes
         for (T candidate: candidates) {

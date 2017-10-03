@@ -33,9 +33,12 @@ public class BatchConfigurer implements org.springframework.batch.core.configura
 
     @Bean
     public BackupJobBuilder proxyBackupJobBuilder(BackupBuilderInvocationHandler invocationHandler) {
-        BackupJobBuilder proxy = (BackupJobBuilder) Proxy.newProxyInstance(getClass().getClassLoader(),
-                new Class[]{BackupJobBuilder.class},
-                invocationHandler);
+        BackupJobBuilder proxy =
+                (BackupJobBuilder) Proxy.newProxyInstance(
+                        getClass().getClassLoader(),
+                        new Class[]{BackupJobBuilder.class},
+                        invocationHandler
+                );
         return proxy;
     }
 

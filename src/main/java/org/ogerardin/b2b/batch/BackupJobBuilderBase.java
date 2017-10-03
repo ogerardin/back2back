@@ -20,6 +20,9 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+/**
+ * Abstract superclass for implementors of {@link BackupJobBuilder}
+ */
 @Component
 public abstract class BackupJobBuilderBase {
 
@@ -43,8 +46,8 @@ public abstract class BackupJobBuilderBase {
         };
     }
 
-    protected Job newBackupJob(SingleFileProcessor fileProcessor, JobExecutionListener listener) throws IOException {
-        return jobBuilderFactory.get("backupJob")
+    protected Job newBackupJob(String name, SingleFileProcessor fileProcessor, JobExecutionListener listener) throws IOException {
+        return jobBuilderFactory.get(name)
                 .incrementer(new RunIdIncrementer())
                 .listener(listener)
                 .flow(newFileProcessingStep(fileProcessor))
