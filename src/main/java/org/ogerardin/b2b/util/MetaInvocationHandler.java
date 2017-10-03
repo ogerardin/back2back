@@ -4,8 +4,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -26,26 +26,25 @@ public class MetaInvocationHandler<T> implements InvocationHandler {
 
     public <R> R invoke(Method method, Object... args) throws NoSuchMethodException {
         //TODO invocations of toString and such should not be delegated
-        logger.debug("Trying to find candidate to handle : " + method.getName());
+        logger.debug("Handling : " + method.getName() + " " + Arrays.toString(args));
         // get an array of argument classes
         for (T candidate: candidates) {
             logger.debug("  Trying: " + candidate);
+            Method candidateMethod;
             try {
                 // lookup a method that matches called method profile
-                Method candidateMethod = candidate.getClass().getMethod(method.getName(), method.getParameterTypes());
+                candidateMethod = candidate.getClass().getMethod(method.getName(), method.getParameterTypes());
                 // invoke it with actual parameters
                 @SuppressWarnings("unchecked")
                 R result = (R) candidateMethod.invoke(candidate, args);
-                logger.debug("  Successfully invoked method on: " + candidate);
+                logger.debug("    Success!");
                 return result;
-            } catch (NoSuchMethodException e) {
-                logger.debug("    No such method");
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                logger.debug("    Exception while invoking " + method, e);
+            } catch (Exception e) {
+                logger.debug("    " + e.toString());
             }
         }
         // all candidate classes examined -> failure
-        throw new NoSuchMethodException("No suitable candidate can handle " + method.getName());
+        throw new NoSuchMethodException("No candidate could handle " + method.getName());
     }
 
     @Override

@@ -1,4 +1,4 @@
-package org.ogerardin.b2b.worker;
+package org.ogerardin.b2b.batch;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

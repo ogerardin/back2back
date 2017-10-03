@@ -1,4 +1,4 @@
-package org.ogerardin.b2b.worker;
+package org.ogerardin.b2b.backup;
 
 import java.io.File;
 

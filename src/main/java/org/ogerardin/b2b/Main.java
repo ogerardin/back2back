@@ -8,7 +8,6 @@ import org.ogerardin.b2b.config.BackupTargetRepository;
 import org.ogerardin.b2b.domain.BackupSource;
 import org.ogerardin.b2b.domain.BackupTarget;
 import org.ogerardin.b2b.storage.StorageService;
-import org.ogerardin.b2b.worker.BackupWorkerFactory;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecutionException;
 import org.springframework.batch.core.JobParameters;
@@ -34,7 +33,6 @@ public class Main {
 
     private final BackupSourceRepository sourceRepository;
     private final BackupTargetRepository targetRepository;
-    private final BackupWorkerFactory backupWorkerFactory;
     private final BackupJobBuilder backupJobBuilder;
     private final JobLauncher jobLauncher;
 
@@ -42,12 +40,10 @@ public class Main {
     @Autowired
     public Main(BackupSourceRepository sourceRepository,
                 BackupTargetRepository targetRepository,
-                BackupWorkerFactory backupWorkerFactory,
                 @Qualifier("proxyBackupJobBuilder") BackupJobBuilder backupJobBuilder,
                 JobLauncher jobLauncher) {
         this.sourceRepository = sourceRepository;
         this.targetRepository = targetRepository;
-        this.backupWorkerFactory = backupWorkerFactory;
         this.backupJobBuilder = backupJobBuilder;
         this.jobLauncher = jobLauncher;
     }
@@ -61,7 +57,6 @@ public class Main {
         return (args) -> {
             storageService.init();
 
-            //startAllWorkers();
             startAllJobs();
         };
     }

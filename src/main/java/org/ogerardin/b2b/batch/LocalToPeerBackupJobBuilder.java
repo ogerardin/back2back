@@ -7,7 +7,7 @@ import org.ogerardin.b2b.domain.BackupSource;
 import org.ogerardin.b2b.domain.BackupTarget;
 import org.ogerardin.b2b.domain.FilesystemSource;
 import org.ogerardin.b2b.domain.NetworkTarget;
-import org.ogerardin.b2b.worker.SingleFileProcessor;
+import org.ogerardin.b2b.backup.SingleFileProcessor;
 import org.springframework.batch.core.Job;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;

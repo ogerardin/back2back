@@ -2,7 +2,7 @@ package org.ogerardin.b2b.batch;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.ogerardin.b2b.worker.SingleFileProcessor;
+import org.ogerardin.b2b.backup.SingleFileProcessor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;

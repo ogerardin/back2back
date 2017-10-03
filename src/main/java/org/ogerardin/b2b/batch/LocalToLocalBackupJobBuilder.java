@@ -4,7 +4,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.ogerardin.b2b.B2BException;
 import org.ogerardin.b2b.domain.*;
-import org.ogerardin.b2b.worker.SingleFileProcessor;
+import org.ogerardin.b2b.backup.SingleFileProcessor;
 import org.springframework.batch.core.Job;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
