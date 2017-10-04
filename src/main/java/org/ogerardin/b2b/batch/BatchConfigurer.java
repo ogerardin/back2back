@@ -3,8 +3,11 @@ package org.ogerardin.b2b.batch;
 import org.ogerardin.b2b.batch.mongodb.MongoJobRepositoryFactoryBean;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.explore.JobExplorer;
+import org.springframework.batch.core.explore.support.SimpleJobExplorer;
 import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.batch.core.launch.support.SimpleJobLauncher;
+import org.springframework.batch.core.launch.support.SimpleJobOperator;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -35,13 +38,13 @@ public class BatchConfigurer implements org.springframework.batch.core.configura
     @Autowired
     private MongoJobRepositoryFactoryBean mongoJobRepositoryFactoryBean;
 
-    //TODO move somewhere else
+    //TODO move somewhere else ?
     @Bean
     public BackupJobBuilder proxyBackupJobBuilder(BackupBuilderInvocationHandler invocationHandler) {
         BackupJobBuilder proxy =
                 (BackupJobBuilder) Proxy.newProxyInstance(
                         getClass().getClassLoader(),
-                        new Class[]{BackupJobBuilder.class},
+                        new Class[] {BackupJobBuilder.class},
                         invocationHandler
                 );
         return proxy;
@@ -66,6 +69,16 @@ public class BatchConfigurer implements org.springframework.batch.core.configura
         this.jobRepository = mongoJobRepositoryFactoryBean.getObject();
         this.transactionManager = mongoJobRepositoryFactoryBean.getTransactionManager();
         this.jobLauncher = createJobLauncher();
+        this.jobExplorer = createJobExplorer();
+    }
+
+    private JobExplorer createJobExplorer() {
+        return new SimpleJobExplorer(
+                mongoJobRepositoryFactoryBean.getJobInstanceDao(),
+                mongoJobRepositoryFactoryBean.getJobExecutionDao(),
+                mongoJobRepositoryFactoryBean.getStepExecutionDao(),
+                mongoJobRepositoryFactoryBean.getExecutionContextDao()
+                );
     }
 
     @Override
@@ -87,4 +100,6 @@ public class BatchConfigurer implements org.springframework.batch.core.configura
     public JobExplorer getJobExplorer() {
         return jobExplorer;
     }
+
+
 }

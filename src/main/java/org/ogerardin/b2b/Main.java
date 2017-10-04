@@ -2,6 +2,7 @@ package org.ogerardin.b2b;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.ogerardin.b2b.backup.SingleFileProcessor;
 import org.ogerardin.b2b.batch.BackupJobBuilder;
 import org.ogerardin.b2b.config.BackupSourceRepository;
 import org.ogerardin.b2b.config.BackupTargetRepository;
@@ -10,7 +11,10 @@ import org.ogerardin.b2b.domain.BackupTarget;
 import org.ogerardin.b2b.storage.StorageService;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecutionException;
+import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.configuration.JobRegistry;
+import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -22,7 +26,10 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 @SpringBootApplication
 @EnableAutoConfiguration(exclude={DataSourceAutoConfiguration.class})
@@ -35,17 +42,22 @@ public class Main {
     private final BackupTargetRepository targetRepository;
     private final BackupJobBuilder backupJobBuilder;
     private final JobLauncher jobLauncher;
+    private final JobExplorer jobExplorer;
 
 
     @Autowired
     public Main(BackupSourceRepository sourceRepository,
                 BackupTargetRepository targetRepository,
                 @Qualifier("proxyBackupJobBuilder") BackupJobBuilder backupJobBuilder,
-                JobLauncher jobLauncher) {
+                JobLauncher jobLauncher,
+                JobExplorer jobExplorer,
+                JobRegistry jobRegistry
+    ) {
         this.sourceRepository = sourceRepository;
         this.targetRepository = targetRepository;
         this.backupJobBuilder = backupJobBuilder;
         this.jobLauncher = jobLauncher;
+        this.jobExplorer = jobExplorer;
     }
 
     public static void main(String[] args) {
@@ -76,8 +88,16 @@ public class Main {
     }
 
     private void startJob(BackupSource source, BackupTarget target) throws IOException, JobExecutionException, B2BException, InstantiationException, NoSuchMethodException {
-        Job job = backupJobBuilder.newBackupJob(source, target);
-        jobLauncher.run(job, new JobParameters());
+        Job job = backupJobBuilder.newBackupJob(source, target, new SingleFileProcessor() {
+            @Override
+            public void process(File f) {
+                //nop
+            }
+        });
+        Map<String, JobParameter> params = new HashMap<>();
+        params.put("source", new JobParameter(source.toString()));
+        params.put("target", new JobParameter(target.toString()));
+        jobLauncher.run(job, new JobParameters(params));
 
     }
 
