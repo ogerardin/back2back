@@ -38,18 +38,6 @@ public class BatchConfigurer implements org.springframework.batch.core.configura
     @Autowired
     private MongoJobRepositoryFactoryBean mongoJobRepositoryFactoryBean;
 
-    //TODO move somewhere else ?
-    @Bean
-    public BackupJobBuilder proxyBackupJobBuilder(BackupBuilderInvocationHandler invocationHandler) {
-        BackupJobBuilder proxy =
-                (BackupJobBuilder) Proxy.newProxyInstance(
-                        getClass().getClassLoader(),
-                        new Class[] {BackupJobBuilder.class},
-                        invocationHandler
-                );
-        return proxy;
-    }
-
     @Autowired
     public BatchConfigurer(AsyncTaskExecutor asyncTaskExecutor) {
         this.asyncTaskExecutor = asyncTaskExecutor;

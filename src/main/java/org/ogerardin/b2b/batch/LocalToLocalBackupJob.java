@@ -2,31 +2,31 @@ package org.ogerardin.b2b.batch;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.ogerardin.b2b.backup.SingleFileProcessor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.listener.JobExecutionListenerSupport;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
+import org.springframework.batch.item.support.PassThroughItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-/**
- * Abstract superclass for implementors of {@link BackupJobBuilder}
- */
-@Component
-public abstract class BackupJobBuilderBase {
+@Configuration
+public class LocalToLocalBackupJob extends BackupJobBase {
 
-    private static final Log logger = LogFactory.getLog(BackupJobBuilderBase.class);
+    private static final Log logger = LogFactory.getLog(LocalToLocalBackupJob.class);
 
     @Autowired
     private JobBuilderFactory jobBuilderFactory;
@@ -34,39 +34,40 @@ public abstract class BackupJobBuilderBase {
     private StepBuilderFactory stepBuilderFactory;
 
 
-    protected static ItemReader<Path> newReader() throws IOException {
-        Path root = Paths.get(System.getProperty("user.home"));
-        return new FileTreeWalkerItemReader(root);
-    }
-
-    protected ItemProcessor<Path, Path> newProcessor(SingleFileProcessor fileProcessor) {
-        return item -> {
-            fileProcessor.process(item.toFile());
-            return item;
-        };
-    }
-
-    protected Job newBackupJob(String name, SingleFileProcessor fileProcessor, JobExecutionListener listener) throws IOException {
-        return jobBuilderFactory.get(name)
+    @Bean
+    protected Job backupJob(Step fileProcessingStep) throws IOException {
+        return jobBuilderFactory.get(getClass().getSimpleName())
                 .incrementer(new RunIdIncrementer())
-                .listener(listener)
-                .flow(newFileProcessingStep(fileProcessor))
+                .listener(listener())
+                .flow(fileProcessingStep)
                 .end()
                 .build();
     }
 
-    protected Step newFileProcessingStep(SingleFileProcessor fileProcessor) throws IOException {
+    @Bean
+    protected Step fileProcessingStep(ItemProcessor<Path, Path> itemProcessor, ItemReader<Path> reader) throws IOException {
         return stepBuilderFactory.get("fileProcessingStep")
                 .<Path, Path> chunk(10)
-                .reader(newReader())
-                .processor(newProcessor(fileProcessor))
+                .reader(reader)
+                .processor(itemProcessor)
 //                .writer(newWriter())
                 .build();
     }
 
+    @Bean
+    protected ItemProcessor<Path, Path> itemProcessor() {
+        //TODO do something useful
+        return new PassThroughItemProcessor<>();
+    }
 
+    @Bean
+    @StepScope
+    protected static ItemReader<Path> reader(@Value("#{jobParameters['root']}") String rootParam) throws IOException {
+        Path root = Paths.get(rootParam);
+        return new FileTreeWalkerItemReader(root);
+    }
 
-    protected JobExecutionListener listener() {
+    private JobExecutionListener listener() {
         return new JobExecutionListenerSupport() {
             @Override
             public void beforeJob(JobExecution jobExecution) {
@@ -79,5 +80,7 @@ public abstract class BackupJobBuilderBase {
             }
         };
     }
+
+
 
 }
