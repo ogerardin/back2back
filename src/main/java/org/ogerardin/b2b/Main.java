@@ -7,13 +7,9 @@ import org.ogerardin.b2b.config.BackupTargetRepository;
 import org.ogerardin.b2b.domain.BackupSource;
 import org.ogerardin.b2b.domain.BackupTarget;
 import org.ogerardin.b2b.storage.StorageService;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobExecutionException;
-import org.springframework.batch.core.JobParameter;
-import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.configuration.JobRegistry;
-import org.springframework.batch.core.explore.JobExplorer;
+import org.springframework.batch.core.*;
 import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -25,6 +21,7 @@ import org.springframework.context.annotation.ComponentScan;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @SpringBootApplication
@@ -37,23 +34,18 @@ public class Main {
     private final BackupSourceRepository sourceRepository;
     private final BackupTargetRepository targetRepository;
     private final JobLauncher jobLauncher;
-    private final JobExplorer jobExplorer;
-
-    private final Job backupJob;
+    private final List<Job> allJobs;
 
 
     @Autowired
     public Main(BackupSourceRepository sourceRepository,
                 BackupTargetRepository targetRepository,
                 JobLauncher jobLauncher,
-                JobExplorer jobExplorer,
-                JobRegistry jobRegistry,
-                Job backupJob) {
+                List<Job> jobs) {
         this.sourceRepository = sourceRepository;
         this.targetRepository = targetRepository;
         this.jobLauncher = jobLauncher;
-        this.jobExplorer = jobExplorer;
-        this.backupJob = backupJob;
+        this.allJobs = jobs;
     }
 
     public static void main(String[] args) {
@@ -77,6 +69,8 @@ public class Main {
         targetRepository.findAll().forEach(target -> {
             try {
                 startJob(source, target);
+            } catch (JobExecutionAlreadyRunningException e) {
+                logger.warn(e.toString());
             } catch (IOException | JobExecutionException | B2BException | InstantiationException | NoSuchMethodException e) {
                 logger.error("Failed to start job for " + source + ", " + target, e);
             }
@@ -85,15 +79,38 @@ public class Main {
 
     private void startJob(BackupSource source, BackupTarget target) throws IOException, JobExecutionException, B2BException, InstantiationException, NoSuchMethodException {
 
-        //TODO determine backup job from source+target
-        //TODO build parameters from source+target
-
+        // build parameters (delegated to BackupSource and BackupTarget)
         Map<String, JobParameter> params = new HashMap<>();
-        params.put("source", new JobParameter(source.toString()));
-        params.put("target", new JobParameter(target.toString()));
+        source.populateParams(params);
+        target.populateParams(params);
+        JobParameters jobParameters = new JobParameters(params);
 
-        jobLauncher.run(backupJob, new JobParameters(params));
+        // find Job applicable for parameters
+        Job applicableJob = getApplicableJob(jobParameters);
+        if (applicableJob == null) {
+            throw new B2BException("no job applicable for parameters " + jobParameters);
+        }
 
+        // launch it
+        jobLauncher.run(applicableJob, jobParameters);
+    }
+
+    private Job getApplicableJob(JobParameters jobParameters) {
+        for (Job job: allJobs) {
+            JobParametersValidator parametersValidator = job.getJobParametersValidator();
+            if (parametersValidator != null) {
+                try {
+                    parametersValidator.validate(jobParameters);
+                } catch (JobParametersInvalidException e) {
+                    // validation failed: try next job
+                    continue;
+                }
+            }
+            // validation suceeded: use this job
+            return job;
+        }
+        // no applicable job
+        return null;
     }
 
 

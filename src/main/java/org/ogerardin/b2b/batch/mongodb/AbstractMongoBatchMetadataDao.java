@@ -99,6 +99,9 @@ public abstract class AbstractMongoBatchMetadataDao {
     }
 
     void removeSystemFields(DBObject dbObject) {
+        if (dbObject == null) {
+            return;
+        }
         dbObject.removeField(ID_KEY);
         dbObject.removeField(NS_KEY);
     }

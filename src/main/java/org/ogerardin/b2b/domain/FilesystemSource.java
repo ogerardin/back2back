@@ -2,13 +2,11 @@ package org.ogerardin.b2b.domain;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.springframework.data.annotation.Id;
+import org.springframework.batch.core.JobParameter;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -25,6 +23,12 @@ public class FilesystemSource extends BackupSource {
 
     public FilesystemSource(File dir) throws IOException {
         this(dir.getCanonicalPath());
+    }
+
+    @Override
+    public void populateParams(Map<String, JobParameter> params) {
+        params.put("source.type", new JobParameter(FilesystemSource.class.getName()));
+        params.put("source.root", new JobParameter(path));
     }
 }
 

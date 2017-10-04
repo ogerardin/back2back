@@ -6,10 +6,11 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "sources")
 @Data
-public abstract class BackupSource {
+public abstract class BackupSource implements JobParametersPopulator {
 
     @Id
     private String id;
 
     private String name;
+
 }
