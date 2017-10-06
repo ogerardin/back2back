@@ -38,11 +38,12 @@ public class EmbeddedMongoConfiguration {
      */
     @Bean
     public static IRuntimeConfig runtimeConfig() {
-        Logger logger = LoggerFactory.getLogger(EmbeddedMongoConfiguration.class.getPackage().getName() + ".EmbeddedMongo");
+        Logger logger = LoggerFactory.getLogger(EmbeddedMongoConfiguration.class);
 
+        // how do we handle Mongo output ?
         ProcessOutput processOutput = new ProcessOutput(
-                Processors.logTo(logger, Slf4jLevel.INFO),
-                Processors.logTo(logger, Slf4jLevel.ERROR),
+                Processors.logTo(logger, Slf4jLevel.INFO), // stdout logs an INFO message
+                Processors.logTo(logger, Slf4jLevel.ERROR), // stderr logs an ERROR message
                 Processors.named("[console>]", Processors.logTo(logger, Slf4jLevel.DEBUG)));
 
         return new RuntimeConfigBuilder()
@@ -56,6 +57,7 @@ public class EmbeddedMongoConfiguration {
      * Returns an {@link ArtifactStoreBuilder} configured with the detected proxy
      */
     private static ArtifactStoreBuilder getArtifactStore(Logger logger) {
+
         IProxyFactory proxyFactory = detectProxyFactory(logger);
 
         return new ExtractedArtifactStoreBuilder()
@@ -69,7 +71,7 @@ public class EmbeddedMongoConfiguration {
 
     /**
      * Returns an {@link IProxyFactory} matching the system's proxy settings.
-     * We use proxy-vole to get proxy configuration, see: https://github.com/MarkusBernhardt/proxy-vole
+     * We use proxy-vole to detect proxy configuration, see: https://github.com/MarkusBernhardt/proxy-vole
      */
     private static IProxyFactory detectProxyFactory(Logger logger) {
         // if the logger is enabled for debug, set an adapter to log debug output of proxy-vole
