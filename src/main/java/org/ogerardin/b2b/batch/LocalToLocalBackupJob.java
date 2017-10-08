@@ -28,8 +28,7 @@ public class LocalToLocalBackupJob extends LocalSourceBackupJob {
 
 
     @Bean("localToLocalJob")
-    protected Job job(Step localToLocalStep)
-            throws IOException {
+    protected Job job(Step localToLocalStep) throws IOException {
         return jobBuilderFactory.get(LocalToLocalBackupJob.class.getSimpleName())
                 .validator(validator())
                 .incrementer(new RunIdIncrementer())
@@ -49,8 +48,8 @@ public class LocalToLocalBackupJob extends LocalSourceBackupJob {
                 .build();
     }
 
-    @Bean
-    protected ItemProcessor<Path, Path> localToLocalItemProcessor() {
+    @Bean(name = "localToLocalItemProcessor")
+    protected ItemProcessor<Path, Path> itemProcessor() {
         return new ItemProcessor<Path, Path>() {
             @Override
             public Path process(Path item) throws Exception {

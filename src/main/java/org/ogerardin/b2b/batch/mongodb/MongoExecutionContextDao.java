@@ -51,10 +51,16 @@ public class MongoExecutionContextDao extends AbstractMongoBatchMetadataDao impl
     }
 
     public ExecutionContext getExecutionContext(JobExecution jobExecution) {
+        if (jobExecution == null) {
+            return new ExecutionContext();
+        }
         return getExecutionContext(JOB_EXECUTION_ID_KEY, jobExecution.getId());
     }
 
     public ExecutionContext getExecutionContext(StepExecution stepExecution) {
+        if (stepExecution == null) {
+            return new ExecutionContext();
+        }
         return getExecutionContext(STEP_EXECUTION_ID_KEY, stepExecution.getId());
     }
 

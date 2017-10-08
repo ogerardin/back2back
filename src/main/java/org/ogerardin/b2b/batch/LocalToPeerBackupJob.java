@@ -39,24 +39,24 @@ public class LocalToPeerBackupJob extends LocalSourceBackupJob {
     }
 
     @Bean("localToPeerStep")
-    protected Step step(ItemProcessor<Path, Path> localToPeerItemProcessor, ItemReader<Path> localToPeerReader) throws IOException {
+    protected Step step(ItemProcessor<Path, Path> localToPeerItemProcessor, ItemReader<Path> localToPeerItemReader) throws IOException {
         return stepBuilderFactory.get("processLocalFiles")
                 .<Path, Path>chunk(10)
-                .reader(localToPeerReader)
+                .reader(localToPeerItemReader)
                 .processor(localToPeerItemProcessor)
 //                .writer(newWriter())
                 .build();
     }
 
-    @Bean
-    protected ItemProcessor<Path, Path> localToPeerItemProcessor() {
+    @Bean(name = "localToPeerItemProcessor")
+    protected ItemProcessor<Path, Path> itemProcessor() {
         //TODO do something useful
         return new PassThroughItemProcessor<>();
     }
 
-    @Bean
+    @Bean(name = "localToPeerItemReader")
     @StepScope
-    protected ItemReader<Path> localToPeerReader(@Value("#{jobParameters['source.root']}") String root) throws
+    protected ItemReader<Path> itemReader(@Value("#{jobParameters['source.root']}") String root) throws
             IOException {
         //TODO for debug
         return () -> null;

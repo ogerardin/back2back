@@ -38,7 +38,7 @@ public class EmbeddedMongoConfiguration {
      */
     @Bean
     public static IRuntimeConfig runtimeConfig() {
-        Logger logger = LoggerFactory.getLogger(EmbeddedMongoConfiguration.class);
+        Logger logger = LoggerFactory.getLogger(EmbeddedMongoConfiguration.class.getPackage().getName() + ".EmbeddedMongo");
 
         // how do we handle Mongo output ?
         ProcessOutput processOutput = new ProcessOutput(

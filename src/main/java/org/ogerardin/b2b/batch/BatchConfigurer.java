@@ -1,6 +1,9 @@
 package org.ogerardin.b2b.batch;
 
 import org.ogerardin.b2b.batch.mongodb.MongoJobRepositoryFactoryBean;
+import org.springframework.batch.core.BatchStatus;
+import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.JobInstance;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.explore.support.SimpleJobExplorer;
@@ -58,6 +61,26 @@ public class BatchConfigurer implements org.springframework.batch.core.configura
         this.transactionManager = mongoJobRepositoryFactoryBean.getTransactionManager();
         this.jobLauncher = createJobLauncher();
         this.jobExplorer = createJobExplorer();
+
+        fixJobRepository();
+    }
+
+    /**
+     * If using en embedded instance of MongoDB, when shutting down the app it might
+     * be stopped before the status of running jobs is updated, leaving
+     * them in bogus STARTED status. If there are such jobExecutions, set
+     * them to FAILED status.
+     */
+    private void fixJobRepository() {
+        for (String jobName : jobExplorer.getJobNames()) {
+            for (JobInstance jobInstance : jobExplorer.getJobInstances(jobName, 0, Integer.MAX_VALUE)) {
+                for (JobExecution jobExecution : jobExplorer.getJobExecutions(jobInstance)) {
+                    if (jobExecution.getStatus() == BatchStatus.STARTED) {
+                        jobExecution.setStatus(BatchStatus.FAILED);
+                    }
+                }
+            }
+        }
     }
 
     private JobExplorer createJobExplorer() {
