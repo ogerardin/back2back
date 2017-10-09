@@ -6,16 +6,15 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.io.IOException;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
  * Recursively walks a filesystem directory and collects the {@link Path} of all files.
+ * Note: we do not use {@link Files#walk} because of unsuitable error control, see
+ * https://stackoverflow.com/questions/22867286/files-walk-calculate-total-size/
  */
 @EqualsAndHashCode(callSuper = true)
 @Data

@@ -80,6 +80,8 @@ public class Main {
 
     private void startJob(BackupSource source, BackupTarget target) throws IOException, JobExecutionException, B2BException, InstantiationException, NoSuchMethodException {
 
+        logger.debug("Finding job for " + source + ", " + target);
+
         // build parameters (delegated to BackupSource and BackupTarget)
         Map<String, JobParameter> params = new HashMap<>();
         source.populateParams(params);
@@ -91,8 +93,10 @@ public class Main {
         if (applicableJob == null) {
             throw new B2BException("no job applicable for parameters " + jobParameters);
         }
+        logger.debug("Found applicable job: " + applicableJob);
 
         // launch it
+        logger.debug("Starting job: " + applicableJob);
         jobLauncher.run(applicableJob, jobParameters);
     }
 
