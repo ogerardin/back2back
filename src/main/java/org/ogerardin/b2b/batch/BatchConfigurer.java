@@ -77,6 +77,7 @@ public class BatchConfigurer implements org.springframework.batch.core.configura
                 for (JobExecution jobExecution : jobExplorer.getJobExecutions(jobInstance)) {
                     if (jobExecution.getStatus() == BatchStatus.STARTED) {
                         jobExecution.setStatus(BatchStatus.FAILED);
+                        jobRepository.update(jobExecution);
                     }
                 }
             }
