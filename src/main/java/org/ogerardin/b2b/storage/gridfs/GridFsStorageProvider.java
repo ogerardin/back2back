@@ -3,6 +3,7 @@ package org.ogerardin.b2b.storage.gridfs;
 import com.mongodb.gridfs.GridFSDBFile;
 import com.mongodb.gridfs.GridFSFile;
 import org.ogerardin.b2b.storage.StorageException;
+import org.ogerardin.b2b.storage.StorageFileNotFoundException;
 import org.ogerardin.b2b.storage.StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -71,17 +72,17 @@ public class GridFsStorageProvider implements StorageService {
     }
 
     @Override
-    public InputStream getAsInputStream(String filename) throws FileNotFoundException {
+    public InputStream getAsInputStream(String filename) throws StorageFileNotFoundException {
         GridFSDBFile fsdbFile = gridFsTemplate.findOne(new Query(GridFsCriteria.whereFilename().is(filename)));
         if (fsdbFile == null) {
-            throw new FileNotFoundException(filename);
+            throw new StorageFileNotFoundException(filename);
         }
         return fsdbFile.getInputStream();
 
     }
 
     @Override
-    public Resource getAsResource(String filename) throws FileNotFoundException {
+    public Resource getAsResource(String filename) throws StorageFileNotFoundException {
         return new InputStreamResource(getAsInputStream(filename));
     }
 
@@ -91,13 +92,29 @@ public class GridFsStorageProvider implements StorageService {
     }
 
     @Override
-    public void store(File file) throws IOException {
-        store(new FileInputStream(file), file.getCanonicalPath());
+    public void store(File file) {
+        try {
+            store(new FileInputStream(file), file.getCanonicalPath());
+        } catch (IOException e) {
+            throw new StorageException("Exception while trying to get InputStream for " + file, e);
+        }
     }
 
     @Override
-    public void store(Path path) throws IOException {
-        store(Files.newInputStream(path, StandardOpenOption.READ), path.toFile().getCanonicalPath());
+    public void store(Path path) {
+        String canonicalPath;
+        try {
+            canonicalPath = path.toFile().getCanonicalPath();
+        } catch (IOException e) {
+            throw new StorageException("Exception while trying to get canonical path for " + path, e);
+        }
+        InputStream inputStream;
+        try {
+            inputStream = Files.newInputStream(path, StandardOpenOption.READ);
+        } catch (IOException e) {
+            throw new StorageException("Exception while trying to get InputStream for " + path, e);
+        }
+        store(inputStream, canonicalPath);
     }
 
     @Override

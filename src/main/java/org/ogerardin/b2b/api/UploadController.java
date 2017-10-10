@@ -1,5 +1,6 @@
 package org.ogerardin.b2b.api;
 
+import org.ogerardin.b2b.storage.StorageFileNotFoundException;
 import org.ogerardin.b2b.storage.StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -39,7 +40,7 @@ public class UploadController {
 
     @GetMapping("/api/files/{filename:.+}")
     @ResponseBody
-    public ResponseEntity<Resource> serveFile(@PathVariable String filename) throws FileNotFoundException {
+    public ResponseEntity<Resource> serveFile(@PathVariable String filename) throws StorageFileNotFoundException {
 
         Resource file = storageService.getAsResource(filename);
         return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION,

@@ -5,6 +5,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+/**
+ * Provide an {@link AsyncTaskExecutor} intended for the Spring batch {@link org.springframework.batch.core.launch.JobLauncher}
+ */
 @Configuration
 public class AsyncTaskExecutorProvider {
 

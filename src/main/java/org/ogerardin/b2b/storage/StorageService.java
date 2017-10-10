@@ -3,7 +3,8 @@ package org.ogerardin.b2b.storage;
 import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.*;
+import java.io.File;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
@@ -15,15 +16,15 @@ public interface StorageService {
 
     Stream<Path> loadAll();
 
-    InputStream getAsInputStream(String filename) throws FileNotFoundException;
+    InputStream getAsInputStream(String filename) throws StorageFileNotFoundException;
 
-    Resource getAsResource(String filename) throws FileNotFoundException;
+    Resource getAsResource(String filename) throws StorageFileNotFoundException;
 
     void deleteAll();
 
-    void store(File file) throws IOException;
+    void store(File file);
 
-    void store(Path path) throws IOException;
+    void store(Path path);
 
-    void store(InputStream inputStream, String canonicalPath) throws IOException;
+    void store(InputStream inputStream, String canonicalPath);
 }
