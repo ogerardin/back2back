@@ -14,8 +14,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
 @Configuration
 public class LocalToLocalBackupJob extends LocalSourceBackupJob {
@@ -50,11 +52,20 @@ public class LocalToLocalBackupJob extends LocalSourceBackupJob {
     }
 
     @Bean(name = "localToLocalItemProcessor")
-    protected ItemProcessor<Path, Path> itemProcessor() {
-        return item -> {
-            logger.debug("Processing " + item);
+    @StepScope
+    protected ItemProcessor<Path, Path> itemProcessor(@Value("#{jobParameters['target.path']}") String targetPathParam, @Value("#{jobParameters['source.root']}") String sourceRootParam) {
+        Path targetPath = Paths.get(targetPathParam);
+        Path sourceRoot = Paths.get(sourceRootParam);
+
+        return itemPath -> {
+            logger.debug("Processing " + itemPath);
+            Path relativeItemPath = sourceRoot.relativize(itemPath);
+            Path targetFilePath = targetPath.resolve(relativeItemPath);
+            logger.debug("  Copying " + itemPath + " to " + targetFilePath);
+            Files.createDirectories(targetFilePath.getParent());
+            Files.copy(itemPath, targetFilePath, StandardCopyOption.REPLACE_EXISTING);
             Thread.sleep(1000);
-            return item;
+            return itemPath;
         };
     }
 

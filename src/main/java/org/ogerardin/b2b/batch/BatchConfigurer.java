@@ -47,13 +47,6 @@ public class BatchConfigurer implements org.springframework.batch.core.configura
     }
 
 
-    private JobLauncher createJobLauncher() throws Exception {
-        SimpleJobLauncher jobLauncher = new SimpleJobLauncher();
-        jobLauncher.setJobRepository(jobRepository);
-        jobLauncher.setTaskExecutor(asyncTaskExecutor);
-        jobLauncher.afterPropertiesSet();
-        return jobLauncher;
-    }
 
     @PostConstruct
     public void initialize() throws Exception {
@@ -82,6 +75,14 @@ public class BatchConfigurer implements org.springframework.batch.core.configura
                 }
             }
         }
+    }
+
+    private JobLauncher createJobLauncher() throws Exception {
+        SimpleJobLauncher jobLauncher = new SimpleJobLauncher();
+        jobLauncher.setJobRepository(jobRepository);
+        jobLauncher.setTaskExecutor(asyncTaskExecutor);
+        jobLauncher.afterPropertiesSet();
+        return jobLauncher;
     }
 
     private JobExplorer createJobExplorer() {
