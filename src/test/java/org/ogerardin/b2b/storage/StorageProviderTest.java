@@ -1,10 +1,7 @@
 package org.ogerardin.b2b.storage;
 
 import org.apache.commons.io.IOUtils;
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
 
 import java.io.InputStream;
 import java.net.URL;
@@ -15,28 +12,11 @@ import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class StorageProviderTest {
+public abstract class StorageProviderTest {
 
     private static final String FILESET_RSC = "/fileset";
 
-    private final StorageService storageService;
-
-    @Before
-    public void setUp() {
-        storageService.init();
-        storageService.deleteAll();
-    }
-
-    @After
-    public void tearDown() {
-    }
-
-    public StorageProviderTest(StorageService storageService) {
-        this.storageService = storageService;
-    }
-
-    @Test
-    public void loadAll() throws Exception {
+    protected void testLoadAll(StorageService storageService) throws Exception {
 
         // list all files in resource directory
         URL url = getClass().getResource(FILESET_RSC);

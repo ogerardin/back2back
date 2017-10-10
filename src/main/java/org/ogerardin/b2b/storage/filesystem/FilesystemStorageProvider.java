@@ -11,10 +11,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.*;
 import java.util.Comparator;
 import java.util.stream.Stream;
 
@@ -119,7 +116,7 @@ public class FilesystemStorageProvider implements StorageService {
         Path localPath = remoteToLocal(path);
         try {
             Files.createDirectories(localPath.getParent());
-            Files.copy(path, localPath);
+            Files.copy(path, localPath, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             throw new StorageException("Exception while trying to copy file " + path + " to " + localPath, e);
         }
