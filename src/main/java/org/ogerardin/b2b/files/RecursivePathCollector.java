@@ -38,7 +38,9 @@ public class RecursivePathCollector extends SimpleFileVisitor<Path> {
 
     @Override
     public FileVisitResult visitFile(Path path, BasicFileAttributes basicFileAttributes) throws IOException {
-        paths.add(path);
+        if (basicFileAttributes.isRegularFile()) {
+            paths.add(path);
+        }
         return FileVisitResult.CONTINUE;
     }
 

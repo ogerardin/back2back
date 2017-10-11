@@ -3,31 +3,32 @@ package org.ogerardin.b2b.batch;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.ogerardin.b2b.domain.LocalTarget;
+import org.ogerardin.b2b.storage.StorageService;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 
 @Configuration
 public class LocalToLocalBackupJob extends LocalSourceBackupJob {
 
     private static final Log logger = LogFactory.getLog(LocalToLocalBackupJob.class);
 
+    @Autowired
+    StorageService storageService;
 
     public LocalToLocalBackupJob() {
         addStaticParameter("target.type", LocalTarget.class.getName());
-        addMandatoryParameter("target.path");
     }
 
     @Bean("localToLocalJob")
@@ -54,16 +55,14 @@ public class LocalToLocalBackupJob extends LocalSourceBackupJob {
     @Bean(name = "localToLocalItemProcessor")
     @StepScope
     protected ItemProcessor<Path, Path> itemProcessor(@Value("#{jobParameters['target.path']}") String targetPathParam, @Value("#{jobParameters['source.root']}") String sourceRootParam) {
-        Path targetPath = Paths.get(targetPathParam);
-        Path sourceRoot = Paths.get(sourceRootParam);
 
         return itemPath -> {
             logger.debug("Processing " + itemPath);
-            Path relativeItemPath = sourceRoot.relativize(itemPath);
-            Path targetFilePath = targetPath.resolve(relativeItemPath);
-            logger.debug("  Copying " + itemPath + " to " + targetFilePath);
-            Files.createDirectories(targetFilePath.getParent());
-            Files.copy(itemPath, targetFilePath, StandardCopyOption.REPLACE_EXISTING);
+            try {
+                storageService.store(itemPath);
+            } catch (Exception e) {
+                logger.error("Failed to store file: " + itemPath, e);
+            }
             Thread.sleep(1000);
             return itemPath;
         };
