@@ -8,6 +8,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ogerardin.b2b.domain.FilesystemSource;
 import org.ogerardin.b2b.domain.BackupSource;
+import org.ogerardin.b2b.domain.mongorepository.BackupSourceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.boot.test.context.SpringBootTest;

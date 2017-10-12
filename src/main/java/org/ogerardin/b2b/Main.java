@@ -2,8 +2,8 @@ package org.ogerardin.b2b;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.ogerardin.b2b.config.BackupSourceRepository;
-import org.ogerardin.b2b.config.BackupTargetRepository;
+import org.ogerardin.b2b.domain.mongorepository.BackupSourceRepository;
+import org.ogerardin.b2b.domain.mongorepository.BackupTargetRepository;
 import org.ogerardin.b2b.domain.BackupSource;
 import org.ogerardin.b2b.domain.BackupTarget;
 import org.ogerardin.b2b.storage.StorageService;

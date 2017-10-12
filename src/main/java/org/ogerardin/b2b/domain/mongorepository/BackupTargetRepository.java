@@ -1,4 +1,4 @@
-package org.ogerardin.b2b.config;
+package org.ogerardin.b2b.domain.mongorepository;
 
 import org.ogerardin.b2b.domain.BackupTarget;
 import org.springframework.data.mongodb.repository.MongoRepository;
