@@ -1,29 +1,27 @@
 package org.ogerardin.b2b.mongo;
 
-import de.flapdoodle.embed.mongo.Command;
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.*;
+import de.flapdoodle.embed.mongo.config.IMongodConfig;
+import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
+import de.flapdoodle.embed.mongo.config.Net;
+import de.flapdoodle.embed.mongo.config.Storage;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.config.IRuntimeConfig;
-import de.flapdoodle.embed.process.extract.UserTempNaming;
 import de.flapdoodle.embed.process.runtime.Network;
+import org.ogerardin.b2b.config.EmbeddedMongoConfiguration;
 
 import java.io.IOException;
 
+/**
+ * A simple app to start an embedded Mongo without all the Spring machinery.
+ */
 public class EmbeddedMongoRunner {
 
+    private static final IRuntimeConfig RUNTIME_CONFIG = EmbeddedMongoConfiguration.runtimeConfig();
+
     public static void main(String[] args) throws IOException, InterruptedException {
-        Command command = Command.MongoD;
-        IRuntimeConfig runtimeConfig = new RuntimeConfigBuilder()
-                .defaults(command)
-                .artifactStore(new ExtractedArtifactStoreBuilder()
-                        .defaults(command)
-                        .download(new DownloadConfigBuilder()
-                                .defaultsForCommand(command).build())
-                        .executableNaming(new UserTempNaming()))
-                .build();
 
         Storage replication = new Storage("mongo-storage",null,0);
 
@@ -33,7 +31,7 @@ public class EmbeddedMongoRunner {
                 .replication(replication)
                 .build();
 
-        MongodStarter runtime = MongodStarter.getInstance(runtimeConfig);
+        MongodStarter runtime = MongodStarter.getInstance(RUNTIME_CONFIG);
 
         MongodExecutable mongodExecutable = null;
         try {

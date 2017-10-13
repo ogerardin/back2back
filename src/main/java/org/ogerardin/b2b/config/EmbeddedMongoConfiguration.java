@@ -75,7 +75,7 @@ public class EmbeddedMongoConfiguration {
      */
     private static IProxyFactory detectProxyFactory(Logger logger) {
         // if the logger is enabled for debug, set an adapter to log debug output of proxy-vole
-        if (logger.isDebugEnabled()) {
+        if (logger != null && logger.isDebugEnabled()) {
             com.github.markusbernhardt.proxy.util.Logger.setBackend(new LogBackEnd() {
                 @Override
                 public void log(Class<?> clazz, com.github.markusbernhardt.proxy.util.Logger.LogLevel loglevel, String msg, Object... params) {
