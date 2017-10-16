@@ -85,23 +85,28 @@ public class Main {
     }
 
     private BackupSet findBackupSet(BackupSource source, BackupTarget target) {
-        BackupSet example = new BackupSet();
-        example.setBackupSourceId(source.getId());
-        example.setBackupTargetId(target.getId());
-        List<BackupSet> backupSets = backupSetRepository.findAll(Example.of(example));
+        BackupSet backupSet = new BackupSet();
+        backupSet.setBackupSourceId(source.getId());
+        backupSet.setBackupTargetId(target.getId());
+        List<BackupSet> backupSets = backupSetRepository.findAll(Example.of(backupSet));
 
         if (backupSets.isEmpty()) {
             logger.info("No backup set found for " + source + ", " + target + ": creating one");
-            BackupSet backupSet = new BackupSet();
+            backupSetRepository.insert(backupSet);
+            return backupSet;
         }
+
+        if (backupSets.size() > 1) {
+            logger.error("More than 1 backup set found for " + source + ", " + target);
+        }
+        return backupSets.get(0);
     }
 
     private void startJob(BackupSet backupSet) throws JobExecutionException, B2BException {
+        logger.debug("Finding job for backup set " + backupSet);
 
         BackupSource source = sourceRepository.findOne(backupSet.getBackupSourceId());
         BackupTarget target = targetRepository.findOne(backupSet.getBackupTargetId());
-
-        logger.debug("Finding job for " + source + ", " + target);
 
         // build parameters (delegated to BackupSource and BackupTarget)
         Map<String, JobParameter> params = new HashMap<>();
