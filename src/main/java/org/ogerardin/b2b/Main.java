@@ -2,10 +2,12 @@ package org.ogerardin.b2b;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.ogerardin.b2b.domain.mongorepository.BackupSourceRepository;
-import org.ogerardin.b2b.domain.mongorepository.BackupTargetRepository;
+import org.ogerardin.b2b.domain.BackupSet;
 import org.ogerardin.b2b.domain.BackupSource;
 import org.ogerardin.b2b.domain.BackupTarget;
+import org.ogerardin.b2b.domain.mongorepository.BackupSetRepository;
+import org.ogerardin.b2b.domain.mongorepository.BackupSourceRepository;
+import org.ogerardin.b2b.domain.mongorepository.BackupTargetRepository;
 import org.ogerardin.b2b.storage.StorageService;
 import org.springframework.batch.core.*;
 import org.springframework.batch.core.launch.JobLauncher;
@@ -18,8 +20,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.data.domain.Example;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +35,7 @@ public class Main {
 
     private final BackupSourceRepository sourceRepository;
     private final BackupTargetRepository targetRepository;
+    private final BackupSetRepository backupSetRepository;
 
     private final JobLauncher jobLauncher;
     private final List<Job> allJobs;
@@ -41,10 +44,12 @@ public class Main {
     @Autowired
     public Main(BackupSourceRepository sourceRepository,
                 BackupTargetRepository targetRepository,
+                BackupSetRepository backupSetRepository,
                 JobLauncher jobLauncher,
                 List<Job> jobs) {
         this.sourceRepository = sourceRepository;
         this.targetRepository = targetRepository;
+        this.backupSetRepository = backupSetRepository;
         this.jobLauncher = jobLauncher;
         this.allJobs = jobs;
     }
@@ -62,23 +67,39 @@ public class Main {
         };
     }
 
-    private void startAllJobs() throws JobExecutionException, IOException {
+    private void startAllJobs() {
         sourceRepository.findAll().forEach(this::startJobs);
     }
 
     private void startJobs(BackupSource source) {
         targetRepository.findAll().forEach(target -> {
             try {
-                startJob(source, target);
+                BackupSet backupSet = findBackupSet(source, target);
+                startJob(backupSet);
             } catch (JobExecutionAlreadyRunningException e) {
                 logger.warn(e.toString());
-            } catch (IOException | JobExecutionException | B2BException | InstantiationException | NoSuchMethodException e) {
+            } catch ( JobExecutionException | B2BException e) {
                 logger.error("Failed to start job for " + source + ", " + target, e);
             }
         });
     }
 
-    private void startJob(BackupSource source, BackupTarget target) throws IOException, JobExecutionException, B2BException, InstantiationException, NoSuchMethodException {
+    private BackupSet findBackupSet(BackupSource source, BackupTarget target) {
+        BackupSet example = new BackupSet();
+        example.setBackupSourceId(source.getId());
+        example.setBackupTargetId(target.getId());
+        List<BackupSet> backupSets = backupSetRepository.findAll(Example.of(example));
+
+        if (backupSets.isEmpty()) {
+            logger.info("No backup set found for " + source + ", " + target + ": creating one");
+            BackupSet backupSet = new BackupSet();
+        }
+    }
+
+    private void startJob(BackupSet backupSet) throws JobExecutionException, B2BException {
+
+        BackupSource source = sourceRepository.findOne(backupSet.getBackupSourceId());
+        BackupTarget target = targetRepository.findOne(backupSet.getBackupTargetId());
 
         logger.debug("Finding job for " + source + ", " + target);
 

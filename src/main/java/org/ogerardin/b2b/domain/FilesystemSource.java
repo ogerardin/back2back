@@ -8,10 +8,15 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
+/**
+ * Represents a set of local files to be backed up
+ */
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class FilesystemSource extends BackupSource {
 
+    /** root directory to be backed up */
+    // FIXME should be a java.nio.file.Path but causes serialization failure
     private String path;
 
     public FilesystemSource() {

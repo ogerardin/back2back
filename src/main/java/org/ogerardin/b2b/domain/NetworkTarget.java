@@ -6,6 +6,9 @@ import org.springframework.batch.core.JobParameter;
 
 import java.util.Map;
 
+/**
+ * Represents a remote peer backup destination
+ */
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class NetworkTarget extends BackupTarget {

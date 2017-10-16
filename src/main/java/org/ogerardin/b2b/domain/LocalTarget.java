@@ -6,9 +6,15 @@ import org.springframework.batch.core.JobParameter;
 
 import java.util.Map;
 
+/**
+ * Represents a local backup destination
+ */
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class LocalTarget extends BackupTarget {
+
+    /** local path of storage */
+    // FIXME should be a java.nio.file.Path but causes serialization failure
     String path;
 
     public LocalTarget(String path) {

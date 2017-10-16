@@ -14,6 +14,9 @@ public class BackupSet {
 
     private UUID computerId;
 
+    private String backupSourceId;
+    private String backupTargetId;
+
     private Instant lastBackupCompleteTime;
     private Instant currentBackupStartTime;
 }
