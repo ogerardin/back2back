@@ -12,23 +12,11 @@
         <div id="sourcesElement">
             <ol>
                 <li v-for="s in sources">
-                    {{ s }}
+                    {{ s.id }}
                 </li>
             </ol>
         </div>
 
-        <script language="JavaScript">
-            new Vue({
-                el: '#sourcesElement',
-                data: {
-                    sources: [
-                        'bla', 'bli', 'blu'
-                    ]
-                }
-
-                }
-            )
-        </script>
 
         <h1>File upload</h1>
 
@@ -40,6 +28,8 @@
                 </table>
             </form>
         </div>
+
+    <script src="app.js"></script>
 
 </body>
 </html>
