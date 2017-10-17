@@ -1,4 +1,4 @@
-package org.ogerardin.b2b.rest_api;
+package org.ogerardin.b2b.api;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;

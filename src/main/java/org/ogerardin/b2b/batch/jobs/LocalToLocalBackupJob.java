@@ -1,7 +1,8 @@
-package org.ogerardin.b2b.batch;
+package org.ogerardin.b2b.batch.jobs;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.ogerardin.b2b.batch.FileTreeWalkerItemReader;
 import org.ogerardin.b2b.domain.LocalTarget;
 import org.ogerardin.b2b.storage.StorageService;
 import org.ogerardin.b2b.storage.gridfs.GridFsStorageProvider;

@@ -1,4 +1,4 @@
-package org.ogerardin.b2b.batch;
+package org.ogerardin.b2b.batch.jobs;
 
 import org.ogerardin.b2b.domain.FilesystemSource;
 
