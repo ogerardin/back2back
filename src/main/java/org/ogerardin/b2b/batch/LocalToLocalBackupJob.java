@@ -4,6 +4,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.ogerardin.b2b.domain.LocalTarget;
 import org.ogerardin.b2b.storage.StorageService;
+import org.ogerardin.b2b.storage.gridfs.GridFsStorageProvider;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -14,6 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.core.convert.MongoConverter;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -25,7 +28,15 @@ public class LocalToLocalBackupJob extends LocalSourceBackupJob {
     private static final Log logger = LogFactory.getLog(LocalToLocalBackupJob.class);
 
     @Autowired
+    private MongoDbFactory mongoDbFactory;
+
+    @Autowired
+    private MongoConverter mongoConverter;
+
+/*
+    @Autowired
     StorageService storageService;
+*/
 
     public LocalToLocalBackupJob() {
         addStaticParameter("target.type", LocalTarget.class.getName());
@@ -59,6 +70,7 @@ public class LocalToLocalBackupJob extends LocalSourceBackupJob {
             @Value("#{jobParameters['source.root']}") String sourceRootParam,
             @Value("#{jobParameters['backupset.id']}") String backupSetId
     ) {
+        StorageService storageService = new GridFsStorageProvider(mongoDbFactory, mongoConverter, backupSetId);
 
         return itemPath -> {
             logger.debug("Processing " + itemPath);

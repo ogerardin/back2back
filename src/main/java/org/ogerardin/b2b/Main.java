@@ -8,7 +8,6 @@ import org.ogerardin.b2b.domain.BackupTarget;
 import org.ogerardin.b2b.domain.mongorepository.BackupSetRepository;
 import org.ogerardin.b2b.domain.mongorepository.BackupSourceRepository;
 import org.ogerardin.b2b.domain.mongorepository.BackupTargetRepository;
-import org.ogerardin.b2b.storage.StorageService;
 import org.springframework.batch.core.*;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
@@ -59,10 +58,8 @@ public class Main {
     }
 
     @Bean
-    CommandLineRunner init(StorageService storageService) {
+    CommandLineRunner init() {
         return (args) -> {
-            storageService.init();
-
             startAllJobs();
         };
     }

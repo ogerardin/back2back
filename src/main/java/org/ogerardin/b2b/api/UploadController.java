@@ -1,10 +1,11 @@
 package org.ogerardin.b2b.api;
 
 import org.ogerardin.b2b.storage.StorageFileNotFoundException;
-import org.ogerardin.b2b.storage.StorageService;
+import org.ogerardin.b2b.storage.gridfs.GridFsStorageProvider;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.Resource;
+import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.core.convert.MongoConverter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -20,11 +21,12 @@ import java.util.stream.Collectors;
 
 @Controller
 public class UploadController {
-    private final StorageService storageService;
+
+    private final GridFsStorageProvider storageService;
 
     @Autowired
-    public UploadController(@Qualifier("gridFsStorageProvider") StorageService storageService) {
-        this.storageService = storageService;
+    public UploadController(MongoDbFactory mongoDbFactory, MongoConverter mongoDbConverter) {
+        this.storageService = new GridFsStorageProvider(mongoDbFactory, mongoDbConverter);
     }
 
     @GetMapping("/api/files")

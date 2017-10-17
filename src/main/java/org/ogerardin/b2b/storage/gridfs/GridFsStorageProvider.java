@@ -5,9 +5,6 @@ import com.mongodb.gridfs.GridFSFile;
 import org.ogerardin.b2b.storage.StorageException;
 import org.ogerardin.b2b.storage.StorageFileNotFoundException;
 import org.ogerardin.b2b.storage.StorageService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.mongodb.MongoDbFactory;
@@ -15,7 +12,6 @@ import org.springframework.data.mongodb.core.convert.MongoConverter;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.gridfs.GridFsCriteria;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
-import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,18 +22,18 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.stream.Stream;
 
-@Service
-//@Configuration
-@EnableConfigurationProperties({GridFsStorageProperties.class})
 public class GridFsStorageProvider implements StorageService {
 
-    private final GridFsStorageProperties properties;
+    public static final String DEFAULT_BUCKET = "storage";
+
     private final GridFsTemplate gridFsTemplate;
 
-    @Autowired
-    public GridFsStorageProvider(GridFsStorageProperties properties, MongoDbFactory mongoDbFactory, MongoConverter mongoConverter) {
-        this.properties = properties;
-        this.gridFsTemplate = new GridFsTemplate(mongoDbFactory, mongoConverter, properties.getBucket());
+    public GridFsStorageProvider(MongoDbFactory mongoDbFactory, MongoConverter mongoConverter) {
+        this(mongoDbFactory, mongoConverter, DEFAULT_BUCKET);
+    }
+
+    public GridFsStorageProvider(MongoDbFactory mongoDbFactory, MongoConverter mongoConverter, String bucket) {
+        this.gridFsTemplate = new GridFsTemplate(mongoDbFactory, mongoConverter, bucket);
     }
 
     @Override
