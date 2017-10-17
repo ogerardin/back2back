@@ -110,23 +110,29 @@ public class Main {
 
         // build parameters (delegated to BackupSource and BackupTarget)
         Map<String, JobParameter> params = new HashMap<>();
+        backupSet.populateParams(params);
         source.populateParams(params);
         target.populateParams(params);
         JobParameters jobParameters = new JobParameters(params);
 
         // find Job applicable for parameters
-        Job applicableJob = getApplicableJob(jobParameters);
+        Job applicableJob = findApplicableJob(jobParameters);
         if (applicableJob == null) {
             throw new B2BException("no job applicable for parameters " + jobParameters);
         }
-        logger.debug("Found applicable job: " + applicableJob);
 
         // launch it
-        logger.debug("Starting job: " + applicableJob);
+        logger.debug("Found applicable job, starting it: " + applicableJob);
         jobLauncher.run(applicableJob, jobParameters);
     }
 
-    private Job getApplicableJob(JobParameters jobParameters) {
+    /**
+     * Finds a Job from all known jobs that matches the specified parameters (i.e. for which
+     * calling the validator doesn't throw a {@link JobParametersInvalidException}). If several jobs
+     * match, which one is returned is undefined.
+     * @return The Job, or null if none found
+     */
+    private Job findApplicableJob(JobParameters jobParameters) {
         for (Job job: allJobs) {
             JobParametersValidator parametersValidator = job.getJobParametersValidator();
             if (parametersValidator != null) {

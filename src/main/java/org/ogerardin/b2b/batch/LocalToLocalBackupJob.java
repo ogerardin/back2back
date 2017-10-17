@@ -54,7 +54,11 @@ public class LocalToLocalBackupJob extends LocalSourceBackupJob {
 
     @Bean(name = "localToLocalItemProcessor")
     @StepScope
-    protected ItemProcessor<Path, Path> itemProcessor(@Value("#{jobParameters['target.path']}") String targetPathParam, @Value("#{jobParameters['source.root']}") String sourceRootParam) {
+    protected ItemProcessor<Path, Path> itemProcessor(
+            @Value("#{jobParameters['target.path']}") String targetPathParam,
+            @Value("#{jobParameters['source.root']}") String sourceRootParam,
+            @Value("#{jobParameters['backupset.id']}") String backupSetId
+    ) {
 
         return itemPath -> {
             logger.debug("Processing " + itemPath);
