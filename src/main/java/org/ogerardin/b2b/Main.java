@@ -83,8 +83,8 @@ public class Main {
 
     private BackupSet findBackupSet(BackupSource source, BackupTarget target) {
         BackupSet backupSet = new BackupSet();
-        backupSet.setBackupSourceId(source.getId());
-        backupSet.setBackupTargetId(target.getId());
+        backupSet.setBackupSource(source);
+        backupSet.setBackupTarget(target);
         List<BackupSet> backupSets = backupSetRepository.findAll(Example.of(backupSet));
 
         if (backupSets.isEmpty()) {
@@ -102,8 +102,10 @@ public class Main {
     private void startJob(BackupSet backupSet) throws JobExecutionException, B2BException {
         logger.debug("Finding job for backup set " + backupSet);
 
-        BackupSource source = sourceRepository.findOne(backupSet.getBackupSourceId());
-        BackupTarget target = targetRepository.findOne(backupSet.getBackupTargetId());
+//        BackupSource source = sourceRepository.findOne(backupSet.getBackupSourceId());
+//        BackupTarget target = targetRepository.findOne(backupSet.getBackupTargetId());
+        BackupSource source = backupSet.getBackupSource();
+        BackupTarget target = backupSet.getBackupTarget();
 
         // build parameters (delegated to BackupSource and BackupTarget)
         Map<String, JobParameter> params = new HashMap<>();

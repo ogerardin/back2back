@@ -3,11 +3,14 @@ package org.ogerardin.b2b.domain;
 import lombok.Data;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.DBRef;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 
+@Document
 @Data
 public class BackupSet implements JobParametersPopulator {
 
@@ -16,8 +19,11 @@ public class BackupSet implements JobParametersPopulator {
 
     private UUID computerId;
 
-    private String backupSourceId;
-    private String backupTargetId;
+    @DBRef
+    private BackupSource backupSource;
+
+    @DBRef
+    private BackupTarget backupTarget;
 
     private Instant lastBackupCompleteTime;
     private Instant currentBackupStartTime;
