@@ -3,4 +3,4 @@
  * <p>
  * Adapted from https://github.com/vfouzdar/springbatch-mongoDao
  */
-package org.ogerardin.b2b.batch.mongodb;
+package org.ogerardin.batch.mongodb;

@@ -1,6 +1,6 @@
 package org.ogerardin.b2b.batch;
 
-import org.ogerardin.b2b.batch.mongodb.MongoJobRepositoryFactoryBean;
+import org.ogerardin.batch.mongodb.MongoJobRepositoryFactoryBean;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobInstance;
@@ -8,19 +8,16 @@ import org.springframework.batch.core.configuration.annotation.EnableBatchProces
 import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.explore.support.SimpleJobExplorer;
 import org.springframework.batch.core.launch.JobLauncher;
-import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.batch.core.launch.support.SimpleJobLauncher;
-import org.springframework.batch.core.launch.support.SimpleJobOperator;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.annotation.PostConstruct;
-import java.lang.reflect.Proxy;
 
 /**
  * Provides a customized Spring batch environment. The main customization is to replace the default
@@ -28,6 +25,7 @@ import java.lang.reflect.Proxy;
  */
 @Component
 @Configuration
+@ComponentScan(basePackages = "org.ogerardin.batch.mongodb")
 @EnableBatchProcessing
 public class BatchConfigurer implements org.springframework.batch.core.configuration.annotation.BatchConfigurer {
 

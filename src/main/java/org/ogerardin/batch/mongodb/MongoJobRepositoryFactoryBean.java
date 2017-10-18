@@ -1,4 +1,4 @@
-package org.ogerardin.b2b.batch.mongodb;
+package org.ogerardin.batch.mongodb;
 
 
 import org.springframework.batch.core.repository.dao.ExecutionContextDao;

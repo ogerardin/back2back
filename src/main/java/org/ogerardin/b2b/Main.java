@@ -102,8 +102,6 @@ public class Main {
     private void startJob(BackupSet backupSet) throws JobExecutionException, B2BException {
         logger.debug("Finding job for backup set " + backupSet);
 
-//        BackupSource source = sourceRepository.findOne(backupSet.getBackupSourceId());
-//        BackupTarget target = targetRepository.findOne(backupSet.getBackupTargetId());
         BackupSource source = backupSet.getBackupSource();
         BackupTarget target = backupSet.getBackupTarget();
 

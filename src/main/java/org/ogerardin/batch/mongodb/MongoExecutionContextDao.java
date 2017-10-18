@@ -1,4 +1,4 @@
-package org.ogerardin.b2b.batch.mongodb;
+package org.ogerardin.batch.mongodb;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;

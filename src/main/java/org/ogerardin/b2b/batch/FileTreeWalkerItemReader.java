@@ -8,7 +8,8 @@ import java.nio.file.Path;
 import java.util.Iterator;
 
 /**
- * An {@link ItemReader} that reads all file paths recursively under a given directory.
+ * An {@link ItemReader} that provides the {@link Path}s of all files (recursively) under a given
+ * directory.
  * Actual tree walking is not performed until the first call to {@link #read()} is made.
  * @see RecursivePathCollector
  */

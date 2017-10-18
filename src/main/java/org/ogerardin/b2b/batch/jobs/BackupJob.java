@@ -2,12 +2,13 @@ package org.ogerardin.b2b.batch.jobs;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.batch.core.*;
+import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersInvalidException;
+import org.springframework.batch.core.JobParametersValidator;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.job.CompositeJobParametersValidator;
 import org.springframework.batch.core.job.DefaultJobParametersValidator;
-import org.springframework.batch.core.listener.JobExecutionListenerSupport;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
@@ -25,21 +26,7 @@ public abstract class BackupJob {
     private List<JobParametersValidator> validators = new ArrayList<>();
 
     protected BackupJob() {
-    }
-
-    protected JobExecutionListener listener() {
-        return new JobExecutionListenerSupport() {
-            @Override
-            public void beforeJob(JobExecution jobExecution) {
-                logger.info("About to start backup job: " + jobExecution.getJobInstance().getJobName());
-            }
-
-            @Override
-            public void afterJob(JobExecution jobExecution) {
-                logger.info("Backup job " + jobExecution.getJobInstance().getJobName() +
-                        " terminated with status: " + jobExecution.getStatus());
-            }
-        };
+        addMandatoryParameter("backupset.id");
     }
 
     protected JobParametersValidator validator() {
@@ -56,7 +43,7 @@ public abstract class BackupJob {
     }
 
     protected void addStaticParameter(String name, String value) {
-     validators.add(new StaticJobParameterValidator(name, value));
+        validators.add(new StaticJobParameterValidator(name, value));
     }
 
     private class StaticJobParameterValidator implements JobParametersValidator {

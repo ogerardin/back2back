@@ -3,10 +3,12 @@ package org.ogerardin.b2b.batch.jobs;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.ogerardin.b2b.batch.FileTreeWalkerItemReader;
+import org.ogerardin.b2b.batch.PathItemProcessListener;
 import org.ogerardin.b2b.domain.LocalTarget;
 import org.ogerardin.b2b.storage.StorageService;
 import org.ogerardin.b2b.storage.gridfs.GridFsStorageProvider;
 import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
@@ -19,7 +21,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.convert.MongoConverter;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -34,33 +35,29 @@ public class LocalToLocalBackupJob extends LocalSourceBackupJob {
     @Autowired
     private MongoConverter mongoConverter;
 
-/*
-    @Autowired
-    StorageService storageService;
-*/
-
     public LocalToLocalBackupJob() {
         addStaticParameter("target.type", LocalTarget.class.getName());
     }
 
     @Bean("localToLocalJob")
-    protected Job job(Step localToLocalStep) throws IOException {
+    protected Job job(Step localToLocalStep, JobExecutionListener jobListener) {
         return jobBuilderFactory.get(LocalToLocalBackupJob.class.getSimpleName())
                 .validator(validator())
                 .incrementer(new RunIdIncrementer())
-                .listener(listener())
+                .listener(jobListener)
                 .flow(localToLocalStep)
                 .end()
                 .build();
     }
 
     @Bean("localToLocalStep")
-    protected Step step(ItemProcessor<Path, Path> localToLocalItemProcessor, ItemReader<Path> localToLocalItemReader) throws IOException {
+    protected Step step(ItemProcessor<Path, Path> localToLocalItemProcessor, ItemReader<Path> localToLocalItemReader, PathItemProcessListener itemProcessListener) {
         return stepBuilderFactory.get("processLocalFiles")
                 .<Path, Path> chunk(10)
                 .reader(localToLocalItemReader)
                 .processor(localToLocalItemProcessor)
 //                .writer(newWriter())
+                .listener(itemProcessListener)
                 .build();
     }
 
@@ -87,8 +84,7 @@ public class LocalToLocalBackupJob extends LocalSourceBackupJob {
 
     @Bean
     @StepScope
-    protected ItemReader<Path> localToLocalItemReader(@Value("#{jobParameters['source.root']}") String rootParam)
-            throws IOException {
+    protected ItemReader<Path> localToLocalItemReader(@Value("#{jobParameters['source.root']}") String rootParam) {
         Path root = Paths.get(rootParam);
         return new FileTreeWalkerItemReader(root);
     }

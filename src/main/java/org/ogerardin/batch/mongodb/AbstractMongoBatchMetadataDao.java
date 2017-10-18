@@ -1,4 +1,4 @@
-package org.ogerardin.b2b.batch.mongodb;
+package org.ogerardin.batch.mongodb;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
@@ -107,7 +107,7 @@ public abstract class AbstractMongoBatchMetadataDao {
     }
 
     BasicDBObject jobInstanceIdObj(Long id) {
-        return new BasicDBObject(MongoJobInstanceDao.JOB_INSTANCE_ID_KEY, id);
+        return new BasicDBObject(JOB_INSTANCE_ID_KEY, id);
     }
 
     BasicDBObject jobExecutionIdObj(Long id) {
@@ -120,9 +120,9 @@ public abstract class AbstractMongoBatchMetadataDao {
                 .getCollection(JobInstance.class.getSimpleName())
                 .findOne(new BasicDBObject(jobInstanceIdObj(jobInstanceId)));
 
-        if (jobParamObj != null && jobParamObj.get(MongoJobInstanceDao.JOB_PARAMETERS_KEY) != null) {
+        if (jobParamObj != null && jobParamObj.get(JOB_PARAMETERS_KEY) != null) {
 
-            Map<String, ?> jobParamsMap = (Map<String, ?>) jobParamObj.get(MongoJobInstanceDao.JOB_PARAMETERS_KEY);
+            Map<String, ?> jobParamsMap = (Map<String, ?>) jobParamObj.get(JOB_PARAMETERS_KEY);
 
             Map<String, JobParameter> map = new HashMap<String, JobParameter>(
                     jobParamsMap.size());
