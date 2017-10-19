@@ -11,6 +11,7 @@ import org.ogerardin.b2b.domain.mongorepository.BackupTargetRepository;
 import org.springframework.batch.core.*;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
+import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -116,10 +117,21 @@ public class Main {
         if (applicableJob == null) {
             throw new B2BException("no job applicable for parameters " + jobParameters);
         }
+        logger.info("Found applicable job: " + applicableJob);
 
         // launch it
-        logger.debug("Found applicable job, starting it: " + applicableJob);
-        jobLauncher.run(applicableJob, jobParameters);
+        try {
+            logger.debug("Trying to start job");
+            jobLauncher.run(applicableJob, jobParameters);
+        } catch (JobExecutionAlreadyRunningException e) {
+            logger.warn("Job already running, nothing to do...");
+        } catch (JobInstanceAlreadyCompleteException e) {
+            logger.info("Job already complete !");
+            jobParameters = applicableJob.getJobParametersIncrementer().getNext(jobParameters);
+            logger.info("Attempting to restart with parameters: " + jobParameters);
+            // any exception happening here will bubble up
+            jobLauncher.run(applicableJob, jobParameters);
+        }
     }
 
     /**
