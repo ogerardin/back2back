@@ -28,7 +28,13 @@ public class BackupSet implements JobParametersPopulator {
     private Instant lastBackupCompleteTime;
     private Instant currentBackupStartTime;
 
+    private String lastFile;
+    private String currentFile;
+
+    private String lastError;
+
     public void populateParams(Map<String, JobParameter> params) {
         params.put("backupset.id", new JobParameter(getId(), false));
     }
+
 }
