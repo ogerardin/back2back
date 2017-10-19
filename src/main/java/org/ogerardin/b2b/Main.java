@@ -19,7 +19,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.data.domain.Example;
 
 import java.util.HashMap;
 import java.util.List;
@@ -82,13 +81,13 @@ public class Main {
     }
 
     private BackupSet findBackupSet(BackupSource source, BackupTarget target) {
-        BackupSet backupSet = new BackupSet();
-        backupSet.setBackupSource(source);
-        backupSet.setBackupTarget(target);
-        List<BackupSet> backupSets = backupSetRepository.findAll(Example.of(backupSet));
+        List<BackupSet> backupSets = backupSetRepository.findByBackupSourceAndBackupTarget(source, target);
 
         if (backupSets.isEmpty()) {
             logger.info("No backup set found for " + source + ", " + target + ": creating one");
+            BackupSet backupSet = new BackupSet();
+            backupSet.setBackupSource(source);
+            backupSet.setBackupTarget(target);
             backupSetRepository.insert(backupSet);
             return backupSet;
         }

@@ -42,7 +42,7 @@ public class BackupJobExecutionListener extends BackupSetAwareListener implement
             Long jobExecutionId = jobExecution.getId();
             logger.info("Restarting jobId " + jobExecutionId);
             jobOperator.restart(jobExecutionId);
-        } catch (JobInstanceAlreadyCompleteException | NoSuchJobExecutionException | NoSuchJobException | JobRestartException | JobParametersInvalidException e) {
+        } catch (JobExecutionException e) {
             logger.error("Failed to restart execution", e);
         }
 */

@@ -28,6 +28,7 @@ public class PathItemProcessListener extends BackupSetAwareListener implements I
         logger.debug("afterProcess, backupSet.id=" + getBackupSet().getId());
         BackupSet backupSet = getBackupSet();
         backupSet.setLastFile(item.toString());
+        backupSet.setCurrentFile(null);
         backupSetRepository.save(backupSet);
     }
 
