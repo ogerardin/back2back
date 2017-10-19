@@ -1,4 +1,4 @@
-package org.ogerardin.b2b.mongo;
+package org.ogerardin.b2b.embeddedmongo;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
@@ -10,7 +10,6 @@ import de.flapdoodle.embed.mongo.config.Storage;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.config.IRuntimeConfig;
 import de.flapdoodle.embed.process.runtime.Network;
-import org.ogerardin.b2b.config.EmbeddedMongoConfiguration;
 
 import java.io.IOException;
 

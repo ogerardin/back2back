@@ -1,4 +1,4 @@
-package org.ogerardin.b2b.config;
+package org.ogerardin.b2b.embeddedmongo;
 
 import com.github.markusbernhardt.proxy.ProxySearch;
 import com.github.markusbernhardt.proxy.util.Logger.LogBackEnd;
