@@ -3,15 +3,8 @@ package org.ogerardin.batch.mongodb;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
-import org.springframework.batch.core.JobInstance;
-import org.springframework.batch.core.JobParameter;
-import org.springframework.batch.core.JobParameters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
-
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Parent class for all DAO used to store SpringBatch Infrastructure data to Mongo DB.
@@ -22,7 +15,7 @@ import java.util.Map;
  */
 public abstract class AbstractMongoBatchMetadataDao {
 
-    private static final String DEFAULT_COLLECTION_PREFIX = "batch_";
+    private static final String COLLECTION_PREFIX = "batch_";
 
     static final String VERSION_KEY = "version";
     static final String START_TIME_KEY = "startTime";
@@ -70,21 +63,23 @@ public abstract class AbstractMongoBatchMetadataDao {
     @Autowired
     protected MongoTemplate mongoTemplate;
 
-    private String prefix = DEFAULT_COLLECTION_PREFIX;
-
     private final String collectionName;
 
 
-    protected AbstractMongoBatchMetadataDao(String collectionName) {
-        this.collectionName = getPrefixedCollectionName(collectionName);
+    static String collectionName(Class clazz) {
+        return collectionName(clazz.getSimpleName());
     }
 
-    private String getPrefixedCollectionName(String collectionName) {
-        return prefix.isEmpty() ? collectionName : (prefix + collectionName);
+    private static String collectionName(String baseName) {
+        return COLLECTION_PREFIX + baseName;
+    }
+
+    private AbstractMongoBatchMetadataDao(String collectionName) {
+        this.collectionName = collectionName;
     }
 
     public AbstractMongoBatchMetadataDao(Class clazz) {
-        this(clazz.getSimpleName());
+        this(collectionName(clazz));
     }
 
     DBCollection getCollection(){
@@ -92,7 +87,7 @@ public abstract class AbstractMongoBatchMetadataDao {
     }
 
     Long getNextId(String name, MongoTemplate mongoTemplate) {
-        DBCollection collection = mongoTemplate.getDb().getCollection(getPrefixedCollectionName(SEQUENCES_COLLECTION_NAME));
+        DBCollection collection = mongoTemplate.getDb().getCollection(collectionName(SEQUENCES_COLLECTION_NAME));
         BasicDBObject sequence = new BasicDBObject("name", name);
         collection.update(sequence, new BasicDBObject("$inc", new BasicDBObject("value", 1L)), true, false);
         return (Long) collection.findOne(sequence).get("value");
@@ -106,43 +101,12 @@ public abstract class AbstractMongoBatchMetadataDao {
         dbObject.removeField(NS_KEY);
     }
 
-    BasicDBObject jobInstanceIdObj(Long id) {
+    static BasicDBObject jobInstanceIdObj(Long id) {
         return new BasicDBObject(JOB_INSTANCE_ID_KEY, id);
     }
 
-    BasicDBObject jobExecutionIdObj(Long id) {
+    static BasicDBObject jobExecutionIdObj(Long id) {
         return new BasicDBObject(JOB_EXECUTION_ID_KEY, id);
     }
 
-    @SuppressWarnings({"unchecked"})
-    JobParameters getJobParameters(Long jobInstanceId, MongoTemplate mongoTemplate) {
-        DBObject jobParamObj = mongoTemplate
-                .getCollection(JobInstance.class.getSimpleName())
-                .findOne(new BasicDBObject(jobInstanceIdObj(jobInstanceId)));
-
-        if (jobParamObj != null && jobParamObj.get(JOB_PARAMETERS_KEY) != null) {
-
-            Map<String, ?> jobParamsMap = (Map<String, ?>) jobParamObj.get(JOB_PARAMETERS_KEY);
-
-            Map<String, JobParameter> map = new HashMap<String, JobParameter>(
-                    jobParamsMap.size());
-            for (Map.Entry<String, ?> entry : jobParamsMap.entrySet()) {
-                Object param = entry.getValue();
-                String key = entry.getKey().replaceAll(DOT_ESCAPE_STRING, DOT_STRING);
-                if (param instanceof String) {
-                    map.put(key, new JobParameter((String) param));
-                } else if (param instanceof Long) {
-                    map.put(key, new JobParameter((Long) param));
-                } else if (param instanceof Double) {
-                    map.put(key, new JobParameter((Double) param));
-                } else if (param instanceof Date) {
-                    map.put(key, new JobParameter((Date) param));
-                } else {
-                    map.put(key, null);
-                }
-            }
-            return new JobParameters(map);
-        }
-        return null;
-    }
 }

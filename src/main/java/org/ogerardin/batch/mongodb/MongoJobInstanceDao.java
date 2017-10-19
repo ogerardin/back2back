@@ -10,6 +10,7 @@ import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.launch.NoSuchJobException;
 import org.springframework.batch.core.repository.dao.JobInstanceDao;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
 
@@ -85,7 +86,9 @@ public class MongoJobInstanceDao extends AbstractMongoBatchMetadataDao implement
     }
 
     public JobInstance getJobInstance(JobExecution jobExecution) {
-        DBObject instanceId = mongoTemplate.getCollection(JobExecution.class.getSimpleName()).findOne(jobExecutionIdObj(jobExecution.getId()), jobInstanceIdObj(1L));
+        DBObject instanceId = mongoTemplate
+                .getCollection(collectionName(JobExecution.class))
+                .findOne(jobExecutionIdObj(jobExecution.getId()), jobInstanceIdObj(1L));
         removeSystemFields(instanceId);
         return mapJobInstance(getCollection().findOne(instanceId));
     }
@@ -196,5 +199,38 @@ public class MongoJobInstanceDao extends AbstractMongoBatchMetadataDao implement
             return count;
         }
     }
+
+    @SuppressWarnings({"unchecked"})
+    static JobParameters getJobParameters(Long jobInstanceId, MongoTemplate mongoTemplate) {
+        DBObject jobParamObj = mongoTemplate
+                .getCollection(collectionName(JobInstance.class))
+                .findOne(jobInstanceIdObj(jobInstanceId));
+
+        if (jobParamObj != null && jobParamObj.get(JOB_PARAMETERS_KEY) != null) {
+
+            Map<String, ?> jobParamsMap = (Map<String, ?>) jobParamObj.get(JOB_PARAMETERS_KEY);
+
+            Map<String, JobParameter> map = new HashMap<String, JobParameter>(
+                    jobParamsMap.size());
+            for (Map.Entry<String, ?> entry : jobParamsMap.entrySet()) {
+                Object param = entry.getValue();
+                String key = entry.getKey().replaceAll(DOT_ESCAPE_STRING, DOT_STRING);
+                if (param instanceof String) {
+                    map.put(key, new JobParameter((String) param));
+                } else if (param instanceof Long) {
+                    map.put(key, new JobParameter((Long) param));
+                } else if (param instanceof Double) {
+                    map.put(key, new JobParameter((Double) param));
+                } else if (param instanceof Date) {
+                    map.put(key, new JobParameter((Date) param));
+                } else {
+                    map.put(key, null);
+                }
+            }
+            return new JobParameters(map);
+        }
+        return null;
+    }
+
 
 }
