@@ -6,8 +6,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.ogerardin.b2b.domain.FilesystemSource;
 import org.ogerardin.b2b.domain.BackupSource;
+import org.ogerardin.b2b.domain.FilesystemSource;
 import org.ogerardin.b2b.domain.mongorepository.BackupSourceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
@@ -18,7 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 @RunWith(SpringRunner.class)
@@ -42,18 +42,22 @@ public class BackupSourceRepositoryTest {
 
     @Test
     public void test() throws URISyntaxException, IOException {
-        URL url = getClass().getResource(FILESET_RSC);
-        File dir = new File(url.toURI());
-        BackupSource fileSource = new FilesystemSource(dir);
-
         backupSourceRepository.deleteAll();
 
-        backupSourceRepository.insert(fileSource);
+        List<BackupSource> sources = new ArrayList<>();
+
+        {
+            URL url = getClass().getResource(FILESET_RSC);
+            File dir = new File(url.toURI());
+            BackupSource fileSource = new FilesystemSource(dir);
+            sources.add(fileSource);
+        }
+//        sources.add(new FilesystemSource("C:\\Users\\oge\\Downloads"));
+
+        sources.forEach(s -> backupSourceRepository.insert(s));
 
         List<BackupSource> fetchedSources = backupSourceRepository.findAll();
-
-        Assert.assertThat(fetchedSources, Matchers.equalTo(Collections.singletonList(fileSource)));
-
+        Assert.assertThat(fetchedSources, Matchers.equalTo(sources));
     }
 
 }

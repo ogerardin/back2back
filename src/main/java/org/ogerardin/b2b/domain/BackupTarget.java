@@ -14,5 +14,7 @@ public abstract class BackupTarget implements JobParametersPopulator {
     @Id
     private String id;
 
+    private boolean enabled = true;
+
     private String name;
 }

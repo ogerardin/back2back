@@ -64,27 +64,35 @@ public class Main {
     }
 
     private void startAllJobs() {
-        sourceRepository.findAll().forEach(this::startJobs);
+        // start jobs for all enabled sources
+        sourceRepository.findAll().stream()
+                .filter(BackupSource::isEnabled)
+                .forEach(this::startJobs);
     }
 
     private void startJobs(BackupSource source) {
-        targetRepository.findAll().forEach(target -> {
-            try {
-                BackupSet backupSet = findBackupSet(source, target);
-                startJob(backupSet);
-            } catch (JobExecutionAlreadyRunningException e) {
-                logger.warn(e.toString());
-            } catch ( JobExecutionException | B2BException e) {
-                logger.error("Failed to start job for " + source + ", " + target, e);
-            }
-        });
+        // start jobs for all enabled targets and specified source
+        targetRepository.findAll().stream()
+                .filter(BackupTarget::isEnabled)
+                .forEach(target -> startJob(source, target));
+    }
+
+    private void startJob(BackupSource source, BackupTarget target) {
+        try {
+            BackupSet backupSet = findBackupSet(source, target);
+            startJob(backupSet);
+        } catch (JobExecutionAlreadyRunningException e) {
+            logger.warn(e.toString());
+        } catch ( JobExecutionException | B2BException e) {
+            logger.error("Failed to start job for " + source + ", " + target, e);
+        }
     }
 
     private BackupSet findBackupSet(BackupSource source, BackupTarget target) {
         List<BackupSet> backupSets = backupSetRepository.findByBackupSourceAndBackupTarget(source, target);
 
         if (backupSets.isEmpty()) {
-            logger.info("No backup set found for " + source + ", " + target + ": creating one");
+            logger.info("Creating backup set for " + source + ", " + target);
             BackupSet backupSet = new BackupSet();
             backupSet.setBackupSource(source);
             backupSet.setBackupTarget(target);

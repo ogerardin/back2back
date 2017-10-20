@@ -37,17 +37,19 @@ public class BackupTargetRepositoryTest {
 
     @Test
     public void test() throws IOException {
+
         LocalTarget target0 = new LocalTarget(new File("backup-target").getCanonicalPath());
+
         NetworkTarget target1 = new NetworkTarget("127.0.0.1", 80);
+        target1.setEnabled(false);
+
         List<BackupTarget> targets = Arrays.asList(target0, target1);
 
         backupTargetRepository.deleteAll();
 
-        backupTargetRepository.insert(target0);
-        backupTargetRepository.insert(target1);
+        targets.forEach(t -> backupTargetRepository.insert(t));
 
         List<BackupTarget> fetchedTargets = backupTargetRepository.findAll();
-
         Assert.assertThat(fetchedTargets, Matchers.equalTo(targets));
 
     }

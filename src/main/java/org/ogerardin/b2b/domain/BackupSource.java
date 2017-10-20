@@ -14,6 +14,8 @@ public abstract class BackupSource implements JobParametersPopulator {
     @Id
     private String id;
 
+    private boolean enabled = true;
+
     private String name;
 
 }
