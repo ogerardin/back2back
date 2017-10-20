@@ -6,14 +6,15 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.ogerardin.b2b.domain.*;
+import org.ogerardin.b2b.domain.BackupTarget;
+import org.ogerardin.b2b.domain.LocalTarget;
+import org.ogerardin.b2b.domain.PeerTarget;
 import org.ogerardin.b2b.domain.mongorepository.BackupTargetRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -38,9 +39,9 @@ public class BackupTargetRepositoryTest {
     @Test
     public void test() throws IOException {
 
-        LocalTarget target0 = new LocalTarget(new File("backup-target").getCanonicalPath());
+        LocalTarget target0 = new LocalTarget();
 
-        NetworkTarget target1 = new NetworkTarget("127.0.0.1", 80);
+        PeerTarget target1 = new PeerTarget("127.0.0.1", 80);
         target1.setEnabled(false);
 
         List<BackupTarget> targets = Arrays.asList(target0, target1);

@@ -2,7 +2,7 @@ package org.ogerardin.b2b.batch.jobs;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.ogerardin.b2b.domain.NetworkTarget;
+import org.ogerardin.b2b.domain.PeerTarget;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.Step;
@@ -18,19 +18,19 @@ import org.springframework.context.annotation.Configuration;
 import java.nio.file.Path;
 
 @Configuration
-public class LocalToPeerBackupJob extends LocalSourceBackupJob {
+public class FilesystemToPeerBackupJob extends FilesystemSourceBackupJob {
 
-    private static final Log logger = LogFactory.getLog(LocalToPeerBackupJob.class);
+    private static final Log logger = LogFactory.getLog(FilesystemToPeerBackupJob.class);
 
-    public LocalToPeerBackupJob() {
-        addStaticParameter("target.type", NetworkTarget.class.getName());
+    public FilesystemToPeerBackupJob() {
+        addStaticParameter("target.type", PeerTarget.class.getName());
         addMandatoryParameter("target.hostname");
         addMandatoryParameter("target.port");
     }
 
     @Bean("localToPeerJob")
     protected Job localToPeerBackupJob(Step localToPeerStep, JobExecutionListener jobListener) {
-        return jobBuilderFactory.get(LocalToPeerBackupJob.class.getSimpleName())
+        return jobBuilderFactory.get(FilesystemToPeerBackupJob.class.getSimpleName())
                 .validator(validator())
                 .incrementer(new RunIdIncrementer())
                 .listener(jobListener)
@@ -58,7 +58,7 @@ public class LocalToPeerBackupJob extends LocalSourceBackupJob {
     @Bean(name = "localToPeerItemReader")
     @StepScope
     protected ItemReader<Path> itemReader(@Value("#{jobParameters['source.root']}") String root) {
-        //TODO for debug
+        //FIXME this is for debug
         return () -> null;
     }
 

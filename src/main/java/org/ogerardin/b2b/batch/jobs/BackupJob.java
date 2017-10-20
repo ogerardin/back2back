@@ -1,7 +1,5 @@
 package org.ogerardin.b2b.batch.jobs;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersInvalidException;
 import org.springframework.batch.core.JobParametersValidator;
@@ -19,10 +17,9 @@ import java.util.List;
  */
 public abstract class BackupJob {
 
-    private static final Log logger = LogFactory.getLog(BackupJob.class);
-
     @Autowired
     protected JobBuilderFactory jobBuilderFactory;
+
     @Autowired
     protected StepBuilderFactory stepBuilderFactory;
 

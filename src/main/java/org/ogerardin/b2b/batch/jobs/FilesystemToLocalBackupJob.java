@@ -26,9 +26,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @Configuration
-public class LocalToLocalBackupJob extends LocalSourceBackupJob {
+public class FilesystemToLocalBackupJob extends FilesystemSourceBackupJob {
 
-    private static final Log logger = LogFactory.getLog(LocalToLocalBackupJob.class);
+    private static final Log logger = LogFactory.getLog(FilesystemSourceBackupJob.class);
 
     @Autowired
     B2BProperties properties;
@@ -39,13 +39,13 @@ public class LocalToLocalBackupJob extends LocalSourceBackupJob {
     @Autowired
     private MongoConverter mongoConverter;
 
-    public LocalToLocalBackupJob() {
+    public FilesystemToLocalBackupJob() {
         addStaticParameter("target.type", LocalTarget.class.getName());
     }
 
     @Bean("localToLocalJob")
     protected Job job(Step localToLocalStep, JobExecutionListener jobListener) {
-        return jobBuilderFactory.get(LocalToLocalBackupJob.class.getSimpleName())
+        return jobBuilderFactory.get(FilesystemSourceBackupJob.class.getSimpleName())
                 .validator(validator())
                 .incrementer(new RunIdIncrementer())
                 .listener(jobListener)
@@ -68,10 +68,12 @@ public class LocalToLocalBackupJob extends LocalSourceBackupJob {
     @Bean(name = "localToLocalItemProcessor")
     @StepScope
     protected ItemProcessor<Path, Path> itemProcessor(
-            @Value("#{jobParameters['target.path']}") String targetPathParam,
             @Value("#{jobParameters['source.root']}") String sourceRootParam,
             @Value("#{jobParameters['backupset.id']}") String backupSetId
     ) {
+        // we use the backupSetId as bucket name for GridFS so that all the files backed up as part of a backupSet
+        // are stored in a distinct bucket
+        // TODO we should implement a maintenance job to delete buckets for which there is no backupSet
         StorageService storageService = new GridFsStorageProvider(mongoDbFactory, mongoConverter, backupSetId);
 
         return itemPath -> {
