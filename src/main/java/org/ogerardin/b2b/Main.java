@@ -11,7 +11,6 @@ import org.ogerardin.b2b.domain.mongorepository.BackupTargetRepository;
 import org.springframework.batch.core.*;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
-import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -100,7 +99,7 @@ public class Main {
     }
 
     private void startJob(BackupSet backupSet) throws JobExecutionException, B2BException {
-        logger.debug("Finding job for backup set " + backupSet);
+        logger.debug("Looking for job matching backup set: " + backupSet);
 
         BackupSource source = backupSet.getBackupSource();
         BackupTarget target = backupSet.getBackupTarget();
@@ -111,27 +110,19 @@ public class Main {
         source.populateParams(params);
         target.populateParams(params);
         JobParameters jobParameters = new JobParameters(params);
+        logger.debug("Parameters: " + jobParameters);
 
         // find Job applicable for parameters
-        Job applicableJob = findApplicableJob(jobParameters);
-        if (applicableJob == null) {
-            throw new B2BException("no job applicable for parameters " + jobParameters);
+        Job job = findApplicableJob(jobParameters);
+        if (job == null) {
+            throw new B2BException("No job found for parameters " + jobParameters);
         }
-        logger.info("Found applicable job: " + applicableJob);
 
         // launch it
-        try {
-            logger.debug("Trying to start job");
-            jobLauncher.run(applicableJob, jobParameters);
-        } catch (JobExecutionAlreadyRunningException e) {
-            logger.warn("Job already running, nothing to do...");
-        } catch (JobInstanceAlreadyCompleteException e) {
-            logger.info("Job already complete !");
-            jobParameters = applicableJob.getJobParametersIncrementer().getNext(jobParameters);
-            logger.info("Attempting to restart with parameters: " + jobParameters);
-            // any exception happening here will bubble up
-            jobLauncher.run(applicableJob, jobParameters);
-        }
+        // FIXME: in case we have a persistent JobRepository, we should find the latest instance with these
+        // parameters and apply org.springframework.batch.core.getJobParametersIncrementer.getNext before staring it.
+        logger.info("Starting job: " + job.getName() + " with params: " + jobParameters);
+        jobLauncher.run(job, jobParameters);
     }
 
     /**
@@ -151,10 +142,10 @@ public class Main {
                     continue;
                 }
             }
-            // validation suceeded: use this job
+            // validation succeeded: use this job
             return job;
         }
-        // no applicable job
+        // none of the jobs passed validation
         return null;
     }
 

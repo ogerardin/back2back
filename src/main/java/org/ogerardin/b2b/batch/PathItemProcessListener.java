@@ -17,7 +17,7 @@ public class PathItemProcessListener extends BackupSetAwareListener implements I
 
     @Override
     public void beforeProcess(Path item) {
-        logger.debug("beforeProcess, backupSet.id=" + getBackupSet().getId());
+//        logger.debug("beforeProcess, backupSet.id=" + getBackupSet().getId());
         BackupSet backupSet = getBackupSet();
         backupSet.setCurrentFile(item.toString());
         backupSetRepository.save(backupSet);
@@ -25,7 +25,7 @@ public class PathItemProcessListener extends BackupSetAwareListener implements I
 
     @Override
     public void afterProcess(Path item, Path result) {
-        logger.debug("afterProcess, backupSet.id=" + getBackupSet().getId());
+//        logger.debug("afterProcess, backupSet.id=" + getBackupSet().getId());
         BackupSet backupSet = getBackupSet();
         backupSet.setLastFile(item.toString());
         backupSet.setCurrentFile(null);

@@ -14,6 +14,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Common superclass for backup jobs.
+ */
 public abstract class BackupJob {
 
     private static final Log logger = LogFactory.getLog(BackupJob.class);

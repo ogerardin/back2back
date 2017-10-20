@@ -24,7 +24,7 @@ public class BackupJobExecutionListener extends BackupSetAwareListener implement
 
     @Override
     public void beforeJob(JobExecution jobExecution) {
-        logger.debug("beforeJob, jobExecution=" + jobExecution);
+//        logger.debug("beforeJob, jobExecution=" + jobExecution);
         BackupSet backupSet = getBackupSet();
         backupSet.setCurrentBackupStartTime(jobExecution.getStartTime().toInstant());
         backupSetRepository.save(backupSet);
@@ -32,7 +32,7 @@ public class BackupJobExecutionListener extends BackupSetAwareListener implement
 
     @Override
     public void afterJob(JobExecution jobExecution) {
-        logger.debug("afterJob, jobExecution=" + jobExecution);
+//        logger.debug("afterJob, jobExecution=" + jobExecution);
         BackupSet backupSet = getBackupSet();
         backupSet.setLastBackupCompleteTime(jobExecution.getEndTime().toInstant());
         backupSetRepository.save(backupSet);
