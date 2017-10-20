@@ -2,6 +2,7 @@ package org.ogerardin.b2b.batch.jobs;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.ogerardin.b2b.B2BProperties;
 import org.ogerardin.b2b.batch.FileTreeWalkerItemReader;
 import org.ogerardin.b2b.batch.PathItemProcessListener;
 import org.ogerardin.b2b.domain.LocalTarget;
@@ -28,6 +29,9 @@ import java.nio.file.Paths;
 public class LocalToLocalBackupJob extends LocalSourceBackupJob {
 
     private static final Log logger = LogFactory.getLog(LocalToLocalBackupJob.class);
+
+    @Autowired
+    B2BProperties properties;
 
     @Autowired
     private MongoDbFactory mongoDbFactory;
@@ -77,7 +81,9 @@ public class LocalToLocalBackupJob extends LocalSourceBackupJob {
             } catch (Exception e) {
                 logger.error("Failed to store file: " + itemPath, e);
             }
-            Thread.sleep(1000);
+            if (properties.getThrottleDelay() != 0) {
+                Thread.sleep(properties.getThrottleDelay());
+            }
             return itemPath;
         };
     }
