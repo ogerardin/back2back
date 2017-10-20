@@ -1,0 +1,9 @@
+{
+  "properties": [
+    {
+      "name": "org.ogerardin.b2b.batch.repository",
+      "type": "java.lang.String",
+      "description": "The type of Spring Batch repository to use: 'map' for in-memory, 'mongodb' for MongoDB"
+    }
+  ]
+}

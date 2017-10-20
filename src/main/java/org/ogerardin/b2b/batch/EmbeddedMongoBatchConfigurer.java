@@ -13,8 +13,10 @@ import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.support.SimpleJobLauncher;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.stereotype.Component;
@@ -23,14 +25,16 @@ import org.springframework.transaction.PlatformTransactionManager;
 import javax.annotation.PostConstruct;
 
 /**
- * Provides a customized Spring batch environment. The main customization is to replace the default
- * synchronous {@link org.springframework.core.task.TaskExecutor} with an Asynchronous one.
+ * Provides a customized Spring batch environment with the following features:
+ * - the {@link JobLauncher} is configured to used an {@link AsyncTaskExecutor}
+ * - the {@link JobRepository} uses Mongo DB for persistence
  */
 @Component
 @Configuration
 @ComponentScan(basePackages = "org.ogerardin.batch.mongodb")
 @EnableBatchProcessing
-public class BatchConfigurer implements org.springframework.batch.core.configuration.annotation.BatchConfigurer {
+@ConditionalOnProperty(name = "org.ogerardin.b2b.batch.repository", havingValue = "mongodb")
+public class EmbeddedMongoBatchConfigurer implements org.springframework.batch.core.configuration.annotation.BatchConfigurer {
 
     private final AsyncTaskExecutor asyncTaskExecutor;
 
@@ -43,7 +47,7 @@ public class BatchConfigurer implements org.springframework.batch.core.configura
     private MongoJobRepositoryFactoryBean mongoJobRepositoryFactoryBean;
 
     @Autowired
-    public BatchConfigurer(AsyncTaskExecutor asyncTaskExecutor) {
+    public EmbeddedMongoBatchConfigurer(AsyncTaskExecutor asyncTaskExecutor) {
         this.asyncTaskExecutor = asyncTaskExecutor;
     }
 
