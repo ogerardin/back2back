@@ -56,7 +56,7 @@ public class BackupJobExecutionListener extends BackupSetAwareListener implement
 
                 JobParameters jobParameters = jobExecution.getJobParameters();
                 jobParameters = job.getJobParametersIncrementer().getNext(jobParameters);
-                logger.info("Attempting to restart job " + jobName + "with parameters: " + jobParameters);
+                logger.info("Attempting to restart job " + jobName + " with parameters: " + jobParameters);
                 jobLauncher.run(job, jobParameters);
             } catch (Exception e) {
                 logger.error("Failed to restart job", e);

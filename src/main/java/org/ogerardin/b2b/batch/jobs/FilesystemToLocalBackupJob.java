@@ -6,7 +6,10 @@ import org.ogerardin.b2b.B2BProperties;
 import org.ogerardin.b2b.batch.FileTreeWalkerItemReader;
 import org.ogerardin.b2b.batch.PathItemProcessListener;
 import org.ogerardin.b2b.domain.LocalTarget;
+import org.ogerardin.b2b.files.MD5Calculator;
+import org.ogerardin.b2b.storage.StorageFileNotFoundException;
 import org.ogerardin.b2b.storage.StorageService;
+import org.ogerardin.b2b.storage.StoredFileInfo;
 import org.ogerardin.b2b.storage.gridfs.GridFsStorageProvider;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecutionListener;
@@ -22,6 +25,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.convert.MongoConverter;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -29,6 +33,9 @@ import java.nio.file.Paths;
 public class FilesystemToLocalBackupJob extends FilesystemSourceBackupJob {
 
     private static final Log logger = LogFactory.getLog(FilesystemSourceBackupJob.class);
+
+    @Autowired
+    MD5Calculator md5Calculator;
 
     @Autowired
     B2BProperties properties;
@@ -75,19 +82,7 @@ public class FilesystemToLocalBackupJob extends FilesystemSourceBackupJob {
         // are stored in a distinct bucket
         // TODO we should implement a maintenance job to delete buckets for which there is no backupSet
         StorageService storageService = new GridFsStorageProvider(mongoDbFactory, mongoConverter, backupSetId);
-
-        return itemPath -> {
-            logger.debug("Processing " + itemPath);
-            try {
-                storageService.store(itemPath);
-            } catch (Exception e) {
-                logger.error("Failed to store file: " + itemPath, e);
-            }
-            if (properties.getThrottleDelay() != 0) {
-                Thread.sleep(properties.getThrottleDelay());
-            }
-            return itemPath;
-        };
+        return new LocalStorageItemProcessor(storageService);
     }
 
     @Bean
@@ -97,4 +92,42 @@ public class FilesystemToLocalBackupJob extends FilesystemSourceBackupJob {
         return new FileTreeWalkerItemReader(root);
     }
 
+    private class LocalStorageItemProcessor implements ItemProcessor<Path, Path> {
+        private final StorageService storageService;
+
+        public LocalStorageItemProcessor(StorageService storageService) {
+            this.storageService = storageService;
+        }
+
+        @Override
+        public Path process(Path itemPath) throws Exception {
+            logger.debug("Processing " + itemPath);
+
+            try {
+                StoredFileInfo info = storageService.query(itemPath);
+                String storedMd5hash = info.getMd5hash();
+
+                if (storedMd5hash != null) {
+                    byte[] bytes = Files.readAllBytes(itemPath);
+                    String computedMd5Hash = md5Calculator.hexMd5Hash(bytes);
+                    if (computedMd5Hash.equalsIgnoreCase(storedMd5hash)) {
+                        logger.debug("  Hash unchanged, skipping file");
+                        return itemPath;
+                    }
+                }
+            } catch (StorageFileNotFoundException e) {
+                // file not stored yet, proceed
+            }
+
+            try {
+                storageService.store(itemPath);
+            } catch (Exception e) {
+                logger.error("Failed to store file: " + itemPath, e);
+            }
+            if (properties.getThrottleDelay() != 0) {
+                Thread.sleep(properties.getThrottleDelay());
+            }
+            return itemPath;
+        }
+    }
 }

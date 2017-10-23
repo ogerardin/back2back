@@ -1,8 +1,11 @@
 package org.ogerardin.b2b.storage.filesystem;
 
+import org.ogerardin.b2b.files.MD5Calculator;
 import org.ogerardin.b2b.storage.StorageException;
 import org.ogerardin.b2b.storage.StorageFileNotFoundException;
 import org.ogerardin.b2b.storage.StorageService;
+import org.ogerardin.b2b.storage.StoredFileInfo;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
@@ -12,10 +15,15 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributeView;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Comparator;
 import java.util.stream.Stream;
 
 public class FilesystemStorageProvider implements StorageService {
+
+    @Autowired
+    MD5Calculator md5Calculator;
 
     private final Path baseDirectory;
 
@@ -123,8 +131,8 @@ public class FilesystemStorageProvider implements StorageService {
     }
 
     @Override
-    public void store(InputStream inputStream, String originalFilename) {
-        Path remotePath = Paths.get(originalFilename);
+    public void store(InputStream inputStream, String filename) {
+        Path remotePath = Paths.get(filename);
         Path localPath = remoteToLocal(remotePath);
         try {
             Files.createDirectories(localPath.getParent());
@@ -133,6 +141,42 @@ public class FilesystemStorageProvider implements StorageService {
             throw new StorageException("Exception while copying input stream to local file " + localPath, e);
         }
 
+    }
+
+    @Override
+    public StoredFileInfo query(String filename) {
+        Path remotePath = Paths.get(filename);
+        return query(remotePath);
+    }
+
+    @Override
+    public StoredFileInfo query(Path remotePath) {
+        Path localPath = remoteToLocal(remotePath);
+
+        BasicFileAttributes fileAttributes;
+        try {
+            BasicFileAttributeView fileAttributeView = Files.getFileAttributeView(localPath, BasicFileAttributeView.class);
+            fileAttributes = fileAttributeView.readAttributes();
+        } catch (IOException e) {
+            throw new StorageException("Failed to get file attributes for file " + localPath, e);
+        }
+
+        String md5hash = null;
+        if (md5Calculator != null) {
+            try {
+                byte[] fileBytes = Files.readAllBytes(localPath);
+                md5hash = md5Calculator.hexMd5Hash(fileBytes);
+            } catch (IOException e) {
+                throw new StorageException("Failed to read file " + localPath, e);
+            }
+        }
+
+        StoredFileInfo info = new StoredFileInfo();
+        info.setFilename(remotePath.toString());
+        info.setSize(fileAttributes.size());
+        info.setStoredDate(fileAttributes.creationTime().toInstant());
+        info.setMd5hash(md5hash);
+        return info;
     }
 
 }

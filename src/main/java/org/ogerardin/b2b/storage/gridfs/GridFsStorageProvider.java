@@ -5,6 +5,7 @@ import com.mongodb.gridfs.GridFSFile;
 import org.ogerardin.b2b.storage.StorageException;
 import org.ogerardin.b2b.storage.StorageFileNotFoundException;
 import org.ogerardin.b2b.storage.StorageService;
+import org.ogerardin.b2b.storage.StoredFileInfo;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.mongodb.MongoDbFactory;
@@ -69,12 +70,17 @@ public class GridFsStorageProvider implements StorageService {
 
     @Override
     public InputStream getAsInputStream(String filename) throws StorageFileNotFoundException {
+        GridFSDBFile fsdbFile = getGridFSDBFile(filename);
+        return fsdbFile.getInputStream();
+
+    }
+
+    private GridFSDBFile getGridFSDBFile(String filename) throws StorageFileNotFoundException {
         GridFSDBFile fsdbFile = gridFsTemplate.findOne(new Query(GridFsCriteria.whereFilename().is(filename)));
         if (fsdbFile == null) {
             throw new StorageFileNotFoundException(filename);
         }
-        return fsdbFile.getInputStream();
-
+        return fsdbFile;
     }
 
     @Override
@@ -98,12 +104,7 @@ public class GridFsStorageProvider implements StorageService {
 
     @Override
     public void store(Path path) {
-        String canonicalPath;
-        try {
-            canonicalPath = path.toFile().getCanonicalPath();
-        } catch (IOException e) {
-            throw new StorageException("Exception while trying to get canonical path for " + path, e);
-        }
+        String canonicalPath = canonicalPath(path);
         InputStream inputStream;
         try {
             inputStream = Files.newInputStream(path, StandardOpenOption.READ);
@@ -113,8 +114,35 @@ public class GridFsStorageProvider implements StorageService {
         store(inputStream, canonicalPath);
     }
 
+    private String canonicalPath(Path path) {
+        String canonicalPath;
+        try {
+            canonicalPath = path.toFile().getCanonicalPath();
+        } catch (IOException e) {
+            throw new StorageException("Exception while trying to get canonical path for " + path, e);
+        }
+        return canonicalPath;
+    }
+
     @Override
-    public void store(InputStream inputStream, String canonicalPath) {
-        gridFsTemplate.store(inputStream, canonicalPath);
+    public void store(InputStream inputStream, String filename) {
+        gridFsTemplate.store(inputStream, filename);
+    }
+
+    @Override
+    public StoredFileInfo query(String filename) throws StorageFileNotFoundException {
+        GridFSDBFile fsdbFile = getGridFSDBFile(filename);
+        StoredFileInfo info = new StoredFileInfo();
+        info.setFilename(fsdbFile.getFilename());
+        info.setSize(fsdbFile.getLength());
+        info.setMd5hash(fsdbFile.getMD5());
+        info.setStoredDate(fsdbFile.getUploadDate().toInstant());
+        return info;
+    }
+
+    @Override
+    public StoredFileInfo query(Path path) throws StorageFileNotFoundException {
+        String canonicalPath = canonicalPath(path);
+        return query(canonicalPath);
     }
 }

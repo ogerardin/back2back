@@ -26,5 +26,10 @@ public interface StorageService {
 
     void store(Path path);
 
-    void store(InputStream inputStream, String canonicalPath);
+    void store(InputStream inputStream, String filename);
+
+    StoredFileInfo query(String filename) throws StorageFileNotFoundException;
+
+    StoredFileInfo query(Path path) throws StorageFileNotFoundException;
+
 }

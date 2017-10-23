@@ -9,7 +9,7 @@ import java.security.NoSuchAlgorithmException;
 public class JavaMD5Calculator implements MD5Calculator {
 
     @Override
-    public byte[] computeMD5(byte[] bytes) {
+    public byte[] md5Hash(byte[] bytes) {
         try {
             MessageDigest md = MessageDigest.getInstance("MD5");
             md.update(bytes);
