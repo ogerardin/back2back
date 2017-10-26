@@ -9,8 +9,8 @@ import org.ogerardin.b2b.domain.LocalTarget;
 import org.ogerardin.b2b.files.MD5Calculator;
 import org.ogerardin.b2b.storage.StorageFileNotFoundException;
 import org.ogerardin.b2b.storage.StorageService;
+import org.ogerardin.b2b.storage.StorageServiceFactory;
 import org.ogerardin.b2b.storage.StoredFileInfo;
-import org.ogerardin.b2b.storage.gridfs.GridFsStorageProvider;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.Step;
@@ -19,11 +19,10 @@ import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.mongodb.MongoDbFactory;
-import org.springframework.data.mongodb.core.convert.MongoConverter;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -41,10 +40,8 @@ public class FilesystemToLocalBackupJob extends FilesystemSourceBackupJob {
     B2BProperties properties;
 
     @Autowired
-    private MongoDbFactory mongoDbFactory;
-
-    @Autowired
-    private MongoConverter mongoConverter;
+    @Qualifier("gridFsStorageServiceFactory")
+    private StorageServiceFactory storageServiceFactory;
 
     public FilesystemToLocalBackupJob() {
         addStaticParameter("target.type", LocalTarget.class.getName());
@@ -81,7 +78,7 @@ public class FilesystemToLocalBackupJob extends FilesystemSourceBackupJob {
         // we use the backupSetId as bucket name for GridFS so that all the files backed up as part of a backupSet
         // are stored in a distinct bucket
         // TODO we should implement a maintenance job to delete buckets for which there is no backupSet
-        StorageService storageService = new GridFsStorageProvider(mongoDbFactory, mongoConverter, backupSetId);
+        StorageService storageService = storageServiceFactory.getStorageService(backupSetId);
         return new LocalStorageItemProcessor(storageService);
     }
 

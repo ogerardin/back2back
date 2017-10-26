@@ -15,13 +15,13 @@ import org.springframework.test.context.junit4.SpringRunner;
 public class GridFsStorageProviderTest extends StorageProviderTest {
 
     @Autowired
-    private GridFsStorageProvider storageService;
+    private GridFsStorageService storageService;
 
     public GridFsStorageProviderTest() {
         setStorageService(storageService);
     }
 
-    public void setStorageService(GridFsStorageProvider storageService) {
+    public void setStorageService(GridFsStorageService storageService) {
         this.storageService = storageService;
     }
 

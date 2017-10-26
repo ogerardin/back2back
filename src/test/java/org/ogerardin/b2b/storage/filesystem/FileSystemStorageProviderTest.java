@@ -10,13 +10,13 @@ public class FileSystemStorageProviderTest extends StorageProviderTest{
 
     private static final Path BASE_DIRECTORY = Paths.get("target/test-filesystem-storage-provider");
 
-    private FilesystemStorageProvider storageService;
+    private FilesystemStorageService storageService;
 
     public FileSystemStorageProviderTest() {
-        setStorageService(new FilesystemStorageProvider(BASE_DIRECTORY));
+        setStorageService(new FilesystemStorageService(BASE_DIRECTORY));
     }
 
-    public void setStorageService(FilesystemStorageProvider storageService) {
+    public void setStorageService(FilesystemStorageService storageService) {
         this.storageService = storageService;
     }
 

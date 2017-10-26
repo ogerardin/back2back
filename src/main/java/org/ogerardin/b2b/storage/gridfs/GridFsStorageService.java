@@ -23,17 +23,17 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.stream.Stream;
 
-public class GridFsStorageProvider implements StorageService {
+public class GridFsStorageService implements StorageService {
 
-    public static final String DEFAULT_BUCKET = "storage";
+    private static final String DEFAULT_BUCKET = "storage";
 
     private final GridFsTemplate gridFsTemplate;
 
-    public GridFsStorageProvider(MongoDbFactory mongoDbFactory, MongoConverter mongoConverter) {
+    public GridFsStorageService(MongoDbFactory mongoDbFactory, MongoConverter mongoConverter) {
         this(mongoDbFactory, mongoConverter, DEFAULT_BUCKET);
     }
 
-    public GridFsStorageProvider(MongoDbFactory mongoDbFactory, MongoConverter mongoConverter, String bucket) {
+    public GridFsStorageService(MongoDbFactory mongoDbFactory, MongoConverter mongoConverter, String bucket) {
         this.gridFsTemplate = new GridFsTemplate(mongoDbFactory, mongoConverter, bucket);
     }
 

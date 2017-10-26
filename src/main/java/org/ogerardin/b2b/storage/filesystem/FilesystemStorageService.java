@@ -20,26 +20,26 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Comparator;
 import java.util.stream.Stream;
 
-public class FilesystemStorageProvider implements StorageService {
+public class FilesystemStorageService implements StorageService {
 
     @Autowired
     MD5Calculator md5Calculator;
 
-    private final Path baseDirectory;
+    private final Path directory;
 
-    public FilesystemStorageProvider(Path baseDirectory) {
-        this.baseDirectory = baseDirectory;
+    public FilesystemStorageService(Path directory) {
+        this.directory = directory;
     }
 
     @Override
     public void init() {
         try {
-            Files.createDirectories(baseDirectory);
+            Files.createDirectories(directory);
         } catch (IOException e) {
-            throw new StorageException("failed to create base directory: " + baseDirectory, e);
+            throw new StorageException("failed to create base directory: " + directory, e);
         }
-        if (! Files.isWritable(baseDirectory)) {
-            throw new StorageException("Base directory is not writable: " + baseDirectory);
+        if (! Files.isWritable(directory)) {
+            throw new StorageException("Base directory is not writable: " + directory);
         }
     }
 
@@ -59,7 +59,7 @@ public class FilesystemStorageProvider implements StorageService {
     @Override
     public Stream<Path> loadAll() {
         try {
-            return Files.walk(baseDirectory)
+            return Files.walk(directory)
                     .filter(p -> !Files.isDirectory(p))
                     .map(this::localToRemote);
         } catch (IOException e) {
@@ -72,12 +72,12 @@ public class FilesystemStorageProvider implements StorageService {
         Path root = path.getRoot();
         Path relativePath = (root != null) ? root.relativize(path) : path;
 
-        // local path is relative to the baseDirectory
-        return baseDirectory.resolve(relativePath);
+        // local path is relative to the directory
+        return directory.resolve(relativePath);
     }
 
     private Path localToRemote(Path path) {
-        return baseDirectory.relativize(path);
+        return directory.relativize(path);
     }
 
     @Override
@@ -103,13 +103,13 @@ public class FilesystemStorageProvider implements StorageService {
     public void deleteAll() {
         //noinspection ResultOfMethodCallIgnored
         try {
-            Files.walk(baseDirectory)
+            Files.walk(directory)
                     .sorted(Comparator.reverseOrder())
                     .map(Path::toFile)
     //                .peek(System.out::println)
                     .forEach(File::delete);
         } catch (IOException e) {
-            throw new StorageException("Exception while trying to recursively delete " + baseDirectory, e);
+            throw new StorageException("Exception while trying to recursively delete " + directory, e);
         }
     }
 
