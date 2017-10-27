@@ -12,9 +12,15 @@ import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public abstract class StorageProviderTest {
+public abstract class StorageProviderTest<S extends StorageService> {
+
+    protected S storageService;
 
     private static final String FILESET_RSC = "/fileset";
+
+    protected void setStorageService(S storageService) {
+        this.storageService = storageService;
+    }
 
     protected void testLoadAll(StorageService storageService) throws Exception {
 

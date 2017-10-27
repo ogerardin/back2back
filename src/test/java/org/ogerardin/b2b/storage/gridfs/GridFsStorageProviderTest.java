@@ -7,24 +7,22 @@ import org.junit.runner.RunWith;
 import org.ogerardin.b2b.storage.StorageProviderTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 
 @RunWith(SpringRunner.class)
 @DataMongoTest
-public class GridFsStorageProviderTest extends StorageProviderTest {
+@ContextConfiguration(classes = )
+public class GridFsStorageProviderTest extends StorageProviderTest<GridFsStorageService> {
 
     @Autowired
-    private GridFsStorageService storageService;
+    GridFsStorageServiceFactory gridFsStorageServiceFactory;
 
     public GridFsStorageProviderTest() {
+        GridFsStorageService storageService = gridFsStorageServiceFactory.getStorageService("test");
         setStorageService(storageService);
     }
-
-    public void setStorageService(GridFsStorageService storageService) {
-        this.storageService = storageService;
-    }
-
 
     @Before
     public void setUp() {

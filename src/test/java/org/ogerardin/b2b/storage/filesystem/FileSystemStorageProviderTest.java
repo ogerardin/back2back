@@ -6,18 +6,13 @@ import org.ogerardin.b2b.storage.StorageProviderTest;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class FileSystemStorageProviderTest extends StorageProviderTest{
+public class FileSystemStorageProviderTest extends StorageProviderTest<FilesystemStorageService> {
 
     private static final Path BASE_DIRECTORY = Paths.get("target/test-filesystem-storage-provider");
 
-    private FilesystemStorageService storageService;
-
     public FileSystemStorageProviderTest() {
-        setStorageService(new FilesystemStorageService(BASE_DIRECTORY));
-    }
-
-    public void setStorageService(FilesystemStorageService storageService) {
-        this.storageService = storageService;
+        FilesystemStorageService storageService = new FilesystemStorageService(BASE_DIRECTORY);
+        setStorageService(storageService);
     }
 
     @Test
