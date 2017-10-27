@@ -17,6 +17,11 @@
         <version>1.5.7.RELEASE</version>
     </parent>
 
+    <properties>
+        <java.version>1.8</java.version>
+        <maven.test.skip>true</maven.test.skip>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -104,9 +109,6 @@
 
     </dependencies>
 
-    <properties>
-        <java.version>1.8</java.version>
-    </properties>
 
 
     <build>
