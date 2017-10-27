@@ -23,6 +23,9 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.stream.Stream;
 
+/**
+ * Implementation of {@link StorageService} using MongoDB's GridFS.
+ */
 public class GridFsStorageService implements StorageService {
 
     private static final String DEFAULT_BUCKET = "storage";
@@ -62,7 +65,7 @@ public class GridFsStorageService implements StorageService {
     }
 
     @Override
-    public Stream<Path> loadAll() {
+    public Stream<Path> getAllPaths() {
         return gridFsTemplate.find(new Query()).stream()
                 .map(GridFSFile::getFilename)
                 .map(f -> Paths.get(f));

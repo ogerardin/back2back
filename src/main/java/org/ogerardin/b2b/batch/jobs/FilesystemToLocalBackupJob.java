@@ -28,6 +28,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+/**
+ * Job implementation for a backup job that process a source of type {@link org.ogerardin.b2b.domain.FilesystemSource}
+ * and backup to a local destination (i.e. a {@link StorageService}).
+ */
 @Configuration
 public class FilesystemToLocalBackupJob extends FilesystemSourceBackupJob {
 
@@ -72,11 +76,11 @@ public class FilesystemToLocalBackupJob extends FilesystemSourceBackupJob {
     @Bean(name = "localToLocalItemProcessor")
     @StepScope
     protected ItemProcessor<Path, Path> itemProcessor(
-            @Value("#{jobParameters['source.root']}") String sourceRootParam,
             @Value("#{jobParameters['backupset.id']}") String backupSetId
     ) {
-        // we use the backupSetId as bucket name for GridFS so that all the files backed up as part of a backupSet
-        // are stored in a distinct bucket
+        // we use the backupSetId as storage service name; for GridFsStorageService this translates to the
+        // bucket name used by GridFS so that all the files backed up as part of a backupSet are stored in a
+        // distinct bucket
         // TODO we should implement a maintenance job to delete buckets for which there is no backupSet
         StorageService storageService = storageServiceFactory.getStorageService(backupSetId);
         return new LocalStorageItemProcessor(storageService);
@@ -84,15 +88,22 @@ public class FilesystemToLocalBackupJob extends FilesystemSourceBackupJob {
 
     @Bean
     @StepScope
-    protected ItemReader<Path> localToLocalItemReader(@Value("#{jobParameters['source.root']}") String rootParam) {
-        Path root = Paths.get(rootParam);
+    protected ItemReader<Path> localToLocalItemReader(
+            @Value("#{jobParameters['source.root']}") String sourceRootParam
+    ) {
+        Path root = Paths.get(sourceRootParam);
         return new FileTreeWalkerItemReader(root);
     }
 
+    /**
+     * ItemProcessor implementation that performs backup of a {@link Path} item to a StorageService.
+     * The file is only stored if it hasn't been stored yet or the locally computed MD5 hash is different from the
+     * stored file's MD5 hash.
+     */
     private class LocalStorageItemProcessor implements ItemProcessor<Path, Path> {
         private final StorageService storageService;
 
-        public LocalStorageItemProcessor(StorageService storageService) {
+        LocalStorageItemProcessor(StorageService storageService) {
             this.storageService = storageService;
         }
 

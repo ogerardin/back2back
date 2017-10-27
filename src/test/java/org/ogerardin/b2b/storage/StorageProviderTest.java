@@ -32,7 +32,7 @@ public abstract class StorageProviderTest<S extends StorageService> {
         paths0.forEach(storageService::store);
 
         // retrieve paths of stored files
-        List<Path> paths1 = storageService.loadAll().collect(Collectors.toList());
+        List<Path> paths1 = storageService.getAllPaths().collect(Collectors.toList());
 
         // compare each file to the stored version
         for (Path p1 : paths1) {

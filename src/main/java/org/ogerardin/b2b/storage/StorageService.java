@@ -8,13 +8,18 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
+/**
+ * Interface for a service that provides storage and retrieval of files.
+ * Each file is identified by its filename which is the supposed to reflect the original filename (including path) at
+ * upload time.
+ */
 public interface StorageService {
 
     void init();
 
     void store(MultipartFile file);
 
-    Stream<Path> loadAll();
+    Stream<Path> getAllPaths();
 
     InputStream getAsInputStream(String filename) throws StorageFileNotFoundException;
 

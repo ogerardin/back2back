@@ -20,6 +20,12 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Comparator;
 import java.util.stream.Stream;
 
+/**
+ * Implementation of {@link StorageService} using the filesystem. All stored files are saved under a base directory; the
+ * path of the local file is the path of the original file, re-rooted at the base directory; e.g. if saving file
+ * /x/y/z and the {@link FilesystemStorageService}'s base directory is /a/b/c, then the file will be saved as
+ * /a/b/c/x/y/z.
+ */
 public class FilesystemStorageService implements StorageService {
 
     @Autowired
@@ -57,7 +63,7 @@ public class FilesystemStorageService implements StorageService {
     }
 
     @Override
-    public Stream<Path> loadAll() {
+    public Stream<Path> getAllPaths() {
         try {
             return Files.walk(directory)
                     .filter(p -> !Files.isDirectory(p))

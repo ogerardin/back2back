@@ -17,6 +17,10 @@ import org.springframework.context.annotation.Configuration;
 
 import java.nio.file.Path;
 
+/**
+ * Job implementation for a backup job that process a source of type {@link org.ogerardin.b2b.domain.FilesystemSource}
+ * and backups to a network peer.
+ */
 @Configuration
 public class FilesystemToPeerBackupJob extends FilesystemSourceBackupJob {
 

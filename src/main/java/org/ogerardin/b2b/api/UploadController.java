@@ -32,7 +32,7 @@ public class UploadController {
     @GetMapping("/api/files")
     public String listUploadedFiles(Model model) throws IOException {
 
-        model.addAttribute("files", storageService.loadAll().map(
+        model.addAttribute("files", storageService.getAllPaths().map(
                 path -> MvcUriComponentsBuilder.fromMethodName(UploadController.class,
                         "serveFile", path.getFileName().toString()).build().toString())
                 .collect(Collectors.toList()));

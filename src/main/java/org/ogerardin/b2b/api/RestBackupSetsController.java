@@ -45,7 +45,7 @@ public class RestBackupSetsController {
     public Path[] getFiles(@PathVariable String id) {
         BackupSet backupSet = backupSetRepository.findOne(id);
         StorageService storageService = storageServiceFactory.getStorageService(backupSet.getId());
-        List<Path> paths = storageService.loadAll().collect(Collectors.toList());
+        List<Path> paths = storageService.getAllPaths().collect(Collectors.toList());
         return paths.toArray(new Path[paths.size()]);
     }
 

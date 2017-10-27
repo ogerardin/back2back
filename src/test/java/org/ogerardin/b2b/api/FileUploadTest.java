@@ -35,7 +35,7 @@ public class FileUploadTest {
 
     @Test
     public void shouldListAllFiles() throws Exception {
-        given(this.storageService.loadAll())
+        given(this.storageService.getAllPaths())
                 .willReturn(Stream.of(Paths.get("first.txt"), Paths.get("second.txt")));
 
         this.mvc.perform(get("/api/files")).andExpect(status().isOk())
