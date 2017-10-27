@@ -1,6 +1,7 @@
 package org.ogerardin.b2b.api;
 
 import org.hamcrest.Matchers;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ogerardin.b2b.storage.StorageService;
@@ -25,6 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @AutoConfigureMockMvc
 @SpringBootTest
+@Ignore
 public class FileUploadTest {
 
     @Autowired
