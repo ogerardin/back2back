@@ -13,6 +13,9 @@ import java.util.Map;
 @Data
 public class FilesystemTarget extends BackupTarget {
 
+    public FilesystemTarget() {
+    }
+
     /** destination folder */
     // FIXME should be a java.nio.file.Path but causes serialization failure
     String path;

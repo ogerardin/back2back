@@ -1,7 +1,7 @@
 package org.ogerardin.b2b.storage;
 
-public interface StorageServiceFactory {
+public interface StorageServiceFactory<S extends StorageService> {
 
-    StorageService getStorageService(String name);
+    S getStorageService(String name);
 
 }

@@ -14,16 +14,16 @@ import java.util.List;
  *
  * @param <T> the superclass of all candidate classes
  */
-public class Factory<T> {
+public class StrategyFactory<T> {
 
-    private static final Log logger = LogFactory.getLog(Factory.class);
+    private static final Log logger = LogFactory.getLog(StrategyFactory.class);
 
     private final List<Class<? extends T>> candidateClasses;
 
     /**
      * @param candidateClasses list of candidate classes, in order of priority
      */
-    public Factory(List<Class<? extends T>> candidateClasses) {
+    public StrategyFactory(List<Class<? extends T>> candidateClasses) {
         this.candidateClasses = candidateClasses;
     }
 

@@ -13,6 +13,9 @@ import java.util.Map;
 @Data
 public class LocalTarget extends BackupTarget {
 
+    public LocalTarget() {
+    }
+
     @Override
     public void populateParams(Map<String, JobParameter> params) {
         params.put("target.type", new JobParameter(LocalTarget.class.getName()));

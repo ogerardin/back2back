@@ -12,8 +12,12 @@ import java.util.Map;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class PeerTarget extends BackupTarget {
+
     String hostname;
     long port;
+
+    public PeerTarget() {
+    }
 
     public PeerTarget(String hostname, long port) {
         this.hostname = hostname;

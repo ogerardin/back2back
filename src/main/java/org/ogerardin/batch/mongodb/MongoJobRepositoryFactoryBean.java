@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * Job Factory responsible to provide execution/Job DAOs for storing Springbatch metadata in Mongo DB. <br/>
+ * Job StrategyFactory responsible to provide execution/Job DAOs for storing Springbatch metadata in Mongo DB. <br/>
  * Following DAO needs to be set as property during bean definition <br/>
  * <ul>
  * <li>{@link MongoExecutionContextDao}</li>
