@@ -40,13 +40,29 @@ public class FilesystemToLocalBackupJob extends FilesystemSourceBackupJob {
     }
 
     @Bean("localToLocalJob")
-    protected Job job(Step localToLocalStep, Step listStep, JobExecutionListener jobListener) {
-        return jobBuilderFactory.get(FilesystemSourceBackupJob.class.getSimpleName())
+    protected Job job(
+            Step localToLocalStep,
+            Step listStep,
+            JobExecutionListener jobListener) {
+        return jobBuilderFactory
+                .get(FilesystemToLocalBackupJob.class.getSimpleName())
                 .validator(validator())
                 .incrementer(new RunIdIncrementer())
                 .listener(jobListener)
-                .start(listStep) //step 1: lists files and puts them in the job context
+                .start(listStep) //step 1: list files and put them in the job context
                 .next(localToLocalStep) //step 2: process each file
+                .build();
+    }
+
+    @Bean("listStep")
+    @JobScope
+    protected Step step0(
+            Tasklet listFilesTasklet,
+            ListFilesTaskletExecutionListener listFilesTaskletListener) {
+        return stepBuilderFactory
+                .get("listFiles")
+                .tasklet(listFilesTasklet)
+                .listener(listFilesTaskletListener)
                 .build();
     }
 
@@ -62,18 +78,6 @@ public class FilesystemToLocalBackupJob extends FilesystemSourceBackupJob {
                 .processor(localToLocalItemProcessor)
 //                .writer(newWriter())
                 .listener(itemProcessListener)
-                .build();
-    }
-
-    @Bean("listStep")
-    @JobScope
-    protected Step step0(
-            Tasklet listFilesTasklet,
-            ListFilesTaskletExecutionListener listFilesTaskletListener) {
-        return stepBuilderFactory
-                .get("listFiles")
-                .tasklet(listFilesTasklet)
-                .listener(listFilesTaskletListener)
                 .build();
     }
 

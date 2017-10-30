@@ -13,8 +13,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
- * ItemProcessor implementation that performs backup of a {@link Path} item to a StorageService.
- * The file is only stored if it hasn't been stored yet or the locally computed MD5 hash is different from the
+ * ItemProcessor implementation that performs backup of the input {@link Path} item to a StorageService.
+ * The file is only stored if it hasn't been stored yet or if the locally computed MD5 hash is different from the
  * stored file's MD5 hash.
  */
 class LocalStorageItemProcessor implements ItemProcessor<Path, PathItemResult> {
@@ -33,7 +33,7 @@ class LocalStorageItemProcessor implements ItemProcessor<Path, PathItemResult> {
 
     @Override
     public PathItemResult process(Path itemPath) throws Exception {
-        logger.debug("Processing " + itemPath);
+//        logger.debug("Processing " + itemPath);
 
         try {
             StoredFileInfo info = storageService.query(itemPath);
@@ -43,7 +43,7 @@ class LocalStorageItemProcessor implements ItemProcessor<Path, PathItemResult> {
                 byte[] bytes = Files.readAllBytes(itemPath);
                 String computedMd5Hash = md5Calculator.hexMd5Hash(bytes);
                 if (computedMd5Hash.equalsIgnoreCase(storedMd5hash)) {
-                    logger.debug("  Hash unchanged, skipping file");
+                    logger.debug("Unchanged: " + itemPath);
                     return new PathItemResult(itemPath, BackupResult.UNCHANGED);
                 }
             }
@@ -53,12 +53,14 @@ class LocalStorageItemProcessor implements ItemProcessor<Path, PathItemResult> {
 
         PathItemResult result;
         try {
+            logger.debug("STORING: " + itemPath);
             storageService.store(itemPath);
             result = new PathItemResult(itemPath, BackupResult.BACKED_UP);
         } catch (Exception e) {
             logger.error("Failed to store file: " + itemPath, e);
             result = new PathItemResult(itemPath, BackupResult.ERROR);
         }
+
         if (throttleDelay != 0) {
             Thread.sleep(throttleDelay);
         }

@@ -55,9 +55,9 @@ public class BackupJobExecutionListener extends BackupSetAwareBean implements Jo
                 Job job = jobLocator.getJob(jobName);
 
                 JobParameters jobParameters = jobExecution.getJobParameters();
-                jobParameters = job.getJobParametersIncrementer().getNext(jobParameters);
-                logger.info("Attempting to restart job " + jobName + " with parameters: " + jobParameters);
-                jobLauncher.run(job, jobParameters);
+                JobParameters nextJobParameters = job.getJobParametersIncrementer().getNext(jobParameters);
+                logger.info("Attempting to restart job " + jobName + " with parameters: " + nextJobParameters);
+                jobLauncher.run(job, nextJobParameters);
             } catch (InterruptedException ignored) {
             } catch (Exception e) {
                 logger.error("Failed to restart job", e);

@@ -2,7 +2,6 @@ package org.ogerardin.b2b.batch.jobs;
 
 import org.ogerardin.b2b.batch.BackupSetAwareBean;
 import org.ogerardin.b2b.domain.BackupSet;
-import org.ogerardin.b2b.domain.mongorepository.BackupSetRepository;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
@@ -10,12 +9,13 @@ import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+/**
+ * A {@link StepExecutionListener} that updates the backupSet with the file count from the job context.
+ * Intended to be attached to the {@link ListFilesTasklet} step.
+ */
 @Component
 @JobScope
 public class ListFilesTaskletExecutionListener extends BackupSetAwareBean implements StepExecutionListener {
-
-    @Autowired
-    BackupSetRepository backupSetRepository;
 
     @Autowired
     BackupJobContext backupJobContext;
@@ -33,6 +33,6 @@ public class ListFilesTaskletExecutionListener extends BackupSetAwareBean implem
             backupSet.setFileCount(fileCount);
             backupSetRepository.save(backupSet);
         }
-        return null;
+        return null; //unchanged exit status
     }
 }

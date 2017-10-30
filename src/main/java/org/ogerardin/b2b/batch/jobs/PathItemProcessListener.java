@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
 
+/** An {@link ItemProcessListener} that updates the current BackupSet with progress information */
 @Component
 @JobScope
 public class PathItemProcessListener extends BackupSetAwareBean implements ItemProcessListener<Path, PathItemResult> {

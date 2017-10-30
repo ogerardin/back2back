@@ -8,4 +8,11 @@ import java.nio.file.Path;
 public class PathItemResult {
     final Path path;
     final BackupResult result;
+    final String errorMessage;
+
+    public PathItemResult(Path path, BackupResult result) {
+        this.path = path;
+        this.result = result;
+        this.errorMessage = null;
+    }
 }
