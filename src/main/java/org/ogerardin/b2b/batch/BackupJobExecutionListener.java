@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @JobScope
-public class BackupJobExecutionListener extends BackupSetAwareListener implements JobExecutionListener {
+public class BackupJobExecutionListener extends BackupSetAwareBean implements JobExecutionListener {
 
     private static final Log logger = LogFactory.getLog(BackupJobExecutionListener.class);
 

@@ -1,7 +1,8 @@
-package org.ogerardin.b2b.batch;
+package org.ogerardin.b2b.batch.jobs;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.ogerardin.b2b.batch.BackupSetAwareBean;
 import org.ogerardin.b2b.domain.BackupSet;
 import org.springframework.batch.core.ItemProcessListener;
 import org.springframework.batch.core.configuration.annotation.JobScope;
@@ -11,7 +12,7 @@ import java.nio.file.Path;
 
 @Component
 @JobScope
-public class PathItemProcessListener extends BackupSetAwareListener implements ItemProcessListener<Path, Path> {
+public class PathItemProcessListener extends BackupSetAwareBean implements ItemProcessListener<Path, PathItemResult> {
 
     private static final Log logger = LogFactory.getLog(PathItemProcessListener.class);
 
@@ -24,10 +25,11 @@ public class PathItemProcessListener extends BackupSetAwareListener implements I
     }
 
     @Override
-    public void afterProcess(Path item, Path result) {
+    public void afterProcess(Path item, PathItemResult result) {
 //        logger.debug("afterProcess, backupSet.id=" + getBackupSet().getId());
         BackupSet backupSet = getBackupSet();
         backupSet.setLastFile(item.toString());
+        backupSet.setLastFileStatus(result.getResult());
         backupSet.setCurrentFile(null);
         backupSetRepository.save(backupSet);
     }

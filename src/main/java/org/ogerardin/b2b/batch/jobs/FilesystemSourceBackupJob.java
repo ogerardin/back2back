@@ -7,6 +7,7 @@ import org.ogerardin.b2b.domain.FilesystemSource;
  */
 public abstract class FilesystemSourceBackupJob extends BackupJob {
 
+
     public FilesystemSourceBackupJob() {
         addStaticParameter("source.type", FilesystemSource.class.getName());
         addMandatoryParameter("source.root");
