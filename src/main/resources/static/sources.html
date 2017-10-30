@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns:v-on="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel='stylesheet prefetch' href='https://unpkg.com/bootstrap@3.3.7/dist/css/bootstrap.min.css'>
+        <link rel='stylesheet prefetch' href='https://unpkg.com/bootstrap@3.3.7/dist/css/bootstrap-theme.min.css'>
+        <link rel="stylesheet" href="css/style.css">
+    </head>
+
+    <body>
+        <div class="container">
+            <main id="app">
+                <router-view></router-view>
+            </main>
+        </div>
+
+    <template id="product-list">
+        <div>
+            <div class="actions">
+                <router-link class="btn btn-default" v-bind:to="{path: '/add-product'}">
+                    <span class="glyphicon glyphicon-plus"></span>
+                    Add a source
+                </router-link>
+            </div>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Path</th>
+                    <th>enabled</th>
+                    <th class="col-sm-2">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-for="product in products">
+                    <td>
+                        <router-link v-bind:to="{name: 'product', params: {source_id: product.id}}">{{ product.id }}
+                        </router-link>
+                    </td>
+                    <td>{{ product.path }}</td>
+                    <td>{{ product.enabled }}</td>
+                    <td>
+                        <router-link class="btn btn-warning btn-xs"
+                                     v-bind:to="{name: 'product-edit', params: {source_id: product.id}}">Edit
+                        </router-link>
+                        <router-link class="btn btn-danger btn-xs"
+                                     v-bind:to="{name: 'product-delete', params: {source_id: product.id}}">Delete
+                        </router-link>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </template>
+
+    <template id="add-product">
+        <div>
+            <h2>Add new source</h2>
+            <form v-on:submit="createProduct">
+                <div class="form-group">
+                    <label for="add-description">Path</label>
+                    <textarea class="form-control" id="add-description" rows="10" v-model="product.path"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="add-price">Enabled</label>
+                    <input type="checkbox" class="form-control" id="add-price" v-model="product.enabled" value="false"/>
+                </div>
+                <button type="submit" class="btn btn-primary">Create</button>
+                <router-link class="btn btn-default" v-bind:to="'/'">Cancel</router-link>
+            </form>
+        </div>
+    </template>
+
+    <template id="product">
+        <div>
+            <h2>{{ product.id }}</h2>
+            <b>Path: </b>
+            <div>{{ product.path }}</div>
+            <b>Enabled:</b>
+            <div>{{ product.enabled }}</div>
+            <br/>
+            <router-link v-bind:to="'/'">Back to list</router-link>
+        </div>
+    </template>
+
+    <template id="product-edit">
+        <div>
+            <h2>Edit product</h2>
+            <form v-on:submit="updateProduct">
+                <div class="form-group">
+                    <label for="edit-name">Name</label>
+                    <input class="form-control" id="edit-name" v-model="product.name" required/>
+                </div>
+                <div class="form-group">
+                    <label for="edit-description">Description</label>
+                    <textarea class="form-control" id="edit-description" rows="3" v-model="product.description"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="edit-price">Price, <span class="glyphicon glyphicon-euro"></span></label>
+                    <input type="number" class="form-control" id="edit-price" v-model="product.price"/>
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+                <router-link class="btn btn-default" v-bind:to="'/'">Cancel</router-link>
+            </form>
+        </div>
+    </template>
+
+    <template id="product-delete">
+        <div>
+            <h2>Delete product {{ product.name }}</h2>
+            <form v-on:submit="deleteProduct">
+                <p>The action cannot be undone.</p>
+                <button type="submit" class="btn btn-danger">Delete</button>
+                <router-link class="btn btn-default" v-bind:to="'/'">Cancel</router-link>
+            </form>
+        </div>
+    </template>
+
+    <script src="https://unpkg.com/vue@2.5.2/dist/vue.js"></script>
+    <script src="https://unpkg.com/vue-resource@1.3.4/dist/vue-resource.js"></script>
+    <script src='https://unpkg.com/vue-router@3.0.1/dist/vue-router.js'></script>
+
+    <script src="js/sources.js"></script>
+
+    </body>
+</html>

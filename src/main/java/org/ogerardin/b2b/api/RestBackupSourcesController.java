@@ -3,10 +3,8 @@ package org.ogerardin.b2b.api;
 import org.ogerardin.b2b.domain.BackupSource;
 import org.ogerardin.b2b.domain.mongorepository.BackupSourceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -31,6 +29,17 @@ public class RestBackupSourcesController {
     @GetMapping("/{id}")
     public BackupSource get(@PathVariable String id) {
         return sourceRepository.findOne(id);
+    }
+
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public String create(@RequestBody BackupSource source) {
+        BackupSource savedSource = sourceRepository.insert(source);
+        return savedSource.getId();
+    }
+
+    @DeleteMapping ("/{id}")
+    public void delete(@PathVariable String id) {
+         sourceRepository.delete(id);
     }
 
 }

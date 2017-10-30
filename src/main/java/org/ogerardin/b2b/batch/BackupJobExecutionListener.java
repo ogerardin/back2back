@@ -48,6 +48,9 @@ public class BackupJobExecutionListener extends BackupSetAwareBean implements Jo
 
         if (properties != null && properties.isAutorestart()) {
             try {
+                /* FIXME by sleeping here, we block the completion of the current job until the next starts!
+                   We should delegate the start of the next job to an async task or similar and let the current job
+                   complete in peace. */
                 logger.info("Pausing between job executions");
                 Thread.sleep(10000);
                 // restart job

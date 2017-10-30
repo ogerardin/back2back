@@ -1,11 +1,11 @@
 package org.ogerardin.b2b.batch.jobs;
 
 import org.ogerardin.b2b.B2BProperties;
+import org.ogerardin.b2b.batch.BackupJobExecutionListener;
 import org.ogerardin.b2b.domain.LocalTarget;
 import org.ogerardin.b2b.storage.StorageService;
 import org.ogerardin.b2b.storage.StorageServiceFactory;
 import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
@@ -43,7 +43,7 @@ public class FilesystemToLocalBackupJob extends FilesystemSourceBackupJob {
     protected Job job(
             Step localToLocalStep,
             Step listStep,
-            JobExecutionListener jobListener) {
+            BackupJobExecutionListener jobListener) {
         return jobBuilderFactory
                 .get(FilesystemToLocalBackupJob.class.getSimpleName())
                 .validator(validator())
