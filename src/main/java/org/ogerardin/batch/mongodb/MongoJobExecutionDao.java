@@ -71,13 +71,10 @@ public class MongoJobExecutionDao extends AbstractMongoBatchMetadataDao implemen
 
     private void validateJobExecution(JobExecution jobExecution) {
 
-        Assert.notNull(jobExecution);
-        Assert.notNull(jobExecution.getJobId(),
-                "JobExecution Job-Id cannot be null.");
-        Assert.notNull(jobExecution.getStatus(),
-                "JobExecution status cannot be null.");
-        Assert.notNull(jobExecution.getCreateTime(),
-                "JobExecution create time cannot be null");
+        Assert.notNull(jobExecution, "jobExecution cannot be null");
+        Assert.notNull(jobExecution.getJobId(),"JobExecution Job-Id cannot be null.");
+        Assert.notNull(jobExecution.getStatus(),"JobExecution status cannot be null.");
+        Assert.notNull(jobExecution.getCreateTime(),"JobExecution create time cannot be null");
     }
 
     public synchronized void updateJobExecution(JobExecution jobExecution) {
@@ -134,7 +131,7 @@ public class MongoJobExecutionDao extends AbstractMongoBatchMetadataDao implemen
         Assert.notNull(id, "Job Id cannot be null.");
         DBCursor dbCursor = getCollection().find(jobInstanceIdObj(id)).sort(
                 new BasicDBObject(JOB_EXECUTION_ID_KEY, -1));
-        List<JobExecution> result = new ArrayList<JobExecution>();
+        List<JobExecution> result = new ArrayList<>();
         while (dbCursor.hasNext()) {
             DBObject dbObject = dbCursor.next();
             result.add(mapJobExecution(jobInstance, dbObject));
@@ -162,7 +159,7 @@ public class MongoJobExecutionDao extends AbstractMongoBatchMetadataDao implemen
         DBCursor instancesCursor = mongoTemplate
                 .getCollection(collectionName(JobInstance.class))
                 .find(new BasicDBObject(MongoJobInstanceDao.JOB_NAME_KEY, jobName),jobInstanceIdObj(1L));
-        List<Long> ids = new ArrayList<Long>();
+        List<Long> ids = new ArrayList<>();
         while (instancesCursor.hasNext()) {
             ids.add((Long) instancesCursor.next().get(JOB_INSTANCE_ID_KEY));
         }
@@ -173,7 +170,7 @@ public class MongoJobExecutionDao extends AbstractMongoBatchMetadataDao implemen
                         .add(JOB_INSTANCE_ID_KEY,new BasicDBObject("$in", ids.toArray()))
                         .add(END_TIME_KEY, null).get()).sort(
                 jobExecutionIdObj(-1L));
-        Set<JobExecution> result = new HashSet<JobExecution>();
+        Set<JobExecution> result = new HashSet<>();
         while (dbCursor.hasNext()) {
             result.add(mapJobExecution(dbCursor.next()));
         }
