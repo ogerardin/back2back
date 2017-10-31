@@ -133,10 +133,10 @@
                             <goal>jar</goal>
                         </goals>
                         <configuration>
-                            <finalName>classes/static/test</finalName>
+                            <finalName>classes/static/selectPath</finalName>
                             <classifier>jnlp</classifier>
                             <includes>
-                                <include>**/TestJnlp*</include>
+                                <include>**/SelectPath*</include>
                             </includes>
                         </configuration>
                     </execution>

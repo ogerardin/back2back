@@ -61,8 +61,8 @@
             <h2>Add new source</h2>
             <form v-on:submit="createProduct">
                 <div class="form-group">
-                    <label for="add-description">Path</label>
-                    <textarea class="form-control" id="add-description" rows="10" v-model="product.path"></textarea>
+                    <label for="add-name">Path</label>
+                    <textarea class="form-control" id="add-name" rows="10" v-model="product.path"></textarea>
                 </div>
                 <div class="form-group">
                     <label for="add-price">Enabled</label>
@@ -88,19 +88,16 @@
 
     <template id="product-edit">
         <div>
-            <h2>Edit product</h2>
+            <h2>Edit source</h2>
             <form v-on:submit="updateProduct">
                 <div class="form-group">
-                    <label for="edit-name">Name</label>
-                    <input class="form-control" id="edit-name" v-model="product.name" required/>
+                    <label for="edit-name">Path</label>
+                    <input class="form-control" id="edit-name" v-model="product.path" required/>
+                    <a href="selectPath.jnlp">Select path</a>
                 </div>
                 <div class="form-group">
-                    <label for="edit-description">Description</label>
-                    <textarea class="form-control" id="edit-description" rows="3" v-model="product.description"></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="edit-price">Price, <span class="glyphicon glyphicon-euro"></span></label>
-                    <input type="number" class="form-control" id="edit-price" v-model="product.price"/>
+                    <label for="edit-price">Enabled</label>
+                    <input type="checkbox" class="form-control" id="edit-price" v-model="product.enabled"/>
                 </div>
                 <button type="submit" class="btn btn-primary">Save</button>
                 <router-link class="btn btn-default" v-bind:to="'/'">Cancel</router-link>

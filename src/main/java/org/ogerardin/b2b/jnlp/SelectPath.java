@@ -16,15 +16,13 @@ public class SelectPath {
     private static final String USER_AGENT = "Mozilla/5.0";
 
     public static void main(String args[]) throws UnavailableServiceException, IOException {
-        //FIXME this should be obtained from the context
-        String sourceId = "123654987";
+        String sourceId = args[0];
 
         // let the user select a directory
         File selectedDir = chooseDirectory();
         if (selectedDir == null) { // user cancelled
             return;
         }
-//        JOptionPane.showMessageDialog(null, selectedDir);
 
         // post the selected directory to the server
         BasicService basicService = (BasicService) ServiceManager.lookup("javax.jnlp.BasicService");
