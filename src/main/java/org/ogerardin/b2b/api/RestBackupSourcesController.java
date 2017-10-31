@@ -1,6 +1,7 @@
 package org.ogerardin.b2b.api;
 
 import org.ogerardin.b2b.domain.BackupSource;
+import org.ogerardin.b2b.domain.FilesystemSource;
 import org.ogerardin.b2b.domain.mongorepository.BackupSourceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -35,6 +36,20 @@ public class RestBackupSourcesController {
     public String create(@RequestBody BackupSource source) {
         BackupSource savedSource = sourceRepository.insert(source);
         return savedSource.getId();
+    }
+
+    @PostMapping("/{id}/path")
+    public void setPath(@PathVariable String id, String path) {
+        BackupSource source = sourceRepository.findOne(id);
+        if (source == null) {
+            throw new RuntimeException("Failed to find id " + id);
+        }
+        if (! (source instanceof FilesystemSource)) {
+            throw new RuntimeException("Source is not a " + FilesystemSource.class.getSimpleName() + ", id " + id);
+        }
+        FilesystemSource filesystemSource = (FilesystemSource) source;
+        filesystemSource.setPath(path);
+        sourceRepository.save(filesystemSource);
     }
 
     @DeleteMapping ("/{id}")
