@@ -24,6 +24,8 @@
 hs_err_pid*
 
 .idea/
-core/mongo-storage/
 *.iml
-ui/src/main/
+
+/core/mongo-storage/
+/core/target/
+/ui/target/
