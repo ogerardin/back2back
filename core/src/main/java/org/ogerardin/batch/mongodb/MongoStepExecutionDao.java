@@ -149,7 +149,7 @@ public class MongoStepExecutionDao extends AbstractMongoBatchMetadataDao impleme
     }
 
     private void validateStepExecution(StepExecution stepExecution) {
-        Assert.notNull(stepExecution);
+        Assert.notNull(stepExecution, "StepExecution cannot be null.");
         Assert.notNull(stepExecution.getStepName(), "StepExecution step name cannot be null.");
         Assert.notNull(stepExecution.getStartTime(), "StepExecution start time cannot be null.");
         Assert.notNull(stepExecution.getStatus(), "StepExecution status cannot be null.");
