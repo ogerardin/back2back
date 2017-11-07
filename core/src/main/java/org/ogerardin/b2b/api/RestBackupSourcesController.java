@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.file.Paths;
 import java.util.List;
 
 @RestController
@@ -48,7 +49,7 @@ public class RestBackupSourcesController {
             throw new RuntimeException("Source is not a " + FilesystemSource.class.getSimpleName() + ", id " + id);
         }
         FilesystemSource filesystemSource = (FilesystemSource) source;
-        filesystemSource.setPath(path);
+        filesystemSource.setPath(Paths.get(path));
         sourceRepository.save(filesystemSource);
     }
 

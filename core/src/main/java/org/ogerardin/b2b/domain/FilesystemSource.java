@@ -5,7 +5,8 @@ import lombok.EqualsAndHashCode;
 import org.springframework.batch.core.JobParameter;
 
 import java.io.File;
-import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 
 /**
@@ -16,24 +17,27 @@ import java.util.Map;
 public class FilesystemSource extends BackupSource {
 
     /** root directory to be backed up */
-    // FIXME should be a java.nio.file.Path but causes serialization failure
-    private String path;
+    private Path path;
 
     public FilesystemSource() {
     }
 
-    public FilesystemSource(String path) {
+    public FilesystemSource(String dir) {
+        this(Paths.get(dir));
+    }
+
+    public FilesystemSource(Path path) {
         this.path = path;
     }
 
-    public FilesystemSource(File dir) throws IOException {
-        this(dir.getCanonicalPath());
+    public FilesystemSource(File dir) {
+        this(dir.toPath());
     }
 
     @Override
     public void populateParams(Map<String, JobParameter> params) {
         params.put("source.type", new JobParameter(FilesystemSource.class.getName()));
-        params.put("source.root", new JobParameter(path));
+        params.put("source.root", new JobParameter(path.toString()));
     }
 }
 

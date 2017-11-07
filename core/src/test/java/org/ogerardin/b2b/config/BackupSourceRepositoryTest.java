@@ -13,10 +13,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,15 +33,15 @@ public class BackupSourceRepositoryTest {
     BackupSourceRepository backupSourceRepository;
 
     @Test
-    public void test() throws URISyntaxException, IOException {
+    public void test() throws URISyntaxException, IOException, InterruptedException {
         backupSourceRepository.deleteAll();
 
         List<BackupSource> sources = new ArrayList<>();
 
         {
             URL url = getClass().getResource(FILESET_RSC);
-            File dir = new File(url.toURI());
-            BackupSource fileSource = new FilesystemSource(dir);
+            Path dir = Paths.get(url.toURI());
+            FilesystemSource fileSource = new FilesystemSource(dir);
             sources.add(fileSource);
         }
 //        sources.add(new FilesystemSource("C:\\Users\\oge\\Downloads"));
@@ -49,6 +50,8 @@ public class BackupSourceRepositoryTest {
 
         List<BackupSource> fetchedSources = backupSourceRepository.findAll();
         Assert.assertThat(fetchedSources, Matchers.equalTo(sources));
+
+//        Thread.sleep(100000);
     }
 
 }
