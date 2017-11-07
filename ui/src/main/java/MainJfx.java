@@ -14,11 +14,10 @@ import javafx.stage.Stage;
 import org.ogerardin.b2b.domain.BackupSet;
 
 import java.util.Arrays;
-import java.util.Collection;
 
-public class Main extends Application {
+public class MainJfx extends Application {
 
-    private static Collection<BackupSet> backupSets;
+    private static B2Bfacade b2Bfacade;
 
     @Override
     public void start(Stage primaryStage) {
@@ -28,7 +27,8 @@ public class Main extends Application {
 
         // build UI for a DomainManager and bind it to actual instance
         JfxCollectionUI<BackupSet> ui = uiManager.buildCollectionUi(BackupSet.class);
-        ui.bind(backupSets);
+        BackupSet[] backupSets = b2Bfacade.getBackupSets();
+        ui.bind(Arrays.asList(backupSets));
 
         //display UI in JavaFX primary Stage
         uiManager.display(ui, primaryStage, "back2back");
@@ -37,8 +37,7 @@ public class Main extends Application {
     public static void main(String[] args) {
 
         // instantiate our main business object
-        B2BfacadeRest facade = new B2BfacadeRest();
-        backupSets = Arrays.asList(facade.getBackupSets());
+        b2Bfacade = new B2BfacadeRest();
 
         // handoff to JavaFX; this will call the start() method
         launch(args);
