@@ -6,9 +6,15 @@ import org.springframework.data.mongodb.core.convert.CustomConversions;
 
 import java.util.Arrays;
 
+/**
+ * Custom configuration for Spring Data MongoDB
+ */
 @Configuration
 public class MongoConfig
 {
+    /**
+     * Prodives a set of custom conversions that are used for MongoDB serialization/deserialization.
+     */
     @Bean
     public CustomConversions customConversions()
     {
