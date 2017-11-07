@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.nio.file.Path;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/backupsets")
@@ -45,8 +44,7 @@ public class RestBackupSetsController {
     public Path[] getFiles(@PathVariable String id) {
         BackupSet backupSet = backupSetRepository.findOne(id);
         StorageService storageService = storageServiceFactory.getStorageService(backupSet.getId());
-        List<Path> paths = storageService.getAllPaths().collect(Collectors.toList());
-        return paths.toArray(new Path[paths.size()]);
+        return storageService.getAllPaths().toArray(Path[]::new);
     }
 
 
