@@ -4,14 +4,16 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.ogerardin.b2b.B2BProperties;
 import org.ogerardin.b2b.domain.BackupSet;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobExecutionListener;
-import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.*;
 import org.springframework.batch.core.configuration.JobLocator;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.batch.core.launch.NoSuchJobException;
+import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
+import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
+import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.stereotype.Component;
 
 /**
@@ -31,6 +33,9 @@ public class BackupJobExecutionListener extends BackupSetAwareBean implements Jo
     @Autowired
     private JobLocator jobLocator;
 
+    @Autowired
+    private AsyncTaskExecutor asyncTaskExecutor;
+
     @Override
     public void beforeJob(JobExecution jobExecution) {
 //        logger.debug("beforeJob, jobExecution=" + jobExecution);
@@ -47,25 +52,33 @@ public class BackupJobExecutionListener extends BackupSetAwareBean implements Jo
         backupSetRepository.save(backupSet);
 
         if (properties != null && properties.isAutorestart()) {
-            try {
-                /* FIXME by sleeping here, we block the completion of the current job until the next starts!
-                   We should delegate the start of the next job to an async task or similar and let the current job
-                   complete in peace. */
-                logger.info("Pausing between job executions");
-                Thread.sleep(10000);
-                // restart job
-                String jobName = jobExecution.getJobInstance().getJobName();
-                Job job = jobLocator.getJob(jobName);
+            // Pause and schedule a job restart. This is done asynchronously because
+            // the current job is not considered as complete until we exit this function.
+            scheduleDelayedRestart(jobExecution, properties.getPauseAfterBackup());
+        }
+    }
 
-                JobParameters jobParameters = jobExecution.getJobParameters();
+    private void scheduleDelayedRestart(JobExecution jobExecution, long delay) {
+        asyncTaskExecutor.submit(() -> {
+            String jobName = jobExecution.getJobInstance().getJobName();
+            JobParameters jobParameters = jobExecution.getJobParameters();
+            // pause
+            try {
+                logger.info("Pausing between job executions...");
+                Thread.sleep(delay);
+            } catch (InterruptedException e) {
+                logger.warn("Restart task interrupted during pause: " + e.toString());
+            }
+            // restart job
+            try {
+                Job job = jobLocator.getJob(jobName);
                 JobParameters nextJobParameters = job.getJobParametersIncrementer().getNext(jobParameters);
                 logger.info("Attempting to restart job " + jobName + " with parameters: " + nextJobParameters);
                 jobLauncher.run(job, nextJobParameters);
-            } catch (InterruptedException ignored) {
-            } catch (Exception e) {
+            } catch (NoSuchJobException | JobExecutionAlreadyRunningException | JobParametersInvalidException | JobInstanceAlreadyCompleteException | JobRestartException e) {
                 logger.error("Failed to restart job", e);
             }
-        }
+        });
     }
 
 }

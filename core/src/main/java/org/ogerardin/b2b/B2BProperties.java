@@ -14,8 +14,11 @@ public class B2BProperties {
     //
 
     /** Delay between files */
-    long throttleDelay = 1000;
+    long fileThrottleDelay = 1000;
 
     /** Automatically restart full backup job when finished */
     boolean autorestart = false;
+
+    /** Pause between backup jobs */
+    long pauseAfterBackup = 30000;
 }

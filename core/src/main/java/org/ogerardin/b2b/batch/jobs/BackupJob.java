@@ -1,7 +1,6 @@
 package org.ogerardin.b2b.batch.jobs;
 
-import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.JobParametersInvalidException;
+import org.ogerardin.b2b.batch.StaticJobParameterValidator;
 import org.springframework.batch.core.JobParametersValidator;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
@@ -46,21 +45,4 @@ public abstract class BackupJob {
         validators.add(new StaticJobParameterValidator(name, value));
     }
 
-    private class StaticJobParameterValidator implements JobParametersValidator {
-        private final String name;
-        private final String expectedValue;
-
-        public StaticJobParameterValidator(String name, String expectedValue) {
-            this.name = name;
-            this.expectedValue = expectedValue;
-        }
-
-        @Override
-        public void validate(JobParameters parameters) throws JobParametersInvalidException {
-            String actualValue = parameters.getString(name);
-            if (!actualValue.equals(expectedValue)) {
-                throw new JobParametersInvalidException(String.format("Value for key '%s' must be '%s', but was '%s'", name, expectedValue, actualValue));
-            }
-        }
-    }
 }

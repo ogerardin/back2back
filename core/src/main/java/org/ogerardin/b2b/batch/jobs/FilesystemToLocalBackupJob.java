@@ -100,7 +100,7 @@ public class FilesystemToLocalBackupJob extends FilesystemSourceBackupJob {
         // distinct bucket
         // TODO we should implement a maintenance job to delete buckets for which there is no backupSet
         StorageService storageService = storageServiceFactory.getStorageService(backupSetId);
-        return new LocalStorageItemProcessor(storageService, properties.getThrottleDelay());
+        return new LocalStorageItemProcessor(storageService, properties.getFileThrottleDelay());
     }
 
     @Bean
