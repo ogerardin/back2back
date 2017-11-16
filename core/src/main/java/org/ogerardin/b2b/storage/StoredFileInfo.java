@@ -7,6 +7,8 @@ import java.time.Instant;
 @Data
 public class StoredFileInfo {
 
+    String id;
+
     String filename;
 
     Instant storedDate;

@@ -73,6 +73,17 @@ public class FilesystemStorageService implements StorageService {
         }
     }
 
+    @Override
+    public Stream<StoredFileInfo> getAllStoredFileInfos() {
+        try {
+            return Files.walk(directory)
+                    .filter(p -> !Files.isDirectory(p))
+                    .map(this::getStoredFileInfo);
+        } catch (IOException e) {
+            throw new StorageException("Exception while listing local files", e);
+        }
+    }
+
     private Path remoteToLocal(Path path) {
         // turn into a relative path, e.g. C:\xxxx\yyy will become xxx\yyy
         Path root = path.getRoot();
@@ -159,6 +170,10 @@ public class FilesystemStorageService implements StorageService {
     public StoredFileInfo query(Path remotePath) {
         Path localPath = remoteToLocal(remotePath);
 
+        return getStoredFileInfo(remotePath, localPath);
+    }
+
+    private StoredFileInfo getStoredFileInfo(Path remotePath, Path localPath) {
         BasicFileAttributes fileAttributes;
         try {
             BasicFileAttributeView fileAttributeView = Files.getFileAttributeView(localPath, BasicFileAttributeView.class);
@@ -178,6 +193,7 @@ public class FilesystemStorageService implements StorageService {
         }
 
         StoredFileInfo info = new StoredFileInfo();
+        info.setId(null); //no ID for FilesystemStorageService
         info.setFilename(remotePath.toString());
         info.setSize(fileAttributes.size());
         info.setStoredDate(fileAttributes.creationTime().toInstant());
@@ -185,4 +201,7 @@ public class FilesystemStorageService implements StorageService {
         return info;
     }
 
+    private StoredFileInfo getStoredFileInfo(Path localPath) {
+        return getStoredFileInfo(localToRemote(localPath), localPath);
+    }
 }

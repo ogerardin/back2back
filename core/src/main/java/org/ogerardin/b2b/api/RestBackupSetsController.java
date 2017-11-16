@@ -4,6 +4,7 @@ import org.ogerardin.b2b.domain.BackupSet;
 import org.ogerardin.b2b.domain.mongorepository.BackupSetRepository;
 import org.ogerardin.b2b.storage.StorageService;
 import org.ogerardin.b2b.storage.StorageServiceFactory;
+import org.ogerardin.b2b.storage.StoredFileInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -47,5 +48,11 @@ public class RestBackupSetsController {
         return storageService.getAllPaths().toArray(Path[]::new);
     }
 
+    @GetMapping("/{id}/items")
+    public StoredFileInfo[] getItems(@PathVariable String id) {
+        BackupSet backupSet = backupSetRepository.findOne(id);
+        StorageService storageService = storageServiceFactory.getStorageService(backupSet.getId());
+        return storageService.getAllStoredFileInfos().toArray(StoredFileInfo[]::new);
+    }
 
 }

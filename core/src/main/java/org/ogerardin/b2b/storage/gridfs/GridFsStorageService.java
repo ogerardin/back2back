@@ -1,5 +1,6 @@
 package org.ogerardin.b2b.storage.gridfs;
 
+import com.mongodb.BasicDBObject;
 import com.mongodb.gridfs.GridFSDBFile;
 import com.mongodb.gridfs.GridFSFile;
 import org.ogerardin.b2b.storage.StorageException;
@@ -8,7 +9,9 @@ import org.ogerardin.b2b.storage.StorageService;
 import org.ogerardin.b2b.storage.StoredFileInfo;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.convert.MongoConverter;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.gridfs.GridFsCriteria;
@@ -21,23 +24,32 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.List;
 import java.util.stream.Stream;
 
 /**
  * Implementation of {@link StorageService} using MongoDB's GridFS.
+ *
+ * This implementation allows the storage of several versions of the same file (= same path).
+ *
+ * Unless otherwise specified, methods that take a path as parameter refer to the latest stored version.
  */
 public class GridFsStorageService implements StorageService {
 
     private static final String DEFAULT_BUCKET = "storage";
 
     private final GridFsTemplate gridFsTemplate;
+    private final MongoTemplate mongoTemplate;
+    private final String bucket;
 
-    public GridFsStorageService(MongoDbFactory mongoDbFactory, MongoConverter mongoConverter) {
-        this(mongoDbFactory, mongoConverter, DEFAULT_BUCKET);
+    public GridFsStorageService(MongoDbFactory mongoDbFactory, MongoConverter mongoConverter, MongoTemplate mongoTemplate) {
+        this(mongoDbFactory, mongoConverter, mongoTemplate, DEFAULT_BUCKET);
     }
 
-    public GridFsStorageService(MongoDbFactory mongoDbFactory, MongoConverter mongoConverter, String bucket) {
+    public GridFsStorageService(MongoDbFactory mongoDbFactory, MongoConverter mongoConverter, MongoTemplate mongoTemplate, String bucket) {
         this.gridFsTemplate = new GridFsTemplate(mongoDbFactory, mongoConverter, bucket);
+        this.mongoTemplate = mongoTemplate;
+        this.bucket = bucket;
     }
 
     @Override
@@ -72,6 +84,12 @@ public class GridFsStorageService implements StorageService {
     }
 
     @Override
+    public Stream<StoredFileInfo> getAllStoredFileInfos() {
+        return gridFsTemplate.find(new Query()).stream()
+                .map(this::getStoredFileInfo);
+    }
+
+    @Override
     public InputStream getAsInputStream(String filename) throws StorageFileNotFoundException {
         GridFSDBFile fsdbFile = getGridFSDBFile(filename);
         return fsdbFile.getInputStream();
@@ -79,7 +97,19 @@ public class GridFsStorageService implements StorageService {
     }
 
     private GridFSDBFile getGridFSDBFile(String filename) throws StorageFileNotFoundException {
-        GridFSDBFile fsdbFile = gridFsTemplate.findOne(new Query(GridFsCriteria.whereFilename().is(filename)));
+        // we have to do the query in 2 steps since GridFsTemplate doesn't support sorting
+        //TODO this could certainly be improved
+
+        // 1) perform a standard MongoTemplate query on the file bucket. This returns a BasicDBObject
+        Query query = new Query(GridFsCriteria.whereFilename().is(filename))
+                .with(new Sort(Sort.Direction.DESC, "uploadDate"))
+                .limit(1);
+        List<BasicDBObject> gridFsFiles = mongoTemplate.find(query, BasicDBObject.class, bucket + ".files");
+        BasicDBObject file = gridFsFiles.get(0);
+
+        // 2) perfom a gridFsTemplate query with the ID obtained previously. This returns a true GridFSDBFile
+        GridFSDBFile fsdbFile = gridFsTemplate.findOne(
+                new Query(GridFsCriteria.where("_id").is(file.get("_id"))));
         if (fsdbFile == null) {
             throw new StorageFileNotFoundException(filename);
         }
@@ -135,7 +165,13 @@ public class GridFsStorageService implements StorageService {
     @Override
     public StoredFileInfo query(String filename) throws StorageFileNotFoundException {
         GridFSDBFile fsdbFile = getGridFSDBFile(filename);
+        StoredFileInfo info = getStoredFileInfo(fsdbFile);
+        return info;
+    }
+
+    private StoredFileInfo getStoredFileInfo(GridFSDBFile fsdbFile) {
         StoredFileInfo info = new StoredFileInfo();
+        info.setId(fsdbFile.getId().toString());
         info.setFilename(fsdbFile.getFilename());
         info.setSize(fsdbFile.getLength());
         info.setMd5hash(fsdbFile.getMD5());
@@ -148,4 +184,6 @@ public class GridFsStorageService implements StorageService {
         String canonicalPath = canonicalPath(path);
         return query(canonicalPath);
     }
+
 }
+

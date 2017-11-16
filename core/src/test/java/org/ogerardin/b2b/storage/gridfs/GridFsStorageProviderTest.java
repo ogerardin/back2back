@@ -8,6 +8,7 @@ import org.ogerardin.b2b.storage.StorageProviderTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.convert.MongoConverter;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -24,9 +25,12 @@ public class GridFsStorageProviderTest extends StorageProviderTest<GridFsStorage
     @Autowired
     private MongoConverter mongoConverter;
 
+    @Autowired
+    private MongoTemplate mongoTemplate;
+
     @Before
     public void setUp() {
-        GridFsStorageService storageService = new GridFsStorageService(mongoDbFactory, mongoConverter, "test");
+        GridFsStorageService storageService = new GridFsStorageService(mongoDbFactory, mongoConverter, mongoTemplate, "test");
         storageService.init();
         storageService.deleteAll();
         setStorageService(storageService);
