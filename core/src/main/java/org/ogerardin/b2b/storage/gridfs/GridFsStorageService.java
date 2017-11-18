@@ -1,6 +1,7 @@
 package org.ogerardin.b2b.storage.gridfs;
 
 import com.mongodb.BasicDBObject;
+import com.mongodb.DBObject;
 import com.mongodb.gridfs.GridFSDBFile;
 import com.mongodb.gridfs.GridFSFile;
 import org.ogerardin.b2b.storage.StorageException;
@@ -24,6 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -50,6 +52,10 @@ public class GridFsStorageService implements StorageService {
         this.gridFsTemplate = new GridFsTemplate(mongoDbFactory, mongoConverter, bucket);
         this.mongoTemplate = mongoTemplate;
         this.bucket = bucket;
+    }
+
+    private static Path asPath(String f) {
+        return Paths.get(f);
     }
 
     @Override
@@ -80,7 +86,8 @@ public class GridFsStorageService implements StorageService {
     public Stream<Path> getAllPaths() {
         return gridFsTemplate.find(new Query()).stream()
                 .map(GridFSFile::getFilename)
-                .map(f -> Paths.get(f));
+                .distinct()
+                .map(GridFsStorageService::asPath);
     }
 
     @Override
@@ -96,24 +103,31 @@ public class GridFsStorageService implements StorageService {
 
     }
 
-    private GridFSDBFile getGridFSDBFile(String filename) throws StorageFileNotFoundException {
+    private GridFSDBFile getGridFSDBFile_(String filename) throws StorageFileNotFoundException {
         // we have to do the query in 2 steps since GridFsTemplate doesn't support sorting
         //TODO this could certainly be improved
 
-        // 1) perform a standard MongoTemplate query on the file bucket. This returns a BasicDBObject
+        // 1) perform a standard MongoTemplate query on the file bucket.
         Query query = new Query(GridFsCriteria.whereFilename().is(filename))
                 .with(new Sort(Sort.Direction.DESC, "uploadDate"))
                 .limit(1);
         List<BasicDBObject> gridFsFiles = mongoTemplate.find(query, BasicDBObject.class, bucket + ".files");
-        BasicDBObject file = gridFsFiles.get(0);
+        if (gridFsFiles.isEmpty()) {
+            throw new StorageFileNotFoundException(filename);
+        }
+        DBObject file = gridFsFiles.get(0);
+        Object fileId = file.get("_id");
 
         // 2) perfom a gridFsTemplate query with the ID obtained previously. This returns a true GridFSDBFile
         GridFSDBFile fsdbFile = gridFsTemplate.findOne(
-                new Query(GridFsCriteria.where("_id").is(file.get("_id"))));
-        if (fsdbFile == null) {
-            throw new StorageFileNotFoundException(filename);
-        }
+                new Query(GridFsCriteria.where("_id").is(fileId)));
         return fsdbFile;
+    }
+
+    private GridFSDBFile getGridFSDBFile(String filename) throws StorageFileNotFoundException {
+        List<GridFSDBFile> files = gridFsTemplate.find(new Query(GridFsCriteria.whereFilename().is(filename)));
+        files.sort(Comparator.comparing(GridFSFile::getUploadDate).reversed());
+        return files.get(0);
     }
 
     @Override
