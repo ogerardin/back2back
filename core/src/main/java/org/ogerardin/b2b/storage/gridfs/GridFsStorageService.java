@@ -125,9 +125,10 @@ public class GridFsStorageService implements StorageService {
     }
 
     private GridFSDBFile getGridFSDBFile(String filename) throws StorageFileNotFoundException {
-        List<GridFSDBFile> files = gridFsTemplate.find(new Query(GridFsCriteria.whereFilename().is(filename)));
-        files.sort(Comparator.comparing(GridFSFile::getUploadDate).reversed());
-        return files.get(0);
+        GridFSDBFile fsdbFile = gridFsTemplate.find(new Query(GridFsCriteria.whereFilename().is(filename))).stream()
+                .max(Comparator.comparing(GridFSFile::getUploadDate))
+                .orElseThrow(() -> new StorageFileNotFoundException(filename));
+        return fsdbFile;
     }
 
     @Override

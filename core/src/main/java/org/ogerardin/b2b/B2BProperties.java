@@ -17,8 +17,8 @@ public class B2BProperties {
     long fileThrottleDelay = 1000;
 
     /** Automatically restart full backup job when finished */
-    boolean autorestart = false;
+    boolean continuousBackup = true;
 
     /** Pause between backup jobs */
-    long pauseAfterBackup = 30000;
+    long pauseAfterBackup = 30 * 60 * 1000;
 }
