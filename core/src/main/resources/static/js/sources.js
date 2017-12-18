@@ -1,8 +1,8 @@
 
-const List = Vue.extend({
-    template: '#product-list',
+const ListSources = Vue.extend({
+    template: '#source-list',
     data: function () {
-        return {products: []};
+        return {sources: []};
     },
     created: function() {
         this.getSources();
@@ -10,7 +10,7 @@ const List = Vue.extend({
     methods: {
         getSources: function() {
             this.$http.get('/api/sources').then(response => {
-                this.products = response.data;
+                this.sources = response.data;
             }, error => {
                 // error callback
                 console.log(error)
@@ -20,10 +20,10 @@ const List = Vue.extend({
     }
 });
 
-const Product = Vue.extend({
-    template: '#product',
+const Source = Vue.extend({
+    template: '#source',
     data: function () {
-        return {product: {}};
+        return {source: {}};
     },
     created: function() {
         this.getSource(this.$route.params.source_id);
@@ -31,7 +31,7 @@ const Product = Vue.extend({
     methods: {
         getSource: function(id) {
             this.$http.get('/api/sources/'+id).then(response => {
-                this.product = response.data;
+                this.source = response.data;
             }, error => {
                 // error callback
                 console.log(error)
@@ -41,10 +41,10 @@ const Product = Vue.extend({
     }
 });
 
-const ProductEdit = Vue.extend({
-    template: '#product-edit',
+const SourceEdit = Vue.extend({
+    template: '#source-edit',
     data: function () {
-        return {product: {}};
+        return {source: {}};
     },
     created: function() {
         this.getSource(this.$route.params.source_id);
@@ -52,17 +52,17 @@ const ProductEdit = Vue.extend({
     methods: {
         getSource: function(id) {
             this.$http.get('/api/sources/'+id).then(response => {
-                this.product = response.data;
+                this.source = response.data;
             }, error => {
                 // error callback
                 console.log(error)
             });
 
         },
-        updateProduct: function () {
-            const product = this.product;
-            this.$http.post('/api/sources', product).then(response => {
-                this.product.id = response.data;
+        updateSource: function () {
+            const source = this.source;
+            this.$http.post('/api/sources', source).then(response => {
+                this.source.id = response.data;
             }, error => {
                 // error callback
                 console.log(error)
@@ -73,14 +73,14 @@ const ProductEdit = Vue.extend({
     }
 });
 
-const ProductDelete = Vue.extend({
-    template: '#product-delete',
+const SourceDelete = Vue.extend({
+    template: '#source-delete',
     data: function () {
-        return {product: {}};
+        return {source: {}};
     },
     methods: {
-        deleteProduct: function () {
-            const product = this.product;
+        deleteSource: function () {
+            const source = this.source;
             this.$http.delete('/api/sources/' + this.$route.params.source_id).then(response => {
                 //
             }, error => {
@@ -92,20 +92,20 @@ const ProductDelete = Vue.extend({
     }
 });
 
-const AddProduct = Vue.extend({
-    template: '#add-product',
+const AddSource = Vue.extend({
+    template: '#add-source',
     data: function () {
         return {
-            product: {
+            source: {
                 '_class': '.FilesystemSource',
                 enabled: false
         }}
     },
     methods: {
-        createProduct: function () {
-            const product = this.product;
-            this.$http.post('/api/sources', JSON.stringify(product)).then(response => {
-                this.product.id = response.data;
+        createSource: function () {
+            const source = this.source;
+            this.$http.post('/api/sources', JSON.stringify(source)).then(response => {
+                this.source.id = response.data;
             }, error => {
                 // error callback
                 console.log(error)
@@ -115,13 +115,15 @@ const AddProduct = Vue.extend({
     }
 });
 
-var router = new VueRouter({routes:[
-  { path: '/', component: List},
-  { path: '/product/:source_id', component: Product, name: 'product'},
-  { path: '/add-product', component: AddProduct},
-  { path: '/product/:source_id/edit', component: ProductEdit, name: 'product-edit'},
-  { path: '/product/:source_id/delete', component: ProductDelete, name: 'product-delete'}
-]});
+let router = new VueRouter({
+    routes: [
+        {path: '/', component: ListSources},
+        {path: '/add-source', component: AddSource},
+        {path: '/source/:source_id', component: Source, name: 'source'},
+        {path: '/source/:source_id/edit', component: SourceEdit, name: 'source-edit'},
+        {path: '/source/:source_id/delete', component: SourceDelete, name: 'source-delete'}
+    ]
+});
 app = new Vue({
   router:router
-}).$mount('#app')
+}).$mount('#app');

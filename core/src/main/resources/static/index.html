@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:v-bind="http://www.w3.org/1999/xhtml">
 <head>
     <title>Back2back</title>
 
@@ -17,6 +17,8 @@
         <ol>
             <li v-for="s in backupSets">
                 {{ s }}
+                <br>
+                {{s.id}}
             </li>
         </ol>
     </div>

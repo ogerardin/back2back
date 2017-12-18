@@ -17,10 +17,10 @@
             </main>
         </div>
 
-        <template id="product-list">
+        <template id="source-list">
         <div>
             <div class="actions">
-                <router-link class="btn btn-default" v-bind:to="{path: '/add-product'}">
+                <router-link class="btn btn-default" v-bind:to="{path: '/add-source'}">
                     <span class="glyphicon glyphicon-plus"></span>
                     Add a source
                 </router-link>
@@ -35,19 +35,19 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr v-for="product in products">
+                <tr v-for="source in sources">
                     <td>
-                        <router-link v-bind:to="{name: 'product', params: {source_id: product.id}}">{{ product.id }}
+                        <router-link v-bind:to="{name: 'source', params: {source_id: source.id}}">{{ source.id }}
                         </router-link>
                     </td>
-                    <td>{{ product.path }}</td>
-                    <td>{{ product.enabled }}</td>
+                    <td>{{ source.path }}</td>
+                    <td>{{ source.enabled }}</td>
                     <td>
                         <router-link class="btn btn-warning btn-xs"
-                                     v-bind:to="{name: 'product-edit', params: {source_id: product.id}}">Edit
+                                     v-bind:to="{name: 'source-edit', params: {source_id: source.id}}">Edit
                         </router-link>
                         <router-link class="btn btn-danger btn-xs"
-                                     v-bind:to="{name: 'product-delete', params: {source_id: product.id}}">Delete
+                                     v-bind:to="{name: 'source-delete', params: {source_id: source.id}}">Delete
                         </router-link>
                     </td>
                 </tr>
@@ -56,17 +56,17 @@
         </div>
     </template>
 
-    <template id="add-product">
+    <template id="add-source">
         <div>
             <h2>Add new source</h2>
-            <form v-on:submit="createProduct">
+            <form v-on:submit="createSource">
                 <div class="form-group">
                     <label for="add-name">Path</label>
-                    <textarea class="form-control" id="add-name" rows="10" v-model="product.path"></textarea>
+                    <textarea class="form-control" id="add-name" rows="10" v-model="source.path"></textarea>
                 </div>
                 <div class="form-group">
                     <label for="add-price">Enabled</label>
-                    <input type="checkbox" class="form-control" id="add-price" v-model="product.enabled" value="false"/>
+                    <input type="checkbox" class="form-control" id="add-price" v-model="source.enabled" value="false"/>
                 </div>
                 <button type="submit" class="btn btn-primary">Create</button>
                 <router-link class="btn btn-default" v-bind:to="'/'">Cancel</router-link>
@@ -74,30 +74,30 @@
         </div>
     </template>
 
-    <template id="product">
+    <template id="source">
         <div>
-            <h2>{{ product.id }}</h2>
+            <h2>{{ source.id }}</h2>
             <b>Path: </b>
-            <div>{{ product.path }}</div>
+            <div>{{ source.path }}</div>
             <b>Enabled:</b>
-            <div>{{ product.enabled }}</div>
+            <div>{{ source.enabled }}</div>
             <br/>
             <router-link v-bind:to="'/'">Back to list</router-link>
         </div>
     </template>
 
-    <template id="product-edit">
+    <template id="source-edit">
         <div>
             <h2>Edit source</h2>
-            <form v-on:submit="updateProduct">
+            <form v-on:submit="updateSource">
                 <div class="form-group">
                     <label for="edit-name">Path</label>
-                    <input class="form-control" id="edit-name" v-model="product.path" required/>
+                    <input class="form-control" id="edit-name" v-model="source.path" required/>
                     <a href="selectPath.jnlp">Select path</a>
                 </div>
                 <div class="form-group">
                     <label for="edit-price">Enabled</label>
-                    <input type="checkbox" class="form-control" id="edit-price" v-model="product.enabled"/>
+                    <input type="checkbox" class="form-control" id="edit-price" v-model="source.enabled"/>
                 </div>
                 <button type="submit" class="btn btn-primary">Save</button>
                 <router-link class="btn btn-default" v-bind:to="'/'">Cancel</router-link>
@@ -105,10 +105,10 @@
         </div>
     </template>
 
-    <template id="product-delete">
+    <template id="source-delete">
         <div>
-            <h2>Delete product {{ product.name }}</h2>
-            <form v-on:submit="deleteProduct">
+            <h2>Delete source {{ source.name }}</h2>
+            <form v-on:submit="deleteSource">
                 <p>The action cannot be undone.</p>
                 <button type="submit" class="btn btn-danger">Delete</button>
                 <router-link class="btn btn-default" v-bind:to="'/'">Cancel</router-link>
