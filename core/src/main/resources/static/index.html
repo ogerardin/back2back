@@ -18,7 +18,7 @@
             <li v-for="s in backupSets">
                 {{ s }}
                 <br>
-                {{s.id}}
+                <a v-bind:href="'backupSet.html#/?id=' + s.id">{{s.id}}</a>
             </li>
         </ol>
     </div>

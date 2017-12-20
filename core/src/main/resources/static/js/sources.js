@@ -124,6 +124,7 @@ let router = new VueRouter({
         {path: '/source/:source_id/delete', component: SourceDelete, name: 'source-delete'}
     ]
 });
+
 app = new Vue({
   router:router
 }).$mount('#app');
