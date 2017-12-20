@@ -1,6 +1,5 @@
 package org.ogerardin.b2b.storage;
 
-import lombok.Data;
 import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,34 +23,18 @@ public interface StorageService {
     Stream<StoredFileInfo> getAllStoredFileInfos();
 
     InputStream getAsInputStream(String filename) throws StorageFileNotFoundException;
-
     Resource getAsResource(String filename) throws StorageFileNotFoundException;
 
     void deleteAll();
 
     void store(File file);
-
     void store(Path path);
-
     void store(InputStream inputStream, String filename);
 
+    StoredFileInfo[] getStoredFileInfos(String filename);
+    StoredFileInfo[] getStoredFileInfos(Path path);
 
-    StoredFileInfo query(String filename) throws StorageFileNotFoundException;
-    StoredFileInfo query(Path path) throws StorageFileNotFoundException;
-
-    @Data
-    class StoredFile {
-        String id;
-        Path path;
-
-        StoredFile() {}
-
-        public StoredFile(String id, Path path) {
-            this.id = id;
-            this.path = path;
-        }
-
-    }
-
-
+    StoredFileInfo getStoredFileInfo(Path path) throws StorageFileNotFoundException;
+    StoredFileInfo getStoredFileInfo(String filename) throws StorageFileNotFoundException;
+    StoredFileInfo getStoredFileInfoById(String itemId);
 }

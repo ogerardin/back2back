@@ -36,7 +36,7 @@ class LocalStorageItemProcessor implements ItemProcessor<Path, PathItemResult> {
 //        logger.debug("Processing " + itemPath);
 
         try {
-            StoredFileInfo info = storageService.query(itemPath);
+            StoredFileInfo info = storageService.getStoredFileInfo(itemPath);
             String storedMd5hash = info.getMd5hash();
 
             if (storedMd5hash != null) {

@@ -55,4 +55,11 @@ public class RestBackupSetsController {
         return storageService.getAllStoredFileInfos().toArray(StoredFileInfo[]::new);
     }
 
+    @GetMapping("/{id}/items/{itemId}")
+    public StoredFileInfo getItemInfo(@PathVariable String id, @PathVariable String itemId) {
+        BackupSet backupSet = backupSetRepository.findOne(id);
+        StorageService storageService = storageServiceFactory.getStorageService(backupSet.getId());
+        return storageService.getStoredFileInfoById(itemId);
+    }
+
 }
