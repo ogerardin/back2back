@@ -1,10 +1,7 @@
 package org.ogerardin.b2b.storage.filesystem;
 
 import org.ogerardin.b2b.files.MD5Calculator;
-import org.ogerardin.b2b.storage.StorageException;
-import org.ogerardin.b2b.storage.StorageFileNotFoundException;
-import org.ogerardin.b2b.storage.StorageService;
-import org.ogerardin.b2b.storage.StoredFileInfo;
+import org.ogerardin.b2b.storage.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -78,11 +75,11 @@ public class FilesystemStorageService implements StorageService {
     }
 
     @Override
-    public Stream<StoredFileInfo> getAllStoredFileInfos() {
+    public Stream<FileVersion> getAllFileVersions() {
         try {
             return Files.walk(directory)
                     .filter(p -> !Files.isDirectory(p))
-                    .map(rethrowFunction(this::_getStoredFileInfo));
+                    .map(rethrowFunction(this::_getFileVersion));
         } catch (Exception e) {
             throw new StorageException("Exception while listing local files", e);
         }
@@ -169,41 +166,51 @@ public class FilesystemStorageService implements StorageService {
     }
 
     @Override
-    public StoredFileInfo[] getStoredFileInfos(String filename) {
+    public FileVersion[] getFileVersions(String filename) {
         Path path = Paths.get(filename);
-        return getStoredFileInfos(path);
+        return getFileVersions(path);
     }
 
     @Override
-    public StoredFileInfo[] getStoredFileInfos(Path remotePath) {
+    public FileVersion[] getFileVersions(Path remotePath) {
         try {
-            StoredFileInfo fileInfo = getStoredFileInfo(remotePath);
-            return new StoredFileInfo[]{ fileInfo };
+            FileVersion fileInfo = getLatestFileVersion(remotePath);
+            return new FileVersion[]{ fileInfo };
         }
         catch (StorageFileNotFoundException e) {
-            return new StoredFileInfo[0];
+            return new FileVersion[0];
         }
     }
 
     @Override
-    public StoredFileInfo getStoredFileInfo(Path path) throws StorageFileNotFoundException {
+    public FileVersion getLatestFileVersion(Path path) throws StorageFileNotFoundException {
         Path localPath = remoteToLocal(path);
-        StoredFileInfo fileInfo = _getStoredFileInfo(path, localPath);
+        FileVersion fileInfo = _getFileVersion(path, localPath);
         return fileInfo;
     }
 
     @Override
-    public StoredFileInfo getStoredFileInfo(String filename) throws StorageFileNotFoundException {
+    public FileVersion getLatestFileVersion(String filename) throws StorageFileNotFoundException {
         Path remotePath = Paths.get(filename);
-        return getStoredFileInfo(remotePath);
+        return getLatestFileVersion(remotePath);
     }
 
     @Override
-    public StoredFileInfo getStoredFileInfoById(String itemId) {
+    public FileVersion getFileVersion(String itemId) {
         throw new NotImplementedException();
     }
 
-    private StoredFileInfo _getStoredFileInfo(Path remotePath, Path localPath) throws StorageFileNotFoundException {
+    @Override
+    public InputStream getFileVersionAsInputStream(String itemId) {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public Resource getFileVersionAsResource(String itemId) {
+        throw new NotImplementedException();
+    }
+
+    private FileVersion _getFileVersion(Path remotePath, Path localPath) throws StorageFileNotFoundException {
         BasicFileAttributes fileAttributes;
         try {
             BasicFileAttributeView fileAttributeView = Files.getFileAttributeView(localPath, BasicFileAttributeView.class);
@@ -224,7 +231,7 @@ public class FilesystemStorageService implements StorageService {
             }
         }
 
-        StoredFileInfo info = new StoredFileInfo();
+        FileVersion info = new FileVersion();
         info.setId(null); //no ID for FilesystemStorageService
         info.setFilename(remotePath.toString());
         info.setSize(fileAttributes.size());
@@ -233,7 +240,7 @@ public class FilesystemStorageService implements StorageService {
         return info;
     }
 
-    private StoredFileInfo _getStoredFileInfo(Path localPath) throws StorageFileNotFoundException {
-        return _getStoredFileInfo(localToRemote(localPath), localPath);
+    private FileVersion _getFileVersion(Path localPath) throws StorageFileNotFoundException {
+        return _getFileVersion(localToRemote(localPath), localPath);
     }
 }

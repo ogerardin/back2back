@@ -6,7 +6,7 @@ import org.ogerardin.b2b.files.JavaMD5Calculator;
 import org.ogerardin.b2b.files.MD5Calculator;
 import org.ogerardin.b2b.storage.StorageFileNotFoundException;
 import org.ogerardin.b2b.storage.StorageService;
-import org.ogerardin.b2b.storage.StoredFileInfo;
+import org.ogerardin.b2b.storage.FileVersion;
 import org.springframework.batch.item.ItemProcessor;
 
 import java.nio.file.Files;
@@ -36,7 +36,7 @@ class LocalStorageItemProcessor implements ItemProcessor<Path, PathItemResult> {
 //        logger.debug("Processing " + itemPath);
 
         try {
-            StoredFileInfo info = storageService.getStoredFileInfo(itemPath);
+            FileVersion info = storageService.getLatestFileVersion(itemPath);
             String storedMd5hash = info.getMd5hash();
 
             if (storedMd5hash != null) {

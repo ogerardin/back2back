@@ -4,10 +4,7 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import com.mongodb.gridfs.GridFSDBFile;
 import com.mongodb.gridfs.GridFSFile;
-import org.ogerardin.b2b.storage.StorageException;
-import org.ogerardin.b2b.storage.StorageFileNotFoundException;
-import org.ogerardin.b2b.storage.StorageService;
-import org.ogerardin.b2b.storage.StoredFileInfo;
+import org.ogerardin.b2b.storage.*;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Sort;
@@ -92,9 +89,9 @@ public class GridFsStorageService implements StorageService {
     }
 
     @Override
-    public Stream<StoredFileInfo> getAllStoredFileInfos() {
+    public Stream<FileVersion> getAllFileVersions() {
         return gridFsTemplate.find(new Query()).stream()
-                .map(this::getStoredFileInfos);
+                .map(this::getFileVersion);
     }
 
     @Override
@@ -110,7 +107,7 @@ public class GridFsStorageService implements StorageService {
      * !!! UNRELIABLE !!!
      */
     private GridFSDBFile getGridFSDBFile_(String filename) throws StorageFileNotFoundException {
-        // 1) perform a standard MongoTemplate getStoredFileInfos on the file bucket.
+        // 1) perform a standard MongoTemplate query on the file bucket.
         Query query = new Query(GridFsCriteria.whereFilename().is(filename))
                 .with(new Sort(Sort.Direction.DESC, "uploadDate"))
                 .limit(1);
@@ -121,20 +118,9 @@ public class GridFsStorageService implements StorageService {
         DBObject file = gridFsFiles.get(0);
         Object fileId = file.get("_id");
 
-        // 2) perfom a gridFsTemplate getStoredFileInfos with the ID obtained previously. This returns a true GridFSDBFile
+        // 2) perfom a gridFsTemplate query with the ID obtained previously. This returns a true GridFSDBFile
         GridFSDBFile fsdbFile = gridFsTemplate.findOne(
                 new Query(GridFsCriteria.where("_id").is(fileId)));
-        return fsdbFile;
-    }
-
-    /**
-     * Returns the {@link GridFSDBFile} corresponding to the most recent version of the specified file stored.
-     */
-    private GridFSDBFile getGridFSDBFile(String filename) throws StorageFileNotFoundException {
-        // we do the sorting in the stream pipeline as GridFs doesn't support sorted queries
-        GridFSDBFile fsdbFile = gridFsTemplate.find(new Query(GridFsCriteria.whereFilename().is(filename))).stream()
-                .max(Comparator.comparing(GridFSFile::getUploadDate))
-                .orElseThrow(() -> new StorageFileNotFoundException(filename));
         return fsdbFile;
     }
 
@@ -177,6 +163,30 @@ public class GridFsStorageService implements StorageService {
         store(inputStream, canonicalPath);
     }
 
+    @Override
+    public void store(InputStream inputStream, String filename) {
+        gridFsTemplate.store(inputStream, filename);
+    }
+
+    @Override
+    public FileVersion[] getFileVersions(String filename) {
+        List<GridFSDBFile> fsdbFiles = getGridFSDBFiles(filename);
+        return fsdbFiles.stream()
+                .map(this::getFileVersion)
+                .toArray(FileVersion[]::new);
+    }
+
+    /**
+     * Returns the {@link GridFSDBFile} corresponding to the most recent version of the specified file stored.
+     */
+    private GridFSDBFile getGridFSDBFile(String filename) throws StorageFileNotFoundException {
+        // we do the sorting in the stream pipeline as GridFs doesn't support sorted queries
+        GridFSDBFile fsdbFile = gridFsTemplate.find(new Query(GridFsCriteria.whereFilename().is(filename))).stream()
+                .max(Comparator.comparing(GridFSFile::getUploadDate))
+                .orElseThrow(() -> new StorageFileNotFoundException(filename));
+        return fsdbFile;
+    }
+
     private String canonicalPath(Path path) {
         String canonicalPath;
         try {
@@ -187,21 +197,8 @@ public class GridFsStorageService implements StorageService {
         return canonicalPath;
     }
 
-    @Override
-    public void store(InputStream inputStream, String filename) {
-        gridFsTemplate.store(inputStream, filename);
-    }
-
-    @Override
-    public StoredFileInfo[] getStoredFileInfos(String filename) {
-        List<GridFSDBFile> fsdbFiles = getGridFSDBFiles(filename);
-        return fsdbFiles.stream()
-                .map(this::getStoredFileInfos)
-                .toArray(StoredFileInfo[]::new);
-    }
-
-    private StoredFileInfo getStoredFileInfos(GridFSDBFile fsdbFile) {
-        StoredFileInfo info = new StoredFileInfo();
+    private FileVersion getFileVersion(GridFSDBFile fsdbFile) {
+        FileVersion info = new FileVersion();
         info.setId(fsdbFile.getId().toString());
         info.setFilename(fsdbFile.getFilename());
         info.setSize(fsdbFile.getLength());
@@ -211,28 +208,46 @@ public class GridFsStorageService implements StorageService {
     }
 
     @Override
-    public StoredFileInfo[] getStoredFileInfos(Path path) {
+    public FileVersion[] getFileVersions(Path path) {
         String canonicalPath = canonicalPath(path);
-        return getStoredFileInfos(canonicalPath);
+        return getFileVersions(canonicalPath);
     }
 
     @Override
-    public StoredFileInfo getStoredFileInfo(Path path) throws StorageFileNotFoundException {
+    public FileVersion getLatestFileVersion(Path path) throws StorageFileNotFoundException {
         String canonicalPath = canonicalPath(path);
-        return getStoredFileInfo(canonicalPath);
+        return getLatestFileVersion(canonicalPath);
     }
 
     @Override
-    public StoredFileInfo getStoredFileInfo(String filename) throws StorageFileNotFoundException {
+    public FileVersion getLatestFileVersion(String filename) throws StorageFileNotFoundException {
         GridFSDBFile fsdbFile = getGridFSDBFile(filename);
-        return getStoredFileInfos(fsdbFile);
+        return getFileVersion(fsdbFile);
     }
 
     @Override
-    public StoredFileInfo getStoredFileInfoById(String itemId) {
-        GridFSDBFile fsdbFile = gridFsTemplate.findOne(new Query(Criteria.where("_id").is(itemId)));
-        return getStoredFileInfos(fsdbFile);
+    public FileVersion getFileVersion(String itemId) throws StorageFileVersionNotFoundException {
+        GridFSDBFile fsdbFile = getGridFSDBFileById(itemId);
+        return getFileVersion(fsdbFile);
     }
 
+    @Override
+    public InputStream getFileVersionAsInputStream(String itemId) throws StorageFileVersionNotFoundException {
+        GridFSDBFile fsdbFile = getGridFSDBFileById(itemId);
+        return fsdbFile.getInputStream();
+    }
+
+    @Override
+    public Resource getFileVersionAsResource(String itemId) throws StorageFileVersionNotFoundException {
+        return new InputStreamResource(getFileVersionAsInputStream(itemId));
+    }
+
+    private GridFSDBFile getGridFSDBFileById(String itemId) throws StorageFileVersionNotFoundException {
+        GridFSDBFile fsdbFile = gridFsTemplate.findOne(new Query(Criteria.where("_id").is(itemId)));
+        if (fsdbFile == null) {
+            throw new StorageFileVersionNotFoundException(itemId);
+        }
+        return fsdbFile;
+    }
 }
 

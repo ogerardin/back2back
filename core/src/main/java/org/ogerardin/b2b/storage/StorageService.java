@@ -20,7 +20,7 @@ public interface StorageService {
     void store(MultipartFile file);
 
     Stream<Path> getAllPaths();
-    Stream<StoredFileInfo> getAllStoredFileInfos();
+    Stream<FileVersion> getAllFileVersions();
 
     InputStream getAsInputStream(String filename) throws StorageFileNotFoundException;
     Resource getAsResource(String filename) throws StorageFileNotFoundException;
@@ -31,10 +31,13 @@ public interface StorageService {
     void store(Path path);
     void store(InputStream inputStream, String filename);
 
-    StoredFileInfo[] getStoredFileInfos(String filename);
-    StoredFileInfo[] getStoredFileInfos(Path path);
+    FileVersion[] getFileVersions(String filename);
+    FileVersion[] getFileVersions(Path path);
 
-    StoredFileInfo getStoredFileInfo(Path path) throws StorageFileNotFoundException;
-    StoredFileInfo getStoredFileInfo(String filename) throws StorageFileNotFoundException;
-    StoredFileInfo getStoredFileInfoById(String itemId);
+    FileVersion getLatestFileVersion(Path path) throws StorageFileNotFoundException;
+    FileVersion getLatestFileVersion(String filename) throws StorageFileNotFoundException;
+
+    FileVersion getFileVersion(String itemId) throws StorageFileVersionNotFoundException;
+    InputStream getFileVersionAsInputStream(String itemId) throws StorageFileVersionNotFoundException;
+    Resource getFileVersionAsResource(String itemId) throws StorageFileVersionNotFoundException;
 }

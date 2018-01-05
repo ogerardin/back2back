@@ -2,17 +2,19 @@ package org.ogerardin.b2b.api;
 
 import org.ogerardin.b2b.domain.BackupSet;
 import org.ogerardin.b2b.domain.mongorepository.BackupSetRepository;
+import org.ogerardin.b2b.storage.StorageFileVersionNotFoundException;
 import org.ogerardin.b2b.storage.StorageService;
 import org.ogerardin.b2b.storage.StorageServiceFactory;
-import org.ogerardin.b2b.storage.StoredFileInfo;
+import org.ogerardin.b2b.storage.FileVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 @RestController
@@ -49,17 +51,30 @@ public class RestBackupSetsController {
     }
 
     @GetMapping("/{id}/items")
-    public StoredFileInfo[] getItems(@PathVariable String id) {
+    public FileVersion[] getItems(@PathVariable String id) {
         BackupSet backupSet = backupSetRepository.findOne(id);
         StorageService storageService = storageServiceFactory.getStorageService(backupSet.getId());
-        return storageService.getAllStoredFileInfos().toArray(StoredFileInfo[]::new);
+        return storageService.getAllFileVersions().toArray(FileVersion[]::new);
     }
 
     @GetMapping("/{id}/items/{itemId}")
-    public StoredFileInfo getItemInfo(@PathVariable String id, @PathVariable String itemId) {
+    public FileVersion getItemInfo(@PathVariable String id, @PathVariable String itemId) throws StorageFileVersionNotFoundException {
         BackupSet backupSet = backupSetRepository.findOne(id);
         StorageService storageService = storageServiceFactory.getStorageService(backupSet.getId());
-        return storageService.getStoredFileInfoById(itemId);
+        return storageService.getFileVersion(itemId);
+    }
+
+    @GetMapping("/{id}/items/{itemId}/contents")
+    @ResponseBody
+    public ResponseEntity<Resource> getItemContents(@PathVariable String id, @PathVariable String itemId) throws StorageFileVersionNotFoundException {
+        BackupSet backupSet = backupSetRepository.findOne(id);
+        StorageService storageService = storageServiceFactory.getStorageService(backupSet.getId());
+        FileVersion fileVersion = storageService.getFileVersion(itemId);
+        String filename =Paths.get(fileVersion.getFilename()).getFileName().toString();
+        Resource resource = storageService.getFileVersionAsResource(itemId);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename=\"" + filename + "\"")
+                .body(resource);
     }
 
 }
