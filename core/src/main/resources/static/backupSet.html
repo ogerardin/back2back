@@ -24,10 +24,11 @@
 
         <template id="file-list">
             <div>
+                <h1>Backup set: {{ id }}</h1>
                 <table class="table">
                     <thead>
                     <tr>
-                        <th>Path</th>
+                        <th>File path</th>
                         <th class="col-sm-2">Actions</th>
                     </tr>
                     </thead>
@@ -35,6 +36,9 @@
                     <tr v-for="f in files">
                         <td>{{ f }}</td>
                         <td>
+                            <router-link class="btn btn-default btn-xs"
+                                         v-bind:to="{name: 'file', params: {file_path: f}}">Versions
+                            </router-link>
                         </td>
                     </tr>
                     </tbody>
@@ -42,6 +46,34 @@
             </div>
         </template>
 
+        <template id="versions-list">
+            <div>
+                <h1>File: {{ path }}</h1>
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>Version ID</th>
+                        <th>Saved on</th>
+                        <th>Size</th>
+                        <th class="col-sm-2">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr v-for="v in versions">
+                        <td>{{ v.id }}</td>
+                        <td>{{ v.storedDate }}</td>
+                        <td>{{ v.size }}</td>
+                        <td>
+                            <router-link class="btn btn-default btn-xs"
+                                         v-bind:to="{name: 'version', params: {version_id: v.id}}">Get
+                            </router-link>
+
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </template>
 
 
         <script src="js/backupSet.js"></script>

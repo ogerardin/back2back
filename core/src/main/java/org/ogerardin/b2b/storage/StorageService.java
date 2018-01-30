@@ -10,8 +10,8 @@ import java.util.stream.Stream;
 
 /**
  * Interface for a service that provides storage and retrieval of files.
- * Each file is identified by its filename which is the supposed to reflect the original filename (including path) at
- * upload time.
+ * Each file is identified by its filename which is the original filename (including path) at upload time.
+ * If supported by the implementation, specific versions of a file are identified by an itemID (a String).
  */
 public interface StorageService {
 

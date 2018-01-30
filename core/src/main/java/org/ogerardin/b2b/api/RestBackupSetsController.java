@@ -35,7 +35,7 @@ public class RestBackupSetsController {
     // we return an array (and not a List) to make item type accessible to JSON serialization
     public BackupSet[] getAll() {
         List<BackupSet> sets = backupSetRepository.findAll();
-        return sets.toArray(new BackupSet[sets.size()]);
+        return sets.toArray(new BackupSet[0]);
     }
 
     @GetMapping("/{id}")
@@ -48,6 +48,18 @@ public class RestBackupSetsController {
         BackupSet backupSet = backupSetRepository.findOne(id);
         StorageService storageService = storageServiceFactory.getStorageService(backupSet.getId());
         return storageService.getAllPaths().toArray(Path[]::new);
+    }
+
+    /**
+     * @param path that path of the file to query; must be url-encoded
+     */
+    @GetMapping("/{id}/versions")
+    public FileVersion[] getVersions(@PathVariable String id, @RequestParam String path) {
+        BackupSet backupSet = backupSetRepository.findOne(id);
+        StorageService storageService = storageServiceFactory.getStorageService(backupSet.getId());
+        FileVersion[] versions = storageService.getFileVersions(path);
+        return versions;
+
     }
 
     @GetMapping("/{id}/items")
