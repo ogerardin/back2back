@@ -1,18 +1,16 @@
-
 const ListSources = Vue.extend({
     template: '#source-list',
     data: function () {
         return {sources: []};
     },
-    created: function() {
+    created: function () {
         this.getSources();
     },
     methods: {
-        getSources: function() {
+        getSources: function () {
             this.$http.get('/api/sources').then(response => {
                 this.sources = response.data;
             }, error => {
-                // error callback
                 console.log(error)
             });
 
@@ -25,15 +23,14 @@ const Source = Vue.extend({
     data: function () {
         return {source: {}};
     },
-    created: function() {
+    created: function () {
         this.getSource(this.$route.params.source_id);
     },
     methods: {
-        getSource: function(id) {
-            this.$http.get('/api/sources/'+id).then(response => {
+        getSource: function (id) {
+            this.$http.get('/api/sources/' + id).then(response => {
                 this.source = response.data;
             }, error => {
-                // error callback
                 console.log(error)
             });
 
@@ -46,25 +43,22 @@ const SourceEdit = Vue.extend({
     data: function () {
         return {source: {}};
     },
-    created: function() {
+    created: function () {
         this.getSource(this.$route.params.source_id);
     },
     methods: {
-        getSource: function(id) {
-            this.$http.get('/api/sources/'+id).then(response => {
+        getSource: function (id) {
+            this.$http.get('/api/sources/' + id).then(response => {
                 this.source = response.data;
             }, error => {
-                // error callback
                 console.log(error)
             });
-
         },
         updateSource: function () {
             const source = this.source;
             this.$http.post('/api/sources', source).then(response => {
                 this.source.id = response.data;
             }, error => {
-                // error callback
                 console.log(error)
             });
 
@@ -82,9 +76,8 @@ const SourceDelete = Vue.extend({
         deleteSource: function () {
             const source = this.source;
             this.$http.delete('/api/sources/' + this.$route.params.source_id).then(response => {
-                //
+                //TODO
             }, error => {
-                // error callback
                 console.log(error)
             });
             router.push('/');
@@ -98,8 +91,14 @@ const AddSource = Vue.extend({
         return {
             source: {
                 '_class': '.FilesystemSource',
-                enabled: false
-        }}
+                enabled: false,
+                dir: '/'
+            },
+            files: []
+        }
+    },
+    created: function () {
+        this.getFiles(this.source.dir)
     },
     methods: {
         createSource: function () {
@@ -107,10 +106,17 @@ const AddSource = Vue.extend({
             this.$http.post('/api/sources', JSON.stringify(source)).then(response => {
                 this.source.id = response.data;
             }, error => {
-                // error callback
                 console.log(error)
             });
             router.push('/');
+        },
+        getFiles: function (dir) {
+            this.$http.get('/api/filesystem?dirOnly=true&dir=' + encodeURIComponent(dir)).then(response => {
+                this.source.dir = dir;
+                this.files = response.data;
+            }, error => {
+                console.log(error)
+            });
         }
     }
 });
@@ -126,5 +132,5 @@ let router = new VueRouter({
 });
 
 app = new Vue({
-  router:router
+    router: router
 }).$mount('#app');
