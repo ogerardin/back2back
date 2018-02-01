@@ -11,7 +11,7 @@ import java.util.stream.Stream;
 /**
  * Interface for a service that provides storage and retrieval of files.
  * Each file is identified by its filename which is the original filename (including path) at upload time.
- * If supported by the implementation, specific versions of a file are identified by an itemID (a String).
+ * If supported by the implementation, specific versions of a file are identified by an versionId (a String).
  */
 public interface StorageService {
 
@@ -37,7 +37,7 @@ public interface StorageService {
     FileVersion getLatestFileVersion(Path path) throws StorageFileNotFoundException;
     FileVersion getLatestFileVersion(String filename) throws StorageFileNotFoundException;
 
-    FileVersion getFileVersion(String itemId) throws StorageFileVersionNotFoundException;
-    InputStream getFileVersionAsInputStream(String itemId) throws StorageFileVersionNotFoundException;
-    Resource getFileVersionAsResource(String itemId) throws StorageFileVersionNotFoundException;
+    FileVersion getFileVersion(String versionId) throws StorageFileVersionNotFoundException;
+    InputStream getFileVersionAsInputStream(String versionId) throws StorageFileVersionNotFoundException;
+    Resource getFileVersionAsResource(String versionId) throws StorageFileVersionNotFoundException;
 }

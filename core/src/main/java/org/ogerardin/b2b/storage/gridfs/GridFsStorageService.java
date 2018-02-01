@@ -226,26 +226,26 @@ public class GridFsStorageService implements StorageService {
     }
 
     @Override
-    public FileVersion getFileVersion(String itemId) throws StorageFileVersionNotFoundException {
-        GridFSDBFile fsdbFile = getGridFSDBFileById(itemId);
+    public FileVersion getFileVersion(String versionId) throws StorageFileVersionNotFoundException {
+        GridFSDBFile fsdbFile = getGridFSDBFileById(versionId);
         return getFileVersion(fsdbFile);
     }
 
     @Override
-    public InputStream getFileVersionAsInputStream(String itemId) throws StorageFileVersionNotFoundException {
-        GridFSDBFile fsdbFile = getGridFSDBFileById(itemId);
+    public InputStream getFileVersionAsInputStream(String versionId) throws StorageFileVersionNotFoundException {
+        GridFSDBFile fsdbFile = getGridFSDBFileById(versionId);
         return fsdbFile.getInputStream();
     }
 
     @Override
-    public Resource getFileVersionAsResource(String itemId) throws StorageFileVersionNotFoundException {
-        return new InputStreamResource(getFileVersionAsInputStream(itemId));
+    public Resource getFileVersionAsResource(String versionId) throws StorageFileVersionNotFoundException {
+        return new InputStreamResource(getFileVersionAsInputStream(versionId));
     }
 
-    private GridFSDBFile getGridFSDBFileById(String itemId) throws StorageFileVersionNotFoundException {
-        GridFSDBFile fsdbFile = gridFsTemplate.findOne(new Query(Criteria.where("_id").is(itemId)));
+    private GridFSDBFile getGridFSDBFileById(String versionId) throws StorageFileVersionNotFoundException {
+        GridFSDBFile fsdbFile = gridFsTemplate.findOne(new Query(Criteria.where("_id").is(versionId)));
         if (fsdbFile == null) {
-            throw new StorageFileVersionNotFoundException(itemId);
+            throw new StorageFileVersionNotFoundException(versionId);
         }
         return fsdbFile;
     }

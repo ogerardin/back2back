@@ -51,39 +51,36 @@ public class RestBackupSetsController {
     }
 
     /**
-     * @param path that path of the file to query; must be url-encoded
+     * @param path the path of the file to query; must be url-encoded. We use a request parameter rather than a
+     *             path parameter because it's more difficult to pass slashes inside a path parameter.
      */
     @GetMapping("/{id}/versions")
-    public FileVersion[] getVersions(@PathVariable String id, @RequestParam String path) {
+    public FileVersion[] getVersions(@PathVariable String id, @RequestParam(required = false) String path) {
         BackupSet backupSet = backupSetRepository.findOne(id);
         StorageService storageService = storageServiceFactory.getStorageService(backupSet.getId());
-        FileVersion[] versions = storageService.getFileVersions(path);
-        return versions;
-
+        if (path == null) {
+            return storageService.getAllFileVersions().toArray(FileVersion[]::new);
+        }
+        else {
+            return storageService.getFileVersions(path);
+        }
     }
 
-    @GetMapping("/{id}/items")
-    public FileVersion[] getItems(@PathVariable String id) {
+    @GetMapping("/{id}/versions/{versionId}")
+    public FileVersion getItemInfo(@PathVariable String id, @PathVariable String versionId) throws StorageFileVersionNotFoundException {
         BackupSet backupSet = backupSetRepository.findOne(id);
         StorageService storageService = storageServiceFactory.getStorageService(backupSet.getId());
-        return storageService.getAllFileVersions().toArray(FileVersion[]::new);
+        return storageService.getFileVersion(versionId);
     }
 
-    @GetMapping("/{id}/items/{itemId}")
-    public FileVersion getItemInfo(@PathVariable String id, @PathVariable String itemId) throws StorageFileVersionNotFoundException {
-        BackupSet backupSet = backupSetRepository.findOne(id);
-        StorageService storageService = storageServiceFactory.getStorageService(backupSet.getId());
-        return storageService.getFileVersion(itemId);
-    }
-
-    @GetMapping("/{id}/items/{itemId}/contents")
+    @GetMapping("/{id}/versions/{versionId}/contents")
     @ResponseBody
-    public ResponseEntity<Resource> getItemContents(@PathVariable String id, @PathVariable String itemId) throws StorageFileVersionNotFoundException {
+    public ResponseEntity<Resource> getItemContents(@PathVariable String id, @PathVariable String versionId) throws StorageFileVersionNotFoundException {
         BackupSet backupSet = backupSetRepository.findOne(id);
         StorageService storageService = storageServiceFactory.getStorageService(backupSet.getId());
-        FileVersion fileVersion = storageService.getFileVersion(itemId);
+        FileVersion fileVersion = storageService.getFileVersion(versionId);
         String filename =Paths.get(fileVersion.getFilename()).getFileName().toString();
-        Resource resource = storageService.getFileVersionAsResource(itemId);
+        Resource resource = storageService.getFileVersionAsResource(versionId);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename=\"" + filename + "\"")
                 .body(resource);

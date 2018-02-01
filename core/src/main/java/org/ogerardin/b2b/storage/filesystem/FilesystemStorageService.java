@@ -196,17 +196,17 @@ public class FilesystemStorageService implements StorageService {
     }
 
     @Override
-    public FileVersion getFileVersion(String itemId) {
+    public FileVersion getFileVersion(String versionId) {
         throw new NotImplementedException();
     }
 
     @Override
-    public InputStream getFileVersionAsInputStream(String itemId) {
+    public InputStream getFileVersionAsInputStream(String versionId) {
         throw new NotImplementedException();
     }
 
     @Override
-    public Resource getFileVersionAsResource(String itemId) {
+    public Resource getFileVersionAsResource(String versionId) {
         throw new NotImplementedException();
     }
 

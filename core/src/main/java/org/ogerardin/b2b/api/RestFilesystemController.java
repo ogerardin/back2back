@@ -35,6 +35,7 @@ public class RestFilesystemController {
             dir = System.getProperty("user.home");
         }
         Path dirPath = Paths.get(dir);
+
         return Files.list(dirPath)
                 .map(dirPath::relativize)
                 .map(p -> new FSItem(p, Files.isDirectory(p)))

@@ -25,7 +25,7 @@ public class RestBackupSourcesController {
     // we return an array (and not a List) to make item type accessible to JSON serialization
     public BackupSource[] getAll() {
         List<BackupSource> sources = sourceRepository.findAll();
-        return sources.toArray(new BackupSource[sources.size()]);
+        return sources.toArray(new BackupSource[0]);
     }
 
     @GetMapping("/{id}")
