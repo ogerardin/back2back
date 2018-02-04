@@ -62,7 +62,7 @@
             <form v-on:submit="createSource">
                 <div class="form-group">
                     <label for="add-name">Path</label>
-                    <input type="text" class="form-control" id="add-name" v-model="source.dir"/>
+                    <input type="text" class="form-control" id="add-name" v-model="source.path"/>
                     <ul>
                         <li v-for="f in files">
                             <button v-on:click.prevent="getFiles(f.path)">{{f.name}}</button>

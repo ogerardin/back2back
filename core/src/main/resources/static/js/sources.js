@@ -92,18 +92,19 @@ const AddSource = Vue.extend({
             source: {
                 '_class': '.FilesystemSource',
                 enabled: false,
-                dir: '/'
+                path: '/'
             },
             files: []
         }
     },
     created: function () {
-        this.getFiles(this.source.dir)
+        this.getFiles(this.source.path)
     },
     methods: {
         createSource: function () {
             const source = this.source;
-            this.$http.post('/api/sources', JSON.stringify(source)).then(response => {
+            source._class = '.FilesystemSource';
+            this.$http.post('/api/sources', source).then(response => {
                 this.source.id = response.data;
             }, error => {
                 console.log(error)
@@ -112,7 +113,7 @@ const AddSource = Vue.extend({
         },
         getFiles: function (dir) {
             this.$http.get('/api/filesystem?dirOnly=true&dir=' + encodeURIComponent(dir)).then(response => {
-                this.source.dir = dir;
+                this.source.path = dir;
                 this.files = response.data;
             }, error => {
                 console.log(error)
