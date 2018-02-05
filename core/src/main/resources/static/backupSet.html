@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:v-on="http://www.w3.org/1999/xhtml">
+<html xmlns:v-on="http://www.w3.org/1999/xhtml" xmlns:v-bind="http://www.w3.org/1999/xhtml">
     <head>
         <meta charset="UTF-8">
         <meta http-equiv="x-ua-compatible" content="ie=edge">
@@ -64,9 +64,9 @@
                         <td>{{ v.storedDate }}</td>
                         <td>{{ v.size }}</td>
                         <td>
-                            <router-link class="btn btn-default btn-xs"
-                                         v-bind:to="{name: 'version', params: {version_id: v.id}}">Get
-                            </router-link>
+                            <a class="btn btn-default btn-xs"
+                               v-bind:href="'/api/backupsets/' + id + '/versions/' + v.id + '/contents'">Get
+                            </a>
 
                         </td>
                     </tr>

@@ -2,7 +2,10 @@
 const ListFiles = Vue.extend({
     template: '#file-list',
     data: function () {
-        return {id: null, files: []};
+        return {
+            id: null,
+            files: []
+        };
     },
     created: function() {
         console.log(this.$route);
@@ -26,7 +29,11 @@ const ListFiles = Vue.extend({
 const FileVersions = Vue.extend({
     template: '#versions-list',
     data: function () {
-        return {versions: [], path:''};
+        return {
+            id: null,
+            versions: [],
+            path: ''
+        };
     },
     created: function() {
         console.log(this.$route);
@@ -37,6 +44,7 @@ const FileVersions = Vue.extend({
             id = this.$route.params.id;
             path = this.$route.params.file_path;
             this.$http.get('/api/backupsets/' + id + '/versions?path=' + encodeURIComponent(path)).then(response => {
+                this.id = id;
                 this.path = path;
                 this.versions = response.data;
             }, error => {
