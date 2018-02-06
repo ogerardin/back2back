@@ -20,7 +20,7 @@
 
     <modules>
         <module>core</module>
-        <module>ui</module>
+        <!--<module>ui</module>-->
     </modules>
 
     <build>
