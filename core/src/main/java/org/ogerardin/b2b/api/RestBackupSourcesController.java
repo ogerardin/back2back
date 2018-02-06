@@ -1,13 +1,11 @@
 package org.ogerardin.b2b.api;
 
 import org.ogerardin.b2b.domain.BackupSource;
-import org.ogerardin.b2b.domain.FilesystemSource;
 import org.ogerardin.b2b.domain.mongorepository.BackupSourceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.file.Paths;
 import java.util.List;
 
 @RestController
@@ -39,6 +37,7 @@ public class RestBackupSourcesController {
         return savedSource.getId();
     }
 
+/*
     @PostMapping("/{id}/path")
     public void setPath(@PathVariable String id, String path) {
         BackupSource source = sourceRepository.findOne(id);
@@ -52,6 +51,7 @@ public class RestBackupSourcesController {
         filesystemSource.setPath(Paths.get(path));
         sourceRepository.save(filesystemSource);
     }
+*/
 
     @DeleteMapping ("/{id}")
     public void delete(@PathVariable String id) {

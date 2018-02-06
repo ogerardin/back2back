@@ -11,6 +11,7 @@
     </parent>
 
     <artifactId>back2back-core</artifactId>
+    <description>Core backup engine end server</description>
 
     <properties>
         <java.version>1.8</java.version>
@@ -119,7 +120,6 @@
     </dependencies>
 
 
-
     <build>
         <plugins>
             <plugin>
@@ -137,6 +137,7 @@
                 </executions>
             </plugin>
 
+<!--
             <plugin>
                 <artifactId>maven-jar-plugin</artifactId>
                 <executions>
@@ -156,7 +157,9 @@
                     </execution>
                 </executions>
             </plugin>
+-->
 
+<!--
             <plugin>
                 <artifactId>maven-jarsigner-plugin</artifactId>
                 <version>1.4</version>
@@ -174,6 +177,7 @@
                     <keypass>ogeoge</keypass>
                 </configuration>
             </plugin>
+-->
         </plugins>
 
         <pluginManagement>

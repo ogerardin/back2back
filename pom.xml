@@ -9,6 +9,9 @@
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
+    <name>back2back</name>
+    <description>Backup tool with the ability to remotely backup through the internet</description>
+
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
