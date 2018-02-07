@@ -25,7 +25,7 @@ public class RestBackupTargetsController {
     // we return an array (and not a List) to make item type accessible to JSON serialization
     public BackupTarget[] getAll() {
         List<BackupTarget> targets = targetRepository.findAll();
-        return targets.toArray(new BackupTarget[targets.size()]);
+        return targets.toArray(new BackupTarget[0]);
     }
 
     @GetMapping("/{id}")
