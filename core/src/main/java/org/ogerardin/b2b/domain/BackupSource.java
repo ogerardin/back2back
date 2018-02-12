@@ -9,7 +9,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Data
 // include concrete type information as a pseudo-property "_class" on serialized JSON
 @JsonTypeInfo(use = JsonTypeInfo.Id.MINIMAL_CLASS, include = JsonTypeInfo.As.PROPERTY, property = "_class")
-public abstract class BackupSource implements JobParametersPopulator {
+public abstract class BackupSource implements JobParametersPopulator, HasDescription {
 
     @Id
     private String id;

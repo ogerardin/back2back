@@ -30,4 +30,9 @@ public class PeerTarget extends BackupTarget {
         params.put("target.hostname", new JobParameter(hostname));
         params.put("target.port", new JobParameter(port));
     }
+
+    @Override
+    public String getDescription() {
+        return "Peer back2back instance at " + getHostname() + ":" + getPort();
+    }
 }

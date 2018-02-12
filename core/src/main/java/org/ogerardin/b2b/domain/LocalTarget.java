@@ -7,7 +7,7 @@ import org.springframework.batch.core.JobParameter;
 import java.util.Map;
 
 /**
- * Represents the local (internal) backup destination
+ * Represents the local (internal) backup destination.
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -19,5 +19,10 @@ public class LocalTarget extends BackupTarget {
     @Override
     public void populateParams(Map<String, JobParameter> params) {
         params.put("target.type", new JobParameter(LocalTarget.class.getName()));
+    }
+
+    @Override
+    public String getDescription() {
+        return "Internal back2back storage";
     }
 }

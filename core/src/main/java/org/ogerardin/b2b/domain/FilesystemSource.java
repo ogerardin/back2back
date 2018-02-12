@@ -39,5 +39,10 @@ public class FilesystemSource extends BackupSource {
         params.put("source.type", new JobParameter(FilesystemSource.class.getName()));
         params.put("source.root", new JobParameter(path.toString()));
     }
+
+    @Override
+    public String getDescription() {
+        return "Local folder " + getPath();
+    }
 }
 

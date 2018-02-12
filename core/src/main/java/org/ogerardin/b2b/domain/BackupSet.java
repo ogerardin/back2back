@@ -12,6 +12,9 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Represents a backup job from a single source to a single target.
+ */
 @Document
 @Data
 public class BackupSet implements JobParametersPopulator {
@@ -38,6 +41,7 @@ public class BackupSet implements JobParametersPopulator {
 
     private String lastError;
 
+    @Override
     public void populateParams(Map<String, JobParameter> params) {
         params.put("backupset.id", new JobParameter(getId(), false));
     }

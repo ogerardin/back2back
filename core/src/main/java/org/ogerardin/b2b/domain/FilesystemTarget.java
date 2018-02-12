@@ -29,4 +29,9 @@ public class FilesystemTarget extends BackupTarget {
         params.put("target.type", new JobParameter(FilesystemTarget.class.getName()));
         params.put("target.path", new JobParameter(path.toString()));
     }
+
+    @Override
+    public String getDescription() {
+        return "Local folder " + getPath();
+    }
 }
