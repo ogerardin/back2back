@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
@@ -53,14 +54,18 @@ public class BackupJobExecutionListener extends BackupSetAwareBean implements Jo
     public void afterJob(JobExecution jobExecution) {
 //        logger.debug("afterJob, jobExecution=" + jobExecution);
         BackupSet backupSet = getBackupSet();
-        backupSet.setLastBackupCompleteTime(jobExecution.getEndTime().toInstant());
-        backupSetRepository.save(backupSet);
+        Instant completeTime = jobExecution.getEndTime().toInstant();
+        backupSet.setLastBackupCompleteTime(completeTime);
 
         if (properties != null && properties.isContinuousBackup()) {
             // Pause and schedule a job restart. This is done asynchronously because
             // the current job is not considered as complete until we exit this function.
-            scheduleDelayedRestart(jobExecution, properties.getPauseAfterBackup());
+            long pauseAfterBackup = properties.getPauseAfterBackup();
+            backupSet.setNextBackupTime(completeTime.plusMillis(pauseAfterBackup));
+            scheduleDelayedRestart(jobExecution, pauseAfterBackup);
         }
+
+        backupSetRepository.save(backupSet);
     }
 
     private void scheduleDelayedRestart(JobExecution jobExecution, long delay) {

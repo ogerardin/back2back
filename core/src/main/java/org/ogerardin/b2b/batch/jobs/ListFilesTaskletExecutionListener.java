@@ -33,6 +33,6 @@ public class ListFilesTaskletExecutionListener extends BackupSetAwareBean implem
             backupSet.setFileCount(fileCount);
             backupSetRepository.save(backupSet);
         }
-        return null; //unchanged exit status
+        return null; //don't change exit status
     }
 }

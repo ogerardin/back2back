@@ -35,12 +35,18 @@ public abstract class BackupJob {
     }
 
 
+    /**
+     * Add a validator for this job that requires the presence of a given parameter (with any value)
+     */
     protected void addMandatoryParameter(String name) {
         validators.add(new DefaultJobParametersValidator(
                 new String[]{name},
                 new String[]{}));
     }
 
+    /**
+     * Add a validator for this job that requires the presence of a given parameter with a given value
+     */
     protected void addStaticParameter(String name, String value) {
         validators.add(new StaticJobParameterValidator(name, value));
     }

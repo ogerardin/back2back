@@ -10,8 +10,8 @@ public class B2BfacadeRest implements B2Bfacade {
     private static RestTemplate restTemplate = new RestTemplate();
 
     static {
-        // register custom serializers/deserializers from the core project
-        Module module = JacksonConfig.customSerializationModule();
+        // register custom Jackson configuration from the core project
+        Module module = JacksonConfig.customModule();
         registerModule(restTemplate, module, MappingJackson2HttpMessageConverter.class);
     }
 

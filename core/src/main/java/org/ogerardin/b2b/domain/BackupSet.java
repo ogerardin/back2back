@@ -32,6 +32,7 @@ public class BackupSet implements JobParametersPopulator {
 
     private Instant lastBackupCompleteTime;
     private Instant currentBackupStartTime;
+    private Instant nextBackupTime;
 
     private long fileCount;
 
