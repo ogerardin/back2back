@@ -1,7 +1,6 @@
 package org.ogerardin.b2b.domain;
 
 import lombok.Data;
-import org.ogerardin.b2b.batch.jobs.BackupResult;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
@@ -37,7 +36,7 @@ public class BackupSet implements JobParametersPopulator {
     private long fileCount;
 
     private Path lastFile;
-    private BackupResult lastFileStatus;
+//    private BackupResult lastFileStatus;
     private Path currentFile;
 
     private String lastError;

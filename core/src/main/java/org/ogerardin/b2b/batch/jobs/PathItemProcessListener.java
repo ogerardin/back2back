@@ -13,7 +13,7 @@ import java.nio.file.Path;
 /** An {@link ItemProcessListener} that updates the current BackupSet with progress information */
 @Component
 @JobScope
-public class PathItemProcessListener extends BackupSetAwareBean implements ItemProcessListener<Path, PathItemResult> {
+public class PathItemProcessListener extends BackupSetAwareBean implements ItemProcessListener<Path, Path> {
 
     private static final Log logger = LogFactory.getLog(PathItemProcessListener.class);
 
@@ -26,11 +26,11 @@ public class PathItemProcessListener extends BackupSetAwareBean implements ItemP
     }
 
     @Override
-    public void afterProcess(Path item, PathItemResult result) {
+    public void afterProcess(Path item, Path result) {
 //        logger.debug("afterProcess, backupSet.id=" + getBackupSet().getId());
         BackupSet backupSet = getBackupSet();
         backupSet.setLastFile(item);
-        backupSet.setLastFileStatus(result.getResult());
+//        backupSet.setLastFileStatus(result.getResult());
         backupSet.setCurrentFile(null);
         backupSetRepository.save(backupSet);
     }

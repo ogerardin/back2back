@@ -22,11 +22,11 @@ import java.nio.file.Path;
  * and backups to a network peer.
  */
 @Configuration
-public class FilesystemToPeerBackupJob extends FilesystemSourceBackupJob {
+public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBackupJobConfiguration {
 
-    private static final Log logger = LogFactory.getLog(FilesystemToPeerBackupJob.class);
+    private static final Log logger = LogFactory.getLog(FilesystemToPeerBackupJobConfiguration.class);
 
-    public FilesystemToPeerBackupJob() {
+    public FilesystemToPeerBackupJobConfiguration() {
         addStaticParameter("target.type", PeerTarget.class.getName());
         addMandatoryParameter("target.hostname");
         addMandatoryParameter("target.port");
@@ -34,7 +34,7 @@ public class FilesystemToPeerBackupJob extends FilesystemSourceBackupJob {
 
     @Bean("localToPeerJob")
     protected Job localToPeerBackupJob(Step localToPeerStep, JobExecutionListener jobListener) {
-        return jobBuilderFactory.get(FilesystemToPeerBackupJob.class.getSimpleName())
+        return jobBuilderFactory.get(FilesystemToPeerBackupJobConfiguration.class.getSimpleName())
                 .validator(validator())
                 .incrementer(new RunIdIncrementer())
                 .listener(jobListener)

@@ -8,6 +8,7 @@ import org.springframework.batch.repeat.RepeatStatus;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Set;
 
 /**
  * Tasklet that populates the provided job context with the list of files to be backed up, so the item reader can
@@ -26,7 +27,8 @@ class ListFilesTasklet implements Tasklet {
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
         RecursivePathCollector pathCollector = new RecursivePathCollector(root);
         pathCollector.walkTree();
-        context.setAllFiles(pathCollector.getPaths());
+        Set<Path> allPaths = pathCollector.getPaths();
+        context.setAllFiles(allPaths);
         return RepeatStatus.FINISHED;
     }
 }

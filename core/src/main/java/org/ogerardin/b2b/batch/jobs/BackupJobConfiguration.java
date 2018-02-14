@@ -14,7 +14,7 @@ import java.util.List;
 /**
  * Common superclass for backup jobs.
  */
-public abstract class BackupJob {
+public abstract class BackupJobConfiguration {
 
     @Autowired
     protected JobBuilderFactory jobBuilderFactory;
@@ -24,7 +24,7 @@ public abstract class BackupJob {
 
     private List<JobParametersValidator> validators = new ArrayList<>();
 
-    protected BackupJob() {
+    protected BackupJobConfiguration() {
         addMandatoryParameter("backupset.id");
     }
 
