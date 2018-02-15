@@ -6,7 +6,6 @@ import org.ogerardin.b2b.storage.StorageService;
 import org.springframework.batch.item.ItemWriter;
 
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -30,8 +29,6 @@ class InternalStorageItemWriter implements ItemWriter<Path> {
 
     @Override
     public void write(List<? extends Path> items) throws Exception {
-        logger.debug("Writing " + Arrays.toString(items.toArray()));
-
         for (Path path : items) {
             try {
                 logger.debug("STORING: " + path);

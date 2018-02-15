@@ -33,28 +33,31 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
     @Bean
     protected Job filesystemToPeerBackupJob(
             Step listFilesStep,
+            Step filterFilesStep,
             Step backupToPeerStep,
-            BackupJobExecutionListener jobListener) {
+            BackupJobExecutionListener jobListener
+    ) {
         return jobBuilderFactory
                 .get(FilesystemToPeerBackupJobConfiguration.class.getSimpleName())
                 .validator(getValidator())
                 .incrementer(new RunIdIncrementer())
                 .listener(jobListener)
-                .start(listFilesStep) //step 1: list files and put them in the job context
+                .start(listFilesStep)       //step 1: list files and put them in the job context
+                .next(filterFilesStep)      //step 2: filter unchanged files
                 .next(backupToPeerStep)
                 .build();
     }
 
     @Bean
     protected Step backupToPeerStep(
-            ItemReader<Path> contextItemReader,
+            ItemReader<Path> changedFilesItemReader,
             PeerItemWriter peerWriter
     )
     {
         return stepBuilderFactory.get("processLocalFiles")
-                .<Path, Path>chunk(10)
-                .reader(contextItemReader)
-                .processor(new PassThroughItemProcessor<>()) //TODO should filter based on hash
+                .<Path, Path>chunk(1) // invoke writer 1 file at a time
+                .reader(changedFilesItemReader)
+                .processor(new PassThroughItemProcessor<>())
                 .writer(peerWriter)
                 .build();
     }

@@ -36,6 +36,17 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
 
 
     /** Provides a {@link ItemReader} that supplies {@link Path} items from the current job's
+     * {@link BackupJobContext#allFiles} */
+    @Bean
+    @JobScope
+    protected IteratorItemReader<Path> allFilesItemReader(
+            BackupJobContext backupJobContext
+    ) {
+        return new IteratorItemReader<>(backupJobContext.getAllFiles());
+    }
+
+
+    /** Provides a {@link ItemReader} that supplies {@link Path} items from the current job's
      * {@link BackupJobContext#changedFiles} */
     @Bean
     @JobScope
@@ -80,13 +91,13 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
     @Bean
     @JobScope
     protected Step filterFilesStep(
-            ItemReader<Path> contextItemReader,
+            ItemReader<Path> allFilesItemReader,
             FilteringPathItemProcessor pathFilteringItemProcessor,
             ItemWriter<Path> changedFilesItemWriter) {
         return stepBuilderFactory
                 .get("filterFilesStep")
                 .<Path, Path> chunk(10)
-                .reader(contextItemReader)
+                .reader(allFilesItemReader)
                 .processor(pathFilteringItemProcessor)
                 .writer(changedFilesItemWriter)
                 .build();

@@ -29,15 +29,18 @@ public class ListFilesTaskletExecutionListener extends BackupSetAwareBean implem
     @Override
     public ExitStatus afterStep(StepExecution stepExecution) {
         String exitCode = stepExecution.getExitStatus().getExitCode();
+        BackupSet backupSet = getBackupSet();
         if (exitCode.equals(ExitStatus.COMPLETED.getExitCode())) {
-            int fileCount = backupJobContext.getChangedFiles().size();
+            int fileCount = backupJobContext.getAllFiles().size();
             long totalSize = backupJobContext.getTotalSize();
-            BackupSet backupSet = getBackupSet();
             backupSet.setStatus("Collected " + fileCount + " files");
             backupSet.setFileCount(fileCount);
             backupSet.setSize(totalSize);
-            backupSetRepository.save(backupSet);
         }
+        else {
+            backupSet.setStatus("Failed to collect files");
+        }
+        backupSetRepository.save(backupSet);
         return null; //don't change exit status
     }
 }

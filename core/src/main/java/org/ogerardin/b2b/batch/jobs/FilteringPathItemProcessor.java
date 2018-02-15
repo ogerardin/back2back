@@ -31,28 +31,28 @@ class FilteringPathItemProcessor implements ItemProcessor<Path, Path> {
 
     @Override
     public Path process(Path item) throws Exception {
-        logger.debug("Processing " + item);
 
+        String storedMd5hash;
         try {
+            // retrieve MD5 of stored file version
             FileVersion info = storageService.getLatestFileVersion(item);
-            String storedMd5hash = info.getMd5hash();
+            storedMd5hash = info.getMd5hash();
 
-            if (storedMd5hash != null) {
-                // we have a stored version of the file with MD5 information
-                // compute file MD5 and compare with stored file MD5
-                byte[] bytes = Files.readAllBytes(item);
-                String computedMd5Hash = md5Calculator.hexMd5Hash(bytes);
-                if (computedMd5Hash.equalsIgnoreCase(storedMd5hash)) {
-                    // same MD5, file can be skipped
-                    logger.debug("(File hash unchanged, skip)");
-                    return null; // returning null instructs Batch to skip the item, i.e. it is not passed to the writer
-                }
-            }
         } catch (StorageFileNotFoundException e) {
-            // file not stored yet
+            logger.debug("INITIAL BACK UP: " + item);
+            return item;
         }
 
-        // item will be passed to ItemWriter for backing up
+        // compute file MD5 and compare with stored file MD5
+        byte[] bytes = Files.readAllBytes(item);
+        String computedMd5Hash = md5Calculator.hexMd5Hash(bytes);
+        if (computedMd5Hash.equalsIgnoreCase(storedMd5hash)) {
+            // same MD5, file can be skipped
+            logger.debug("Unchanged: " + item);
+            return null; // returning null instructs Batch to skip the item, i.e. it is not passed to the writer
+        }
+
+        logger.debug("CHANGED: " + item);
         return item;
     }
 }

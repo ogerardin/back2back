@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Holds the context of a backup job, that is mostly the list of files to be backed up.
+ * Holds the context of a running backup job.
  */
 @Data
 public class BackupJobContext {

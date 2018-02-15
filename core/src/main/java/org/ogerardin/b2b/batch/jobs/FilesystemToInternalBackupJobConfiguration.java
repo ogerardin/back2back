@@ -70,7 +70,7 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
             PathItemWriteListener itemWriteListener) {
         return stepBuilderFactory
                 .get("backupToInternalStorageStep")
-                .<Path, Path> chunk(10)
+                .<Path, Path> chunk(1)  // invoke writer 1 file at a time
                 .reader(changedFilesItemReader)
                 .processor(new PassThroughItemProcessor<>()) // no processing
                 .writer(internalStorageWriter)

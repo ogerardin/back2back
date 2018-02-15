@@ -36,7 +36,7 @@ public abstract class BackupJobConfiguration {
 
 
     /**
-     * Add a validator for this job that requires the presence of a given parameter (with any value)
+     * Add a validator for this job configuration that requires the presence of a given parameter (with any value)
      */
     protected void addMandatoryParameter(String name) {
         validators.add(new DefaultJobParametersValidator(
@@ -45,7 +45,7 @@ public abstract class BackupJobConfiguration {
     }
 
     /**
-     * Add a validator for this job that requires the presence of a given parameter with a given value
+     * Add a validator for this job configuration that requires the presence of a given parameter with a given value
      */
     protected void addStaticParameter(String name, String value) {
         validators.add(new StaticJobParameterValidator(name, value));

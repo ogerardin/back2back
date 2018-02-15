@@ -34,6 +34,7 @@ public class RestBackupSourcesController {
     @PostMapping(consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public String create(@RequestBody BackupSource source) {
         BackupSource savedSource = sourceRepository.insert(source);
+        //TODO: adding a source should trigger an update of current jobs
         return savedSource.getId();
     }
 
