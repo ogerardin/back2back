@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Common superclass for backup jobs.
+ * Common superclass for backup job configuration beans
  */
 public abstract class BackupJobConfiguration {
 
@@ -28,7 +28,7 @@ public abstract class BackupJobConfiguration {
         addMandatoryParameter("backupset.id");
     }
 
-    protected JobParametersValidator validator() {
+    protected JobParametersValidator getValidator() {
         CompositeJobParametersValidator validator = new CompositeJobParametersValidator();
         validator.setValidators(this.validators);
         return validator;

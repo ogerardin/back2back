@@ -2,12 +2,12 @@ package org.ogerardin.b2b.batch.jobs;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.ogerardin.b2b.files.JavaMD5Calculator;
-import org.ogerardin.b2b.files.MD5Calculator;
+import org.ogerardin.b2b.files.md5.MD5Calculator;
 import org.ogerardin.b2b.storage.FileVersion;
 import org.ogerardin.b2b.storage.StorageFileNotFoundException;
 import org.ogerardin.b2b.storage.StorageService;
 import org.springframework.batch.item.ItemProcessor;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -16,16 +16,18 @@ import java.nio.file.Path;
  * ItemProcessor implementation that filters the input {@link Path} item if it has been stored already and the
  * stored version has the same MD5 hash as the locally computed version.
  */
-class PathFilteringItemProcessor implements ItemProcessor<Path, Path> {
+class FilteringPathItemProcessor implements ItemProcessor<Path, Path> {
 
-    private static final Log logger = LogFactory.getLog(PathFilteringItemProcessor.class);
+    private static final Log logger = LogFactory.getLog(FilteringPathItemProcessor.class);
 
-    private static final MD5Calculator md5Calculator = new JavaMD5Calculator();
+    @Autowired
+    private final MD5Calculator md5Calculator; // = new JavaMD5Calculator();
 
     private final StorageService storageService;
 
-    PathFilteringItemProcessor(StorageService storageService) {
+    FilteringPathItemProcessor(StorageService storageService, MD5Calculator md5Calculator) {
         this.storageService = storageService;
+        this.md5Calculator = md5Calculator;
     }
 
     @Override

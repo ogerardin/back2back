@@ -4,11 +4,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.ogerardin.b2b.domain.PeerTarget;
 import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
-import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.support.PassThroughItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,38 +30,44 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
         addMandatoryParameter("target.port");
     }
 
-    @Bean("localToPeerJob")
-    protected Job localToPeerBackupJob(Step localToPeerStep, JobExecutionListener jobListener) {
-        return jobBuilderFactory.get(FilesystemToPeerBackupJobConfiguration.class.getSimpleName())
-                .validator(validator())
+    @Bean
+    protected Job filesystemToPeerBackupJob(
+            Step listFilesStep,
+            Step backupToPeerStep,
+            BackupJobExecutionListener jobListener) {
+        return jobBuilderFactory
+                .get(FilesystemToPeerBackupJobConfiguration.class.getSimpleName())
+                .validator(getValidator())
                 .incrementer(new RunIdIncrementer())
                 .listener(jobListener)
-                .flow(localToPeerStep)
-                .end()
+                .start(listFilesStep) //step 1: list files and put them in the job context
+                .next(backupToPeerStep)
                 .build();
     }
 
-    @Bean("localToPeerStep")
-    protected Step step(ItemProcessor<Path, Path> localToPeerItemProcessor, ItemReader<Path> localToPeerItemReader) {
+    @Bean
+    protected Step backupToPeerStep(
+            ItemReader<Path> contextItemReader,
+            PeerItemWriter peerWriter,
+            PathItemProcessListener itemProcessListener)
+    {
         return stepBuilderFactory.get("processLocalFiles")
                 .<Path, Path>chunk(10)
-                .reader(localToPeerItemReader)
-                .processor(localToPeerItemProcessor)
-//                .writer(newWriter())
+                .reader(contextItemReader)
+                .processor(new PassThroughItemProcessor<>()) //TODO should filter based on hash
+                .writer(peerWriter)
+                .listener(itemProcessListener)
                 .build();
     }
 
-    @Bean(name = "localToPeerItemProcessor")
-    protected ItemProcessor<Path, Path> itemProcessor() {
-        //TODO do something useful
-        return new PassThroughItemProcessor<>();
-    }
+    @Bean
+    @JobScope
+    protected PeerItemWriter peerItemWriter(
+            @Value("#{jobParameters['target.hostname']}") String targetHostname,
+            @Value("#{jobParameters['target.port']}") String targetPort
 
-    @Bean(name = "localToPeerItemReader")
-    @StepScope
-    protected ItemReader<Path> itemReader(@Value("#{jobParameters['source.root']}") String root) {
-        //FIXME this is for debug
-        return () -> null;
+    ) {
+        return new PeerItemWriter(targetHostname, targetPort);
     }
 
 }

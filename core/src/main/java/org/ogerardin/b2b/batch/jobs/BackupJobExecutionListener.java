@@ -1,8 +1,9 @@
-package org.ogerardin.b2b.batch;
+package org.ogerardin.b2b.batch.jobs;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.ogerardin.b2b.B2BProperties;
+import org.ogerardin.b2b.batch.BackupSetAwareBean;
 import org.ogerardin.b2b.domain.BackupSet;
 import org.springframework.batch.core.*;
 import org.springframework.batch.core.configuration.JobLocator;

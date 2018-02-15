@@ -11,7 +11,7 @@ public abstract class BackupSetAwareBean {
     @Autowired
     protected BackupSetRepository backupSetRepository;
 
-    // concrete bean must be job-scoped for this to work
+    // IMPORTANT: bean must be job-scoped for this to work
     @Value("#{jobParameters['backupset.id']}")
     protected String backupSetId;
 

@@ -1,4 +1,4 @@
-package org.ogerardin.b2b.files;
+package org.ogerardin.b2b.files.md5;
 
 import java.nio.ByteBuffer;
 import java.util.stream.Collectors;
