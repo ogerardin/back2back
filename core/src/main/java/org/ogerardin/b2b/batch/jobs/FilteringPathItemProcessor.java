@@ -19,7 +19,8 @@ class FilteringPathItemProcessor implements ItemProcessor<Path, Path> {
 
     private static final Log logger = LogFactory.getLog(FilteringPathItemProcessor.class);
 
-    private final MD5Calculator md5Calculator; // = new JavaMD5Calculator();
+    /** The hash engine to use. See implementations of {@link MD5Calculator} */
+    private final MD5Calculator md5Calculator;
 
     private final StorageService storageService;
 

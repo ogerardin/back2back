@@ -5,6 +5,9 @@ import org.springframework.stereotype.Component;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+/**
+ * MD5 hash calculator using native Java
+ */
 @Component
 public class JavaMD5Calculator implements MD5Calculator {
 

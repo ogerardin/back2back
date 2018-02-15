@@ -15,7 +15,8 @@ public class MD5CalculatorTest {
             JavaMD5Calculator.class,
             GuavaMD5Calculator.class,
             ApacheCommonsMD5Calculator.class,
-            FastMD5Calculator.class
+            FastMD5Calculator.class,
+            SpringMD5Calculator.class
     );
 
    @Test

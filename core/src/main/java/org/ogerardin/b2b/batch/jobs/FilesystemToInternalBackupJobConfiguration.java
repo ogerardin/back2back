@@ -21,8 +21,8 @@ import org.springframework.context.annotation.Configuration;
 import java.nio.file.Path;
 
 /**
- * Job implementation for a backup job that process a source of type {@link FilesystemSource}
- * and backup to a local destination (i.e. a {@link StorageService}).
+ * Job configuration for a backup job that processes a source of type {@link FilesystemSource}
+ * and backs up to the internal storage (i.e. a {@link StorageService}).
  */
 @Configuration
 public class FilesystemToInternalBackupJobConfiguration extends FilesystemSourceBackupJobConfiguration {
@@ -101,7 +101,7 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
     @JobScope
     protected FilteringPathItemProcessor filteringPathItemProcessor(
             @Value("#{jobParameters['backupset.id']}") String backupSetId,
-            @Qualifier("apacheCommonsMD5Calculator") MD5Calculator md5Calculator
+            @Qualifier("springMD5Calculator") MD5Calculator md5Calculator
     ) {
         StorageService storageService = storageServiceFactory.getStorageService(backupSetId);
         return new FilteringPathItemProcessor(storageService, md5Calculator);
