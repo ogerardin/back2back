@@ -7,7 +7,6 @@ import org.ogerardin.b2b.storage.FileVersion;
 import org.ogerardin.b2b.storage.StorageFileNotFoundException;
 import org.ogerardin.b2b.storage.StorageService;
 import org.springframework.batch.item.ItemProcessor;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -20,7 +19,6 @@ class FilteringPathItemProcessor implements ItemProcessor<Path, Path> {
 
     private static final Log logger = LogFactory.getLog(FilteringPathItemProcessor.class);
 
-    @Autowired
     private final MD5Calculator md5Calculator; // = new JavaMD5Calculator();
 
     private final StorageService storageService;
@@ -45,7 +43,7 @@ class FilteringPathItemProcessor implements ItemProcessor<Path, Path> {
                 String computedMd5Hash = md5Calculator.hexMd5Hash(bytes);
                 if (computedMd5Hash.equalsIgnoreCase(storedMd5hash)) {
                     // same MD5, file can be skipped
-                    logger.debug("Unchanged: " + item);
+                    logger.debug("(File hash unchanged, skip)");
                     return null; // returning null instructs Batch to skip the item, i.e. it is not passed to the writer
                 }
             }
@@ -53,6 +51,7 @@ class FilteringPathItemProcessor implements ItemProcessor<Path, Path> {
             // file not stored yet
         }
 
+        // item will be passed to ItemWriter for backing up
         return item;
     }
 }

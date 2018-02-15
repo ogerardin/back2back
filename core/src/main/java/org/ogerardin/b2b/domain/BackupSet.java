@@ -36,10 +36,12 @@ public class BackupSet implements JobParametersPopulator {
     private long fileCount;
 
     private Path lastFile;
-//    private BackupResult lastFileStatus;
     private Path currentFile;
 
     private String lastError;
+
+    private String status;
+    private long size;
 
     @Override
     public void populateParams(Map<String, JobParameter> params) {

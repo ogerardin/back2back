@@ -10,12 +10,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * A {@link StepExecutionListener} that updates the backupSet with the file count from the job context.
- * Intended to be attached to the {@link ListFilesTasklet} step.
+ * A {@link StepExecutionListener} that updates the backupSet status
  */
 @Component
 @JobScope
-public class ListFilesTaskletExecutionListener extends BackupSetAwareBean implements StepExecutionListener {
+public class BackupStepExecutionListener extends BackupSetAwareBean implements StepExecutionListener {
 
     @Autowired
     BackupJobContext backupJobContext;
@@ -23,19 +22,15 @@ public class ListFilesTaskletExecutionListener extends BackupSetAwareBean implem
     @Override
     public void beforeStep(StepExecution stepExecution) {
         BackupSet backupSet = getBackupSet();
-        backupSet.setStatus("Collecting files");
+        backupSet.setStatus("Backing up");
     }
 
     @Override
     public ExitStatus afterStep(StepExecution stepExecution) {
         String exitCode = stepExecution.getExitStatus().getExitCode();
         if (exitCode.equals(ExitStatus.COMPLETED.getExitCode())) {
-            int fileCount = backupJobContext.getAllFiles().size();
-            long totalSize = backupJobContext.getTotalSize();
             BackupSet backupSet = getBackupSet();
-            backupSet.setStatus("Collected " + fileCount + " files");
-            backupSet.setFileCount(fileCount);
-            backupSet.setSize(totalSize);
+            backupSet.setStatus("Bckup done");
             backupSetRepository.save(backupSet);
         }
         return null; //don't change exit status

@@ -25,6 +25,7 @@ public class RecursivePathCollector extends SimpleFileVisitor<Path> {
     private static final Log logger = LogFactory.getLog(RecursivePathCollector.class);
 
     private final Set<Path> paths = new HashSet<>();
+    private long size = 0;
 
     private final Path rootDir;
 
@@ -40,15 +41,16 @@ public class RecursivePathCollector extends SimpleFileVisitor<Path> {
     }
 
     @Override
-    public FileVisitResult visitFile(Path path, BasicFileAttributes basicFileAttributes) throws IOException {
+    public FileVisitResult visitFile(Path path, BasicFileAttributes basicFileAttributes) {
         if (basicFileAttributes.isRegularFile()) {
-            paths.add(path);
+            this.paths.add(path);
+            this.size += basicFileAttributes.size();
         }
         return FileVisitResult.CONTINUE;
     }
 
     @Override
-    public FileVisitResult visitFileFailed(Path path, IOException e) throws IOException {
+    public FileVisitResult visitFileFailed(Path path, IOException e) {
         logger.warn("Failed to visit file: " + path + " (" + e + ")");
         return FileVisitResult.CONTINUE;
     }

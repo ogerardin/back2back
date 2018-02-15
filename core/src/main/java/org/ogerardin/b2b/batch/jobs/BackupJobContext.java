@@ -14,8 +14,10 @@ public class BackupJobContext {
     private final String backupSetId;
 
     private Set<Path> allFiles = new HashSet<>();
+    private long totalSize;
 
     public BackupJobContext(String backupSetId) {
         this.backupSetId = backupSetId;
     }
+
 }

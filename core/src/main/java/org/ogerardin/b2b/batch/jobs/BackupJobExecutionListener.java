@@ -63,6 +63,7 @@ public class BackupJobExecutionListener extends BackupSetAwareBean implements Jo
             // the current job is not considered as complete until we exit this function.
             long pauseAfterBackup = properties.getPauseAfterBackup();
             backupSet.setNextBackupTime(completeTime.plusMillis(pauseAfterBackup));
+            backupSet.setStatus("Waiting for next backup");
             scheduleDelayedRestart(jobExecution, pauseAfterBackup);
         }
 

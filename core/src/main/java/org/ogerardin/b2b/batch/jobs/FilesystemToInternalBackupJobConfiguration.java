@@ -57,8 +57,8 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
             ItemReader<Path> contextItemReader,
             FilteringPathItemProcessor pathFilteringItemProcessor,
             InternalStorageItemWriter internalStorageWriter,
-            PathItemProcessListener itemProcessListener
-    ) {
+            PathItemProcessListener itemProcessListener,
+            PathItemWriteListener itemWriteListener) {
         return stepBuilderFactory
                 .get("processLocalFiles")
                 .<Path, Path> chunk(10)
@@ -66,6 +66,7 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
                 .processor(pathFilteringItemProcessor)
                 .writer(internalStorageWriter)
                 .listener(itemProcessListener)
+                .listener(itemWriteListener)
                 .build();
     }
 
@@ -80,7 +81,7 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
 
     @Bean
     @JobScope
-    protected FilteringPathItemProcessor pathFilteringItemProcessor(
+    protected FilteringPathItemProcessor filteringPathItemProcessor(
             @Value("#{jobParameters['backupset.id']}") String backupSetId,
             @Qualifier("apacheCommonsMD5Calculator") MD5Calculator md5Calculator
     ) {

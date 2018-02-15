@@ -30,7 +30,6 @@ public class PathItemProcessListener extends BackupSetAwareBean implements ItemP
 //        logger.debug("afterProcess, backupSet.id=" + getBackupSet().getId());
         BackupSet backupSet = getBackupSet();
         backupSet.setLastFile(item);
-//        backupSet.setLastFileStatus(result.getResult());
         backupSet.setCurrentFile(null);
         backupSetRepository.save(backupSet);
     }
@@ -39,7 +38,7 @@ public class PathItemProcessListener extends BackupSetAwareBean implements ItemP
     public void onProcessError(Path item, Exception e) {
         logger.debug("onProcessError, backupSet.id=" + getBackupSet().getId());
         BackupSet backupSet = getBackupSet();
-        backupSet.setLastError("Exception while processing " + item + ": " + e.toString());
+        backupSet.setLastError("ERROR while processing " + item + ": " + e.toString());
         backupSetRepository.save(backupSet);
     }
 }
