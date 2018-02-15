@@ -10,7 +10,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
  */
 @Document(collection = "targets")
 @Data
-// include concrete type information as a pseudo-property "_class" on serialized JSON
+// Instructs Jackson to include concrete type information as a pseudo-property "_class" on serialized JSON
 @JsonTypeInfo(use = JsonTypeInfo.Id.MINIMAL_CLASS, include = JsonTypeInfo.As.PROPERTY, property = "_class")
 public abstract class BackupTarget implements JobParametersPopulator, HasDescription {
 

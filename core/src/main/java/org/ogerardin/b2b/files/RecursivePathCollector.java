@@ -37,7 +37,6 @@ public class RecursivePathCollector extends SimpleFileVisitor<Path> {
         logger.info("Collecting all files under " + rootDir);
         Files.walkFileTree(rootDir,this);
         logger.info("Found " + paths.size() + " files");
-
     }
 
     @Override

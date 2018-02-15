@@ -63,20 +63,27 @@ public class Main {
         };
     }
 
+    /**
+     * Attempt to start jobs for all enabled sources
+     */
     private void startAllJobs() {
-        // start jobs for all enabled sources
         sourceRepository.findAll().stream()
                 .filter(BackupSource::isEnabled)
                 .forEach(this::startJobs);
     }
 
+    /**
+     * Attempt to start backup jobs for all enabled targets and the specified source
+     */
     private void startJobs(BackupSource source) {
-        // start jobs for all enabled targets and specified source
         targetRepository.findAll().stream()
                 .filter(BackupTarget::isEnabled)
                 .forEach(target -> startJob(source, target));
     }
 
+    /**
+     * Attempt to start a backup job for the specified source and target
+     */
     private void startJob(BackupSource source, BackupTarget target) {
         try {
             BackupSet backupSet = findBackupSet(source, target);
@@ -88,6 +95,9 @@ public class Main {
         }
     }
 
+    /**
+     * Retrieve the {@link BackupTarget} for the specified source and target; creates it if it doesn't exist.
+     */
     private BackupSet findBackupSet(BackupSource source, BackupTarget target) {
         List<BackupSet> backupSets = backupSetRepository.findByBackupSourceAndBackupTarget(source, target);
 
@@ -106,13 +116,18 @@ public class Main {
         return backupSets.get(0);
     }
 
+    /**
+     * Attempts to start the backup job for the specified BackupSet.
+     * @throws JobExecutionException in case Spring Batch failed to start the job
+     * @throws B2BException
+     */
     private void startJob(BackupSet backupSet) throws JobExecutionException, B2BException {
         logger.debug("Looking for job matching backup set: " + backupSet);
 
         BackupSource source = backupSet.getBackupSource();
         BackupTarget target = backupSet.getBackupTarget();
 
-        // build parameters (delegated to BackupSource and BackupTarget)
+        // build job parameters (delegated to BackupSource and BackupTarget)
         Map<String, JobParameter> params = new HashMap<>();
         backupSet.populateParams(params);
         source.populateParams(params);
@@ -120,7 +135,7 @@ public class Main {
         JobParameters jobParameters = new JobParameters(params);
         logger.debug("Parameters: " + jobParameters);
 
-        // find Job applicable for parameters
+        // try to find a Job that is applicable to the parameters
         Job job = findApplicableJob(jobParameters);
         if (job == null) {
             throw new B2BException("No job found for parameters " + jobParameters);
@@ -134,9 +149,9 @@ public class Main {
     }
 
     /**
-     * Finds a Job from all known jobs that matches the specified parameters (i.e. for which
-     * calling the validator doesn't throw a {@link JobParametersInvalidException}). If several jobs
-     * match, which one is returned is undefined.
+     * Finds a Job from all jobs that exist in the Spring application context that matches the specified parameters
+     * (i.e. for which calling the validator doesn't throw a {@link JobParametersInvalidException}). If several jobs
+     * would match, which one is returned is undefined.
      * @return The Job, or null if none found
      */
     private Job findApplicableJob(JobParameters jobParameters) {
