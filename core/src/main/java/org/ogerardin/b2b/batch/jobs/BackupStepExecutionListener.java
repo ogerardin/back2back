@@ -30,7 +30,7 @@ public class BackupStepExecutionListener extends BackupSetAwareBean implements S
         String exitCode = stepExecution.getExitStatus().getExitCode();
         if (exitCode.equals(ExitStatus.COMPLETED.getExitCode())) {
             BackupSet backupSet = getBackupSet();
-            backupSet.setStatus("Bckup done");
+            backupSet.setStatus("Backup done");
             backupSetRepository.save(backupSet);
         }
         return null; //don't change exit status

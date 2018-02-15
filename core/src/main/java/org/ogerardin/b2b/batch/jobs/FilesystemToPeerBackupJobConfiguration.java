@@ -48,15 +48,14 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
     @Bean
     protected Step backupToPeerStep(
             ItemReader<Path> contextItemReader,
-            PeerItemWriter peerWriter,
-            PathItemProcessListener itemProcessListener)
+            PeerItemWriter peerWriter
+    )
     {
         return stepBuilderFactory.get("processLocalFiles")
                 .<Path, Path>chunk(10)
                 .reader(contextItemReader)
                 .processor(new PassThroughItemProcessor<>()) //TODO should filter based on hash
                 .writer(peerWriter)
-                .listener(itemProcessListener)
                 .build();
     }
 

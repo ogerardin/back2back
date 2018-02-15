@@ -11,6 +11,7 @@ import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.ItemReader;
+import org.springframework.batch.item.support.PassThroughItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,39 +38,51 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
         addStaticParameter("target.type", LocalTarget.class.getName());
     }
 
+    /**
+     * Provides a job that performs the backup of a filesystem source into the internal storage.
+     */
     @Bean
     protected Job filesystemToInternalBackupJob(
             Step listFilesStep,
+            Step filterFilesStep,
             Step backupToInternalStorageStep,
             BackupJobExecutionListener jobListener) {
         return jobBuilderFactory
-                .get(FilesystemToInternalBackupJobConfiguration.class.getSimpleName())
+                .get("filesystemToInternalBackupJob")
                 .validator(getValidator())
                 .incrementer(new RunIdIncrementer())
                 .listener(jobListener)
-                .start(listFilesStep) //step 1: list files and put them in the job context
-                .next(backupToInternalStorageStep) //step 2: process each file
+                .start(listFilesStep)               //step 1: list files and put them in the job context
+                .next(filterFilesStep)              //step 2: filter unchanged files
+                .next(backupToInternalStorageStep)  //step 3: save changed files
                 .build();
     }
 
+    /**
+     * Provides a {@link Step} that performs backup of the files taken from the current job's
+     * {@link BackupJobContext#changedFiles} into the internal storage.
+     */
     @Bean
+    @JobScope
     protected Step backupToInternalStorageStep(
-            ItemReader<Path> contextItemReader,
-            FilteringPathItemProcessor pathFilteringItemProcessor,
+            ItemReader<Path> changedFilesItemReader,
             InternalStorageItemWriter internalStorageWriter,
-            PathItemProcessListener itemProcessListener,
             PathItemWriteListener itemWriteListener) {
         return stepBuilderFactory
-                .get("processLocalFiles")
+                .get("backupToInternalStorageStep")
                 .<Path, Path> chunk(10)
-                .reader(contextItemReader)
-                .processor(pathFilteringItemProcessor)
+                .reader(changedFilesItemReader)
+                .processor(new PassThroughItemProcessor<>()) // no processing
                 .writer(internalStorageWriter)
-                .listener(itemProcessListener)
                 .listener(itemWriteListener)
                 .build();
     }
 
+
+    /**
+     * Provides a job-scoped {@link org.springframework.batch.item.ItemWriter} that stores {@link Path} items into
+     * the internal storage
+     */
     @Bean
     @JobScope
     protected InternalStorageItemWriter internalStorageItemWriter(
@@ -79,16 +92,17 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
         return new InternalStorageItemWriter(storageService, properties.getFileThrottleDelay());
     }
 
+    /**
+     * Provides a job-scoped {@link org.springframework.batch.item.ItemProcessor} that filters out {@link Path} items
+     * corresponding to a file that isn't different from the latest stored version.
+     * We use a {@link MD5Calculator} for determining if the file's hash has changed.
+     */
     @Bean
     @JobScope
     protected FilteringPathItemProcessor filteringPathItemProcessor(
             @Value("#{jobParameters['backupset.id']}") String backupSetId,
             @Qualifier("apacheCommonsMD5Calculator") MD5Calculator md5Calculator
     ) {
-        // we use the backupSetId as storage service name; for GridFsStorageService this translates to the
-        // bucket name used by GridFS so that all the files backed up as part of a backupSet are stored in a
-        // distinct bucket
-        // TODO we should implement a maintenance job to delete buckets for which there is no backupSet
         StorageService storageService = storageServiceFactory.getStorageService(backupSetId);
         return new FilteringPathItemProcessor(storageService, md5Calculator);
     }

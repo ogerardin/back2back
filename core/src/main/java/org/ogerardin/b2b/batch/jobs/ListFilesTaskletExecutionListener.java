@@ -30,7 +30,7 @@ public class ListFilesTaskletExecutionListener extends BackupSetAwareBean implem
     public ExitStatus afterStep(StepExecution stepExecution) {
         String exitCode = stepExecution.getExitStatus().getExitCode();
         if (exitCode.equals(ExitStatus.COMPLETED.getExitCode())) {
-            int fileCount = backupJobContext.getAllFiles().size();
+            int fileCount = backupJobContext.getChangedFiles().size();
             long totalSize = backupJobContext.getTotalSize();
             BackupSet backupSet = getBackupSet();
             backupSet.setStatus("Collected " + fileCount + " files");

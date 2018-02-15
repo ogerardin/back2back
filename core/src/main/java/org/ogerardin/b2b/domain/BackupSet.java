@@ -6,7 +6,6 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
@@ -34,14 +33,14 @@ public class BackupSet implements JobParametersPopulator {
     private Instant nextBackupTime;
 
     private long fileCount;
+    private long size;
 
-    private Path lastFile;
-    private Path currentFile;
+//    private Path lastFile;
+//    private Path currentFile;
 
     private String lastError;
 
     private String status;
-    private long size;
 
     @Override
     public void populateParams(Map<String, JobParameter> params) {

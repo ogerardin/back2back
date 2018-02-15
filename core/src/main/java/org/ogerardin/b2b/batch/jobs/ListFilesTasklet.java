@@ -26,7 +26,7 @@ class ListFilesTasklet implements Tasklet {
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
         RecursivePathCollector pathCollector = new RecursivePathCollector(root);
         pathCollector.walkTree();
-        context.setAllFiles(pathCollector.getPaths());
+        context.setChangedFiles(pathCollector.getPaths());
         context.setTotalSize(pathCollector.getSize());
         return RepeatStatus.FINISHED;
     }
