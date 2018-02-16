@@ -32,14 +32,14 @@ class FilteringPathItemProcessor implements ItemProcessor<Path, Path> {
     @Override
     public Path process(Path item) throws Exception {
 
+        // retrieve MD5 of stored file version
         String storedMd5hash;
         try {
-            // retrieve MD5 of stored file version
             FileVersion info = storageService.getLatestFileVersion(item);
             storedMd5hash = info.getMd5hash();
 
         } catch (StorageFileNotFoundException e) {
-            logger.debug("INITIAL BACK UP: " + item);
+            logger.debug("NEW FILE: " + item);
             return item;
         }
 

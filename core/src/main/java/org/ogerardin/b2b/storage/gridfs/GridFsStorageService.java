@@ -165,7 +165,7 @@ public class GridFsStorageService implements StorageService {
 
     @Override
     public void store(InputStream inputStream, String filename) {
-        gridFsTemplate.store(inputStream, filename);
+        gridFsTemplate.store(inputStream, filename, new Metadata());
     }
 
     @Override
