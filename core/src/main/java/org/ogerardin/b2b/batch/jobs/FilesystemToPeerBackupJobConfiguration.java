@@ -13,8 +13,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.nio.file.Path;
-
 /**
  * Job implementation for a backup job that process a source of type {@link org.ogerardin.b2b.domain.FilesystemSource}
  * and backups to a network peer.
@@ -34,6 +32,7 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
     protected Job filesystemToPeerBackupJob(
             Step listFilesStep,
             Step filterFilesStep,
+            Step computeBatchSizeStep,
             Step backupToPeerStep,
             BackupJobExecutionListener jobListener
     ) {
@@ -44,18 +43,19 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
                 .listener(jobListener)
                 .start(listFilesStep)       //step 1: list files and put them in the job context
                 .next(filterFilesStep)      //step 2: filter unchanged files
+                .next(computeBatchSizeStep)     //step 3: compute backup batch size
                 .next(backupToPeerStep)
                 .build();
     }
 
     @Bean
     protected Step backupToPeerStep(
-            ItemReader<Path> changedFilesItemReader,
+            ItemReader<FileInfo> changedFilesItemReader,
             PeerItemWriter peerWriter
     )
     {
         return stepBuilderFactory.get("processLocalFiles")
-                .<Path, Path>chunk(1) // invoke writer 1 file at a time
+                .<FileInfo, FileInfo>chunk(1) // invoke writer 1 file at a time
                 .reader(changedFilesItemReader)
                 .processor(new PassThroughItemProcessor<>())
                 .writer(peerWriter)

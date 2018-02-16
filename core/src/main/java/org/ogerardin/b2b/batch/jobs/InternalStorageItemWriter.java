@@ -12,7 +12,7 @@ import java.util.List;
  * ItemWriter implementation that stores the file corresponding to the input {@link Path} into the
  * internal storage.
  */
-class InternalStorageItemWriter implements ItemWriter<Path> {
+class InternalStorageItemWriter implements ItemWriter<FileInfo> {
 
     private static final Log logger = LogFactory.getLog(InternalStorageItemWriter.class);
 
@@ -28,8 +28,9 @@ class InternalStorageItemWriter implements ItemWriter<Path> {
     }
 
     @Override
-    public void write(List<? extends Path> items) throws Exception {
-        for (Path path : items) {
+    public void write(List<? extends FileInfo> items) throws Exception {
+        for (FileInfo item : items) {
+            Path path = item.getPath();
             try {
                 logger.debug("STORING: " + path);
                 storageService.store(path);

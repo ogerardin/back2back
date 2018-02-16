@@ -11,8 +11,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Recursively walks a filesystem directory and collects the {@link Path} of all files.
@@ -24,7 +24,7 @@ import java.util.Set;
 public class RecursivePathCollector extends SimpleFileVisitor<Path> {
     private static final Log logger = LogFactory.getLog(RecursivePathCollector.class);
 
-    private final Set<Path> paths = new HashSet<>();
+    private final Map<Path, BasicFileAttributes> paths = new HashMap<>();
     private long size = 0;
 
     private final Path rootDir;
@@ -42,7 +42,7 @@ public class RecursivePathCollector extends SimpleFileVisitor<Path> {
     @Override
     public FileVisitResult visitFile(Path path, BasicFileAttributes basicFileAttributes) {
         if (basicFileAttributes.isRegularFile()) {
-            this.paths.add(path);
+            this.paths.put(path, basicFileAttributes);
             this.size += basicFileAttributes.size();
         }
         return FileVisitResult.CONTINUE;

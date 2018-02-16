@@ -12,27 +12,36 @@ import java.util.List;
 
 @Component
 @JobScope
-public class PathItemWriteListener extends BackupSetAwareBean implements ItemWriteListener<Path> {
+public class PathItemWriteListener extends BackupSetAwareBean implements ItemWriteListener<FileInfo> {
 
     @Override
-    public void beforeWrite(List<? extends Path> items) {
+    public void beforeWrite(List<? extends FileInfo> items) {
+        Path[] paths = getPaths(items);
         BackupSet backupSet = getBackupSet();
-        backupSet.setStatus("Backing up " + Arrays.toString(items.toArray()));
+        backupSet.setStatus("Backing up " + Arrays.toString(paths));
         backupSetRepository.save(backupSet);
     }
 
     @Override
-    public void afterWrite(List<? extends Path> items) {
+    public void afterWrite(List<? extends FileInfo> items) {
+        Path[] paths = getPaths(items);
         BackupSet backupSet = getBackupSet();
-        backupSet.setStatus("Finished backing up " + Arrays.toString(items.toArray()));
+        backupSet.setStatus("Finished backing up " + Arrays.toString(paths));
         backupSetRepository.save(backupSet);
     }
 
     @Override
-    public void onWriteError(Exception exception, List<? extends Path> items) {
+    public void onWriteError(Exception exception, List<? extends FileInfo> items) {
+        Path[] paths = getPaths(items);
         BackupSet backupSet = getBackupSet();
-        backupSet.setStatus("ERROR backing up " + Arrays.toString(items.toArray()));
+        backupSet.setStatus("ERROR backing up " + Arrays.toString(paths));
         backupSetRepository.save(backupSet);
 
+    }
+
+    private Path[] getPaths(List<? extends FileInfo> items) {
+        return items.stream()
+                .map(FileInfo::getPath)
+                .toArray(Path[]::new);
     }
 }

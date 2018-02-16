@@ -35,22 +35,22 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
     }
 
 
-    /** Provides a {@link ItemReader} that supplies {@link Path} items from the current job's
+    /** Provides a {@link ItemReader} that supplies {@link FileInfo} items from the current job's
      * {@link BackupJobContext#allFiles} */
     @Bean
     @JobScope
-    protected IteratorItemReader<Path> allFilesItemReader(
+    protected IteratorItemReader<FileInfo> allFilesItemReader(
             BackupJobContext backupJobContext
     ) {
         return new IteratorItemReader<>(backupJobContext.getAllFiles());
     }
 
 
-    /** Provides a {@link ItemReader} that supplies {@link Path} items from the current job's
+    /** Provides a {@link ItemReader} that supplies {@link FileInfo} items from the current job's
      * {@link BackupJobContext#changedFiles} */
     @Bean
     @JobScope
-    protected IteratorItemReader<Path> changedFilesItemReader(
+    protected IteratorItemReader<FileInfo> changedFilesItemReader(
             BackupJobContext backupJobContext
     ) {
         return new IteratorItemReader<>(backupJobContext.getChangedFiles());
@@ -61,7 +61,7 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
      * {@link BackupJobContext#changedFiles} */
     @Bean
     @JobScope
-    protected SetItemWriter<Path> changedFilesItemWriter(
+    protected SetItemWriter<FileInfo> changedFilesItemWriter(
             BackupJobContext backupJobContext
     ) {
         return new SetItemWriter<>(backupJobContext.getChangedFiles());
@@ -91,12 +91,12 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
     @Bean
     @JobScope
     protected Step filterFilesStep(
-            ItemReader<Path> allFilesItemReader,
+            ItemReader<FileInfo> allFilesItemReader,
             FilteringPathItemProcessor pathFilteringItemProcessor,
-            ItemWriter<Path> changedFilesItemWriter) {
+            ItemWriter<FileInfo> changedFilesItemWriter) {
         return stepBuilderFactory
                 .get("filterFilesStep")
-                .<Path, Path> chunk(10)
+                .<FileInfo, FileInfo> chunk(10)
                 .reader(allFilesItemReader)
                 .processor(pathFilteringItemProcessor)
                 .writer(changedFilesItemWriter)

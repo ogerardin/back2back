@@ -4,13 +4,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.batch.item.ItemWriter;
 
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 
 /**
  */
-class PeerItemWriter implements ItemWriter<Path> {
+class PeerItemWriter implements ItemWriter<FileInfo> {
 
     private static final Log logger = LogFactory.getLog(PeerItemWriter.class);
 
@@ -24,10 +23,10 @@ class PeerItemWriter implements ItemWriter<Path> {
     }
 
     @Override
-    public void write(List<? extends Path> items) throws Exception {
+    public void write(List<? extends FileInfo> items) throws Exception {
         logger.debug("Writing " + Arrays.toString(items.toArray()));
 
-        for (Path path : items) {
+        for (FileInfo item : items) {
             //TODO
         }
 

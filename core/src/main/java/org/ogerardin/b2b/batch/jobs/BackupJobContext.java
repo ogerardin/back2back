@@ -2,7 +2,6 @@ package org.ogerardin.b2b.batch.jobs;
 
 import lombok.Data;
 
-import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -11,12 +10,17 @@ import java.util.Set;
  */
 @Data
 public class BackupJobContext {
+
     private final String backupSetId;
 
-    private Set<Path> allFiles = new HashSet<>();
+    // these fields are populated by the ListFilesTasklet (step 1)
+    private Set<FileInfo> allFiles = new HashSet<>();
     private long totalSize = 0;
 
-    private Set<Path> changedFiles = new HashSet<>();
+    // this field is populated by the ItemlWriter of step 2
+    private Set<FileInfo> changedFiles = new HashSet<>();
+
+
     private long changedSize = 0;
 
     public BackupJobContext(String backupSetId) {

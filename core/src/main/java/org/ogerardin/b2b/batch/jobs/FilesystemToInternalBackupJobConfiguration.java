@@ -46,6 +46,7 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
             Step listFilesStep,
             Step filterFilesStep,
             Step backupToInternalStorageStep,
+            Step computeBatchSizeStep,
             BackupJobExecutionListener jobListener) {
         return jobBuilderFactory
                 .get("filesystemToInternalBackupJob")
@@ -54,7 +55,8 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
                 .listener(jobListener)
                 .start(listFilesStep)               //step 1: list files and put them in the job context
                 .next(filterFilesStep)              //step 2: filter unchanged files
-                .next(backupToInternalStorageStep)  //step 3: save changed files
+                .next(computeBatchSizeStep)             //step 3: compute backup batch size
+                .next(backupToInternalStorageStep)  //step 4: save changed files
                 .build();
     }
 
@@ -65,12 +67,12 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
     @Bean
     @JobScope
     protected Step backupToInternalStorageStep(
-            ItemReader<Path> changedFilesItemReader,
+            ItemReader<FileInfo> changedFilesItemReader,
             InternalStorageItemWriter internalStorageWriter,
             PathItemWriteListener itemWriteListener) {
         return stepBuilderFactory
                 .get("backupToInternalStorageStep")
-                .<Path, Path> chunk(1)  // invoke writer 1 file at a time
+                .<FileInfo, FileInfo> chunk(1)  // invoke writer 1 file at a time
                 .reader(changedFilesItemReader)
                 .processor(new PassThroughItemProcessor<>()) // no processing
                 .writer(internalStorageWriter)
