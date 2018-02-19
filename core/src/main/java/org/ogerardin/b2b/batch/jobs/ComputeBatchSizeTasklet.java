@@ -30,7 +30,7 @@ class ComputeBatchSizeTasklet implements Tasklet {
                 .mapToLong(BasicFileAttributes::size)
                 .sum();
 
-        logger.info("Batch size is: " + batchSize);
+        logger.info("Computed to do size: " + batchSize + " bytes");
         context.setToDoSize(batchSize);
 
         return RepeatStatus.FINISHED;

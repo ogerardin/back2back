@@ -32,7 +32,9 @@ public class ComputeBatchSizeExecutionListener extends BackupSetAwareBean implem
         BackupSet backupSet = getBackupSet();
         if (exitCode.equals(ExitStatus.COMPLETED.getExitCode())) {
             long toDoSize = backupJobContext.getToDoSize();
-            backupSet.setStatus("To do: " + toDoSize + " bytes");
+            int toDoCount = backupJobContext.getToDoFiles().size();
+            backupSet.setStatus("To do: " + toDoCount + " files, " + toDoSize + " bytes");
+            backupSet.setToDoCount(toDoCount);
             backupSet.setToDoSize(toDoSize);
         }
         else {
