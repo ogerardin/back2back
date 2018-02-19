@@ -7,6 +7,7 @@ import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
 import java.util.List;
 
@@ -27,6 +28,13 @@ public class PathItemWriteListener extends BackupSetAwareBean implements ItemWri
         Path[] paths = getPaths(items);
         BackupSet backupSet = getBackupSet();
         backupSet.setStatus("Finished backing up " + Arrays.toString(paths));
+        // subtract written size and count from to do
+        long writtenSize = items.stream()
+                .map(FileInfo::getFileAttributes)
+                .mapToLong(BasicFileAttributes::size)
+                .sum();
+        backupSet.setToDoSize(backupSet.getToDoSize() - writtenSize);
+        backupSet.setToDoCount(backupSet.getToDoCount() - items.size());
         backupSetRepository.save(backupSet);
     }
 

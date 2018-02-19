@@ -35,6 +35,9 @@ public class BackupSet implements JobParametersPopulator {
     private long fileCount;
     private long size;
 
+    private long toDoCount;
+    private long toDoSize;
+
 //    private Path lastFile;
 //    private Path currentFile;
 

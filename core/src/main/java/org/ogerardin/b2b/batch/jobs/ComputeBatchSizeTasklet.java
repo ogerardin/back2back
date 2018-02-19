@@ -11,8 +11,8 @@ import javax.validation.constraints.NotNull;
 import java.nio.file.attribute.BasicFileAttributes;
 
 /**
- * Computes the size of the current backup batch by summing the sizes of files in {@link BackupJobContext#changedFiles}.
- * The result is stored into {@link BackupJobContext#changedSize}.
+ * Computes the size of the current backup batch by summing the sizes of files in {@link BackupJobContext#toDoFiles}.
+ * The result is stored into {@link BackupJobContext#toDoSize}.
  */
 class ComputeBatchSizeTasklet implements Tasklet {
     private static final Log logger = LogFactory.getLog(ComputeBatchSizeTasklet.class);
@@ -25,13 +25,13 @@ class ComputeBatchSizeTasklet implements Tasklet {
 
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
-        long batchSize = context.getChangedFiles().stream()
+        long batchSize = context.getToDoFiles().stream()
                 .map(FileInfo::getFileAttributes)
                 .mapToLong(BasicFileAttributes::size)
                 .sum();
 
         logger.info("Batch size is: " + batchSize);
-        context.setChangedSize(batchSize);
+        context.setToDoSize(batchSize);
 
         return RepeatStatus.FINISHED;
     }

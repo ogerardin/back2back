@@ -55,14 +55,14 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
                 .listener(jobListener)
                 .start(listFilesStep)               //step 1: list files and put them in the job context
                 .next(filterFilesStep)              //step 2: filter unchanged files
-                .next(computeBatchSizeStep)             //step 3: compute backup batch size
+                .next(computeBatchSizeStep)         //step 3: compute backup batch size
                 .next(backupToInternalStorageStep)  //step 4: save changed files
                 .build();
     }
 
     /**
      * Provides a {@link Step} that performs backup of the files taken from the current job's
-     * {@link BackupJobContext#changedFiles} into the internal storage.
+     * {@link BackupJobContext#toDoFiles} into the internal storage.
      */
     @Bean
     @JobScope

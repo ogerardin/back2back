@@ -47,24 +47,24 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
 
 
     /** Provides a {@link ItemReader} that supplies {@link FileInfo} items from the current job's
-     * {@link BackupJobContext#changedFiles} */
+     * {@link BackupJobContext#toDoFiles} */
     @Bean
     @JobScope
     protected IteratorItemReader<FileInfo> changedFilesItemReader(
             BackupJobContext backupJobContext
     ) {
-        return new IteratorItemReader<>(backupJobContext.getChangedFiles());
+        return new IteratorItemReader<>(backupJobContext.getToDoFiles());
     }
 
 
     /** Provides an {@link ItemWriter} that stores {@link Path} items in the current job's
-     * {@link BackupJobContext#changedFiles} */
+     * {@link BackupJobContext#toDoFiles} */
     @Bean
     @JobScope
     protected SetItemWriter<FileInfo> changedFilesItemWriter(
             BackupJobContext backupJobContext
     ) {
-        return new SetItemWriter<>(backupJobContext.getChangedFiles());
+        return new SetItemWriter<>(backupJobContext.getToDoFiles());
     }
 
 

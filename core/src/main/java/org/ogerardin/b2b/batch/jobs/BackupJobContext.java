@@ -18,10 +18,8 @@ public class BackupJobContext {
     private long totalSize = 0;
 
     // this field is populated by the ItemlWriter of step 2
-    private Set<FileInfo> changedFiles = new HashSet<>();
-
-
-    private long changedSize = 0;
+    private Set<FileInfo> toDoFiles = new HashSet<>();
+    private long toDoSize = 0;
 
     public BackupJobContext(String backupSetId) {
         this.backupSetId = backupSetId;

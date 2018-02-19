@@ -55,6 +55,23 @@ public abstract class BackupJobConfiguration {
     }
 
 
+    /**
+     * Provides a {@link Step} that computes the size of the current backup batch
+     */
+    @Bean
+    @JobScope
+    protected Step computeBatchSizeStep(
+            ComputeBatchSizeTasklet computeBatchSizeTasklet,
+            ComputeBatchSizeExecutionListener computeBatchSizeExecutionListener
+    ) {
+        return stepBuilderFactory
+                .get("computeBatchSizeStep")
+                .tasklet(computeBatchSizeTasklet)
+                .listener(computeBatchSizeExecutionListener)
+                .build();
+    }
+
+
     /** Provides an instance of {@link ComputeBatchSizeTasklet} for the current job */
     @Bean
     @JobScope
@@ -63,21 +80,6 @@ public abstract class BackupJobConfiguration {
     ) {
         return new ComputeBatchSizeTasklet(backupJobContext);
     }
-
-
-    /**
-     * Provides a {@link Step} that computes the size of the current backup batch
-     */
-    @Bean
-    @JobScope
-    protected Step computeBatchSizeStep(
-            ComputeBatchSizeTasklet computeBatchSizeTasklet) {
-        return stepBuilderFactory
-                .get("computeBatchSizeStep")
-                .tasklet(computeBatchSizeTasklet)
-                .build();
-    }
-
 
 
 }
