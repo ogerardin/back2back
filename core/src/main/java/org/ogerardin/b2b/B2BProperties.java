@@ -9,6 +9,8 @@ import org.springframework.context.annotation.Configuration;
 @Data
 public class B2BProperties {
 
+    int defaultPeerPort = 80;
+
     //
     // Debug properties
     //

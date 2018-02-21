@@ -20,6 +20,7 @@ import org.springframework.context.annotation.ComponentScan;
 public class Main {
 
     private static final Log logger = LogFactory.getLog(Main.class);
+
     private static String[] args;
     private static ConfigurableApplicationContext context;
 
