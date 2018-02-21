@@ -9,6 +9,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 
@@ -18,6 +20,8 @@ import org.springframework.context.annotation.ComponentScan;
 public class Main {
 
     private static final Log logger = LogFactory.getLog(Main.class);
+    private static String[] args;
+    private static ConfigurableApplicationContext context;
 
     @Autowired
     private JobStarter jobStarter;
@@ -26,7 +30,17 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        SpringApplication.run(Main.class, args);
+        Main.args = args;
+        Main.context = SpringApplication.run(Main.class, args);
+    }
+
+    public static void restart() {
+        // close previous context
+        context.close();
+
+        // and build new one using the new mode
+        SpringApplicationBuilder builder = new SpringApplicationBuilder(Main.class);
+        Main.context = builder.build().run(Main.args);
     }
 
     @Bean

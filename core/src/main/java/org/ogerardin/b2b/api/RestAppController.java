@@ -27,4 +27,17 @@ public class RestAppController {
     void shutdown() {
         SpringApplication.exit(appContext, (ExitCodeGenerator) () -> 1);
     }
+
+    @GetMapping("/restart")
+    void restart() {
+        Thread restartThread = new Thread(() -> {
+            try {
+                Thread.sleep(1000);
+                Main.restart();
+            } catch (InterruptedException ignored) {
+            }
+        });
+        restartThread.setDaemon(false);
+        restartThread.start();
+    }
 }
