@@ -3,7 +3,7 @@ package org.ogerardin.b2b.batch.jobs;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.batch.item.ItemWriter;
-import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.PathResource;
 import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -47,7 +47,7 @@ class PeerItemWriter implements ItemWriter<FileInfo> {
         URL url = new URL("http", this.targetHostname, this.targetPort, "/api/upload");
 
         MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
-        map.add("file", new FileSystemResource(path.toFile()));
+        map.add("file", new PathResource(path));
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
         HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(map, headers);

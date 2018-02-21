@@ -11,6 +11,7 @@ import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.ItemReader;
+import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.support.PassThroughItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -72,7 +73,7 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
             PathItemWriteListener itemWriteListener) {
         return stepBuilderFactory
                 .get("backupToInternalStorageStep")
-                .<FileInfo, FileInfo> chunk(1)  // invoke writer 1 file at a time
+                .<FileInfo, FileInfo> chunk(1)  // handle 1 file at a time
                 .reader(changedFilesItemReader)
                 .processor(new PassThroughItemProcessor<>()) // no processing
                 .writer(internalStorageWriter)
@@ -108,4 +109,26 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
         StorageService storageService = storageServiceFactory.getStorageService(backupSetId);
         return new FilteringPathItemProcessor(storageService, md5Calculator);
     }
+
+    /**
+     * Provides a {@link Step} that implements the second step of a backup job: populate the current job's
+     * {@link BackupJobContext} with the list of CHANGED files
+     */
+    @Bean
+    @JobScope
+    protected Step filterFilesStep(
+            ItemReader<FileInfo> allFilesItemReader,
+            FilteringPathItemProcessor filteringPathItemProcessor,
+            ItemWriter<FileInfo> changedFilesItemWriter) {
+        return stepBuilderFactory
+                .get("filterFilesStep")
+                .<FileInfo, FileInfo> chunk(10)
+                .reader(allFilesItemReader)
+                .processor(filteringPathItemProcessor)
+                .writer(changedFilesItemWriter)
+                .build();
+    }
+
+
+
 }

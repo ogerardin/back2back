@@ -85,26 +85,6 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
     }
 
     /**
-     * Provides a {@link Step} that implements the second step of a backup job: populate the current job's
-     * {@link BackupJobContext} with the list of CHANGED files
-     */
-    @Bean
-    @JobScope
-    protected Step filterFilesStep(
-            ItemReader<FileInfo> allFilesItemReader,
-            FilteringPathItemProcessor pathFilteringItemProcessor,
-            ItemWriter<FileInfo> changedFilesItemWriter) {
-        return stepBuilderFactory
-                .get("filterFilesStep")
-                .<FileInfo, FileInfo> chunk(10)
-                .reader(allFilesItemReader)
-                .processor(pathFilteringItemProcessor)
-                .writer(changedFilesItemWriter)
-                .build();
-    }
-
-
-    /**
      * Provides a job-scoped context that contains contextual data for the current job, including the list of files
      * to backup.
      * We do not use {@link org.springframework.batch.core.scope.context.JobContext} because it has limitations on

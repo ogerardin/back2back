@@ -36,8 +36,6 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
     @Bean
     protected Job filesystemToPeerBackupJob(
             Step listFilesStep,
-            Step filterFilesStep,
-            Step computeBatchSizeStep,
             Step backupToPeerStep,
             BackupJobExecutionListener jobListener
     ) {
@@ -47,21 +45,21 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
                 .incrementer(new RunIdIncrementer())
                 .listener(jobListener)
                 .start(listFilesStep)       //step 1: list files and put them in the job context
-                .next(filterFilesStep)      //step 2: filter unchanged files
-                .next(computeBatchSizeStep)     //step 3: compute backup batch size
-                .next(backupToPeerStep)
+                //.next(filterFilesStep)      //step 2: filter unchanged files
+                //.next(computeBatchSizeStep)     //step 3: compute backup batch size
+                .next(backupToPeerStep)     //step 4: backup
                 .build();
     }
 
     @Bean
     protected Step backupToPeerStep(
-            ItemReader<FileInfo> changedFilesItemReader,
+            ItemReader<FileInfo> allFilesItemReader,
             PeerItemWriter peerWriter
     )
     {
-        return stepBuilderFactory.get("processLocalFiles")
-                .<FileInfo, FileInfo>chunk(1) // invoke writer 1 file at a time
-                .reader(changedFilesItemReader)
+        return stepBuilderFactory.get("backupToPeerStep")
+                .<FileInfo, FileInfo>chunk(1) // handles 1 file at a time
+                .reader(allFilesItemReader)
                 .processor(new PassThroughItemProcessor<>())
                 .writer(peerWriter)
                 .build();
