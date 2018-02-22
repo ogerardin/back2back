@@ -44,7 +44,7 @@ public class RestUploadController {
         logger.debug("Single file upload!");
 
         if (uploadfile.isEmpty()) {
-            return new ResponseEntity<>("please select a file!", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("Empty file", HttpStatus.BAD_REQUEST);
         }
 
         try {
@@ -53,8 +53,8 @@ public class RestUploadController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        return new ResponseEntity<>("Successfully uploaded - " +
-                uploadfile.getOriginalFilename(), new HttpHeaders(), HttpStatus.OK);
+        return new ResponseEntity<>("Successfully uploaded - " + uploadfile.getOriginalFilename(),
+                new HttpHeaders(), HttpStatus.OK);
 
     }
 
