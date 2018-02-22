@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,9 +22,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-public class RestUploadController {
+@RequestMapping("/api/peer")
+public class RestPeerController {
 
-    private final Logger logger = LoggerFactory.getLogger(RestUploadController.class);
+    private final Logger logger = LoggerFactory.getLogger(RestPeerController.class);
 
     //Save the uploaded file to this folder
     private static final String UPLOADED_FOLDER = "temp-upload";
@@ -37,29 +39,31 @@ public class RestUploadController {
     }
 
     // Single file upload
-    @PostMapping("/api/upload")
+    @PostMapping("upload")
     public ResponseEntity<?> uploadFile(
-            @RequestParam("file") MultipartFile uploadfile) {
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "original-path", required = false) String originalPath
+            ) {
 
         logger.debug("Single file upload!");
 
-        if (uploadfile.isEmpty()) {
+        if (file.isEmpty()) {
             return new ResponseEntity<>("please select a file!", HttpStatus.BAD_REQUEST);
         }
 
         try {
-            saveUploadedFiles(Collections.singletonList(uploadfile));
+            saveUploadedFiles(Collections.singletonList(file));
         } catch (IOException e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         return new ResponseEntity<>("Successfully uploaded - " +
-                uploadfile.getOriginalFilename(), new HttpHeaders(), HttpStatus.OK);
+                file.getOriginalFilename(), new HttpHeaders(), HttpStatus.OK);
 
     }
 
     // Multiple file upload
-    @PostMapping("/api/upload/multi")
+    @PostMapping("/upload-multi")
     public ResponseEntity<?> uploadFileMulti(
             @RequestParam("extraField") String extraField,
             @RequestParam("files") MultipartFile[] uploadfiles) {
