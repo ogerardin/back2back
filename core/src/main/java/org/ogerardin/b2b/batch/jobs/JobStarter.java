@@ -104,14 +104,8 @@ public class JobStarter {
     private void startJob(BackupSet backupSet) throws JobExecutionException, B2BException {
         logger.debug("Looking for job matching backup set: " + backupSet);
 
-        BackupSource source = backupSet.getBackupSource();
-        BackupTarget target = backupSet.getBackupTarget();
-
-        // build job parameters (delegated to BackupSource and BackupTarget)
         Map<String, JobParameter> params = new HashMap<>();
         backupSet.populateParams(params);
-        source.populateParams(params);
-        target.populateParams(params);
         JobParameters jobParameters = new JobParameters(params);
         logger.debug("Parameters: " + jobParameters);
 

@@ -44,10 +44,11 @@ class PeerItemWriter implements ItemWriter<FileInfo> {
     private void uploadFile(Path path) throws MalformedURLException, URISyntaxException {
         RestTemplate restTemplate = new RestTemplate();
 
-        URL url = new URL("http", this.targetHostname, this.targetPort, "/api/upload");
+        URL url = new URL("http", this.targetHostname, this.targetPort, "/api/peer/upload");
 
         MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
         map.add("file", new PathResource(path));
+        map.add("original-path", path.toString());
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
         HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(map, headers);
