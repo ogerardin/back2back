@@ -8,7 +8,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * Represents a backup job from a single source to a single target.
@@ -20,7 +19,7 @@ public class BackupSet implements JobParametersPopulator {
     @Id
     private String id;
 
-    private UUID computerId;
+//    private UUID computerId;
 
     @DBRef
     private BackupSource backupSource;
@@ -51,7 +50,6 @@ public class BackupSet implements JobParametersPopulator {
 
         backupSource.populateParams(params);
         backupTarget.populateParams(params);
-
     }
 
 }

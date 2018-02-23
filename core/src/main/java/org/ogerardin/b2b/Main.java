@@ -2,7 +2,7 @@ package org.ogerardin.b2b;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.ogerardin.b2b.batch.jobs.JobStarter;
+import org.ogerardin.b2b.batch.JobStarter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -35,10 +35,8 @@ public class Main {
     }
 
     public static void restart() {
-        // close previous context
+        // close previous context and start a new one
         context.close();
-
-        // and build new one using the new mode
         Main.context = SpringApplication.run(Main.class, args);
     }
 

@@ -1,4 +1,4 @@
-package org.ogerardin.b2b.api;
+package org.ogerardin.b2b.api.rest;
 
 import org.ogerardin.b2b.B2BException;
 import org.ogerardin.b2b.domain.BackupSet;
@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -48,27 +49,16 @@ public class RestPeerController {
     @Autowired
     private StorageServiceFactory storageServiceFactory;
 
-/*
-    //Save the uploaded file to this folder
-    private static final String UPLOADED_FOLDER = "temp-upload";
 
-    static {
-        try {
-            Files.createDirectories(Paths.get(UPLOADED_FOLDER));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-*/
-
-
-    // Single file upload
-    @PostMapping("upload")
+    /**
+     * Handle a single file upload
+     */
+    @PostMapping("/upload")
     public ResponseEntity<?> uploadFile(
             @RequestParam("computer-id") String computerId,
             @RequestParam("original-path") String originalPath,
             @RequestParam("file") MultipartFile file
-            ) throws B2BException {
+            ) throws B2BException, IOException {
 
         logger.debug("Single file upload!");
 
@@ -83,12 +73,8 @@ public class RestPeerController {
         BackupSet backupSet = getBackupSet(remoteComputerUuid);
 
         // store the file in the local storage
-        try {
-            StorageService storageService = storageServiceFactory.getStorageService(backupSet.getId());
-            storageService.store(file.getInputStream(), originalPath);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        StorageService storageService = storageServiceFactory.getStorageService(backupSet.getId());
+        storageService.store(file.getInputStream(), originalPath);
 
         return new ResponseEntity<>("Successfully uploaded - " +
                 file.getOriginalFilename(), new HttpHeaders(), HttpStatus.OK);
@@ -96,15 +82,17 @@ public class RestPeerController {
     }
 
     private BackupSet getBackupSet(UUID computerId) throws B2BException {
-        // find
+        // try to find existing BackupSet with a PeerSource corresponding to this computer
         List<BackupSet> backupSets = backupSetRepository.findAll().stream()
                 .filter(s -> s.getBackupSource().getClass() == PeerSource.class)
                 .filter(s -> ((PeerSource) s.getBackupSource()).getRemoteComputerId().equals(computerId))
                 .collect(Collectors.toList());
 
+        // if none was found, create one
         if (backupSets.isEmpty()) {
             return createBackupSet(computerId);
         }
+
         if (backupSets.size() > 1) {
             throw new B2BException("More than 1 BackupSet found for remote computer " + computerId);
         }
@@ -179,25 +167,6 @@ public class RestPeerController {
         }
 
         return new ResponseEntity("Successfully uploaded!", HttpStatus.OK);
-
-    }
-*/
-
-/*
-    //save file
-    private void saveUploadedFiles(List<MultipartFile> files) throws IOException {
-
-        for (MultipartFile file : files) {
-
-            if (file.isEmpty()) {
-                continue; //next pls
-            }
-
-            byte[] bytes = file.getBytes();
-            Path path = Paths.get(UPLOADED_FOLDER, file.getOriginalFilename());
-            Files.write(path, bytes);
-
-        }
 
     }
 */

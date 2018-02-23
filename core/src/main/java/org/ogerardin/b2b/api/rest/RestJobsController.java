@@ -1,4 +1,4 @@
-package org.ogerardin.b2b.api;
+package org.ogerardin.b2b.api.rest;
 
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobInstance;

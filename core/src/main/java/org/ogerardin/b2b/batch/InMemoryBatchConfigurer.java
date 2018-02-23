@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Provides a customized Spring batch environment with the following features:
- * - the {@link JobLauncher} is configured to used an {@link AsyncTaskExecutor}
+ * - the {@link JobLauncher} is configured to use an {@link AsyncTaskExecutor}
  * - the {@link JobRepository} uses an in-memory implementation
  */
 @Component

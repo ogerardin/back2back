@@ -1,4 +1,4 @@
-package org.ogerardin.b2b.batch.jobs;
+package org.ogerardin.b2b.batch;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -20,7 +20,13 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Class responsible for starting appropriate jobs based on the stored configuration.
+ * Class responsible for starting appropriate {@link Job}s based on the stored configuration.
+ * How this works:
+ * -each source/target combination for all configured {@link BackupSource}s and {@link BackupTarget}s is examined
+ * -for each pair, the corresponding {@link BackupSet} is retrieved or created if it didn't exist.
+ * -a {@link JobParameters} is populated from this BackupSet
+ * -each configured {@link Job} is examined, if the JobParameters is valid for this job, then it is started with
+ * these params
  */
 @Component
 public class JobStarter {
@@ -117,15 +123,15 @@ public class JobStarter {
 
         // launch it
         // FIXME: in case we have a persistent JobRepository, we should find the latest instance with these
-        // parameters and apply org.springframework.batch.core.getJobParametersIncrementer.getNext before staring it.
+        // FIXME parameters and apply org.springframework.batch.core.getJobParametersIncrementer.getNext before staring
         logger.info("Starting job: " + job.getName() + " with params: " + jobParameters);
         jobLauncher.run(job, jobParameters);
     }
 
     /**
-     * Finds a Job from all jobs that exist in the Spring application context that matches the specified parameters
-     * (i.e. for which calling the validator doesn't throw a {@link JobParametersInvalidException}). If several jobs
-     * would match, which one is returned is undefined.
+     * Finds a Job from all jobs that exist in the Spring application context, which matches the specified parameters
+     * i.e. for which calling the validator doesn't throw a {@link JobParametersInvalidException}. If several jobs
+     * match, which one is returned is undefined.
      * @return The Job, or null if none found
      */
     private Job findApplicableJob(JobParameters jobParameters) {

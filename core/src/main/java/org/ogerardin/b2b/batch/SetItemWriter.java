@@ -6,6 +6,10 @@ import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * An implementation of {@link org.springframework.batch.item.ItemWriter} that populates a specified
+ * {@link java.util.Set}
+ */
 public class SetItemWriter<T> implements ItemWriter<T> {
 
     private final Set<T> set;

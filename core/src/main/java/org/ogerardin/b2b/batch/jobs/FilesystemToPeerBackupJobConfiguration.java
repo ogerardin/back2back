@@ -16,8 +16,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Job implementation for a backup job that process a source of type {@link org.ogerardin.b2b.domain.FilesystemSource}
- * and backups to a network peer.
+ * Job configuration for a backup job that processes a source of type {@link org.ogerardin.b2b.domain.FilesystemSource}
+ * and backs up to a network peer.
  */
 @Configuration
 public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBackupJobConfiguration {

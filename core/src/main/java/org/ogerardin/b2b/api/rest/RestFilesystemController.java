@@ -1,4 +1,4 @@
-package org.ogerardin.b2b.api;
+package org.ogerardin.b2b.api.rest;
 
 import lombok.Data;
 import org.springframework.web.bind.annotation.GetMapping;
