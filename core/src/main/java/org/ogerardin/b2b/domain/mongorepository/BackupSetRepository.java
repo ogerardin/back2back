@@ -11,6 +11,7 @@ public interface BackupSetRepository extends MongoRepository<BackupSet, String> 
 
     List<BackupSet> findByBackupSourceAndBackupTarget(BackupSource source, BackupTarget target);
 
+
 /*
     // The following fails, see: https://jira.spring.io/browse/DATAMONGO-1070
     @Query("{ 'backupSource.$id' : { '$oid' : ?0} , 'backupTarget.$id' : { '$oid' : ?1} }")

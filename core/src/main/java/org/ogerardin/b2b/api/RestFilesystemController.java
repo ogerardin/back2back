@@ -13,8 +13,7 @@ import java.nio.file.Paths;
 import java.util.stream.Stream;
 
 /**
- * This controller is meant to interact with the local filesystem, to allow browsing
- * files from a remote UI.
+ * This controller is meant to interact with the local filesystem, to allow browsing files from a web UI.
  */
 @RestController
 @RequestMapping("/api/filesystem")

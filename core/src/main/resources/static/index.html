@@ -66,7 +66,7 @@
                     <td>{{s._class}}</td>
                     <td>{{s.description}}</td>
                     <td>
-                        <img v-if="s.enabled='true'" src="img/green.png" height="24">
+                        <div v-if="s.enabled"><img src="img/green.png" height="24"></div>
                         <img v-else src="img/red.png" height="24">
                     </td>
                 </tr>

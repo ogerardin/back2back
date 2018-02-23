@@ -49,6 +49,7 @@ class PeerItemWriter implements ItemWriter<FileInfo> {
         MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
         map.add("file", new PathResource(path));
         map.add("original-path", path.toString());
+        map.add("computer-id", "b09ce65c-29a1-4141-95f8-e2f1db4020c4"); //FIXME this is for testing
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
         HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(map, headers);
