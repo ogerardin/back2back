@@ -6,7 +6,9 @@ import lombok.NonNull;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-/** Generic configuration item */
+/**
+ * Generic configuration item
+ */
 @Document(collection = "config")
 @Data
 public abstract class ConfigItem {
@@ -18,10 +20,13 @@ public abstract class ConfigItem {
         this.name = name;
     }
 
-    /** Information about the local machine */
+    /**
+     * Information about the local machine
+     */
     @EqualsAndHashCode(callSuper = true)
     @Data
     public static class MachineInfo extends ConfigItem {
+        /** Randomly assigned UUID identifying this computer */
         String computerId;
         public MachineInfo(String name, String computerId) {
             super(name);

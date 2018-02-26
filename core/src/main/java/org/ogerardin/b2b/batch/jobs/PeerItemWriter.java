@@ -1,9 +1,8 @@
 package org.ogerardin.b2b.batch.jobs;
 
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.ogerardin.b2b.config.ConfigManager;
 import org.ogerardin.b2b.domain.PeerFileVersion;
 import org.ogerardin.b2b.domain.mongorepository.PeerFileVersionRepository;
@@ -30,9 +29,8 @@ import java.util.List;
  * peer instance using the "peer" REST API.
  * Also stores locally the MD5 hash of uploaded files to allow changed detection.
  */
+@Slf4j
 class PeerItemWriter implements ItemWriter<FileInfo> {
-
-    private static final Log logger = LogFactory.getLog(PeerItemWriter.class);
 
     private final String targetHostname;
     private final int targetPort;
@@ -56,7 +54,7 @@ class PeerItemWriter implements ItemWriter<FileInfo> {
 
     @Override
     public void write(List<? extends FileInfo> items) throws Exception {
-        logger.debug("Writing " + Arrays.toString(items.toArray()));
+        log.debug("Writing " + Arrays.toString(items.toArray()));
 
         for (FileInfo item : items) {
             uploadFile(item.getPath());
@@ -80,13 +78,13 @@ class PeerItemWriter implements ItemWriter<FileInfo> {
         HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(map, headers);
 
         // perform HTTP request
-        logger.debug("Trying to upload " + path);
+        log.debug("Trying to upload " + path);
         ResponseEntity<String> result = restTemplate.exchange(
                 url.toURI(),
                 HttpMethod.POST,
                 requestEntity,
                 String.class);
-        logger.debug("Result of upload: " + result);
+        log.debug("Result of upload: " + result);
 
         //if the upload was successful, store the file's MD5 locally
         if (result.getStatusCode() == HttpStatus.OK) {

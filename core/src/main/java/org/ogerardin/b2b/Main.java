@@ -1,7 +1,5 @@
 package org.ogerardin.b2b;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.ogerardin.b2b.batch.JobStarter;
 import org.ogerardin.b2b.config.ConfigManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +16,6 @@ import org.springframework.context.annotation.ComponentScan;
 @EnableAutoConfiguration(exclude={DataSourceAutoConfiguration.class})
 @ComponentScan(basePackages = {"org.ogerardin.b2b"})
 public class Main {
-
-    private static final Log logger = LogFactory.getLog(Main.class);
 
     private static String[] args;
     private static ConfigurableApplicationContext context;

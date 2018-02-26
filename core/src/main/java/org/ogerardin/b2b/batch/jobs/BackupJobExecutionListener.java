@@ -1,7 +1,6 @@
 package org.ogerardin.b2b.batch.jobs;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.ogerardin.b2b.B2BProperties;
 import org.ogerardin.b2b.domain.BackupSet;
 import org.springframework.batch.core.*;
@@ -27,9 +26,8 @@ import static java.util.concurrent.TimeUnit.*;
  */
 @Component
 @JobScope
+@Slf4j
 public class BackupJobExecutionListener extends BackupSetAwareBean implements JobExecutionListener {
-
-    private static final Log logger = LogFactory.getLog(BackupJobExecutionListener.class);
 
     @Autowired
     B2BProperties properties;
@@ -78,19 +76,19 @@ public class BackupJobExecutionListener extends BackupSetAwareBean implements Jo
             JobParameters jobParameters = jobExecution.getJobParameters();
             // pause
             try {
-                logger.info("Pausing for " + msToHumanDuration(delay));
+                log.info("Pausing for " + msToHumanDuration(delay));
                 Thread.sleep(delay);
             } catch (InterruptedException e) {
-                logger.warn("Restart task interrupted during pause: " + e.toString());
+                log.warn("Restart task interrupted during pause: " + e.toString());
             }
             // restart job
             try {
                 Job job = jobLocator.getJob(jobName);
                 JobParameters nextJobParameters = job.getJobParametersIncrementer().getNext(jobParameters);
-                logger.info("Attempting to restart job " + jobName + " with parameters: " + nextJobParameters);
+                log.info("Attempting to restart job " + jobName + " with parameters: " + nextJobParameters);
                 jobLauncher.run(job, nextJobParameters);
             } catch (NoSuchJobException | JobExecutionAlreadyRunningException | JobParametersInvalidException | JobInstanceAlreadyCompleteException | JobRestartException e) {
-                logger.error("Failed to restart job", e);
+                log.error("Failed to restart job", e);
             }
         });
     }

@@ -31,7 +31,7 @@ public abstract class BackupJobConfiguration {
         addMandatoryParameter("backupset.id");
     }
 
-    protected JobParametersValidator getValidator() {
+    JobParametersValidator getValidator() {
         CompositeJobParametersValidator validator = new CompositeJobParametersValidator();
         validator.setValidators(this.validators);
         return validator;
@@ -41,7 +41,7 @@ public abstract class BackupJobConfiguration {
     /**
      * Add a validator for this job configuration that requires the presence of a given parameter (with any value)
      */
-    protected void addMandatoryParameter(String name) {
+    void addMandatoryParameter(String name) {
         validators.add(new DefaultJobParametersValidator(
                 new String[]{name},
                 new String[]{}));
@@ -50,7 +50,7 @@ public abstract class BackupJobConfiguration {
     /**
      * Add a validator for this job configuration that requires the presence of a given parameter with a given value
      */
-    protected void addStaticParameter(String name, String value) {
+    void addStaticParameter(String name, String value) {
         validators.add(new StaticJobParameterValidator(name, value));
     }
 

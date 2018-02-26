@@ -1,7 +1,6 @@
 package org.ogerardin.b2b.batch;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.ogerardin.b2b.B2BException;
 import org.ogerardin.b2b.domain.BackupSet;
 import org.ogerardin.b2b.domain.BackupSource;
@@ -29,9 +28,8 @@ import java.util.Map;
  * these params
  */
 @Component
+@Slf4j
 public class JobStarter {
-
-    private static final Log logger = LogFactory.getLog(JobStarter.class);
 
     private final BackupSourceRepository sourceRepository;
     private final BackupTargetRepository targetRepository;
@@ -77,9 +75,9 @@ public class JobStarter {
             BackupSet backupSet = findBackupSet(source, target);
             startJob(backupSet);
         } catch (JobExecutionAlreadyRunningException e) {
-            logger.warn(e.toString());
+            log.warn(e.toString());
         } catch ( JobExecutionException | B2BException e) {
-            logger.error("Failed to start job for " + source + ", " + target, e);
+            log.error("Failed to start job for " + source + ", " + target, e);
         }
     }
 
@@ -90,7 +88,7 @@ public class JobStarter {
         List<BackupSet> backupSets = backupSetRepository.findByBackupSourceAndBackupTarget(source, target);
 
         if (backupSets.isEmpty()) {
-            logger.info("Creating backup set for " + source + ", " + target);
+            log.info("Creating backup set for " + source + ", " + target);
             BackupSet backupSet = new BackupSet();
             backupSet.setBackupSource(source);
             backupSet.setBackupTarget(target);
@@ -99,7 +97,7 @@ public class JobStarter {
         }
 
         if (backupSets.size() > 1) {
-            logger.error("More than 1 backup set found for " + source + ", " + target);
+            log.error("More than 1 backup set found for " + source + ", " + target);
         }
         return backupSets.get(0);
     }
@@ -109,12 +107,12 @@ public class JobStarter {
      * @throws JobExecutionException in case Spring Batch failed to start the job
      */
     private void startJob(BackupSet backupSet) throws JobExecutionException, B2BException {
-        logger.debug("Looking for job matching backup set: " + backupSet);
+        log.debug("Looking for job matching backup set: " + backupSet);
 
         Map<String, JobParameter> params = new HashMap<>();
         backupSet.populateParams(params);
         JobParameters jobParameters = new JobParameters(params);
-        logger.debug("Parameters: " + jobParameters);
+        log.debug("Parameters: " + jobParameters);
 
         // try to find a Job that is applicable to the parameters
         Job job = findApplicableJob(jobParameters);
@@ -125,7 +123,7 @@ public class JobStarter {
         // launch it
         // FIXME: in case we have a persistent JobRepository, we should find the latest instance with these
         // FIXME parameters and apply org.springframework.batch.core.getJobParametersIncrementer.getNext before staring
-        logger.info("Starting job: " + job.getName() + " with params: " + jobParameters);
+        log.info("Starting job: " + job.getName() + " with params: " + jobParameters);
         jobLauncher.run(job, jobParameters);
     }
 

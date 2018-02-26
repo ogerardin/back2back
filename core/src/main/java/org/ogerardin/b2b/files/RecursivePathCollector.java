@@ -2,8 +2,7 @@ package org.ogerardin.b2b.files;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
@@ -21,8 +20,8 @@ import java.util.Map;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
+@Slf4j
 public class RecursivePathCollector extends SimpleFileVisitor<Path> {
-    private static final Log logger = LogFactory.getLog(RecursivePathCollector.class);
 
     private final Map<Path, BasicFileAttributes> paths = new HashMap<>();
     private long size = 0;
@@ -34,9 +33,9 @@ public class RecursivePathCollector extends SimpleFileVisitor<Path> {
     }
 
     public void walkTree() throws IOException {
-        logger.info("Collecting all files under " + rootDir);
+        log.info("Collecting all files under " + rootDir);
         Files.walkFileTree(rootDir,this);
-        logger.info("Found " + paths.size() + " files");
+        log.info("Found " + paths.size() + " files");
     }
 
     @Override
@@ -50,7 +49,7 @@ public class RecursivePathCollector extends SimpleFileVisitor<Path> {
 
     @Override
     public FileVisitResult visitFileFailed(Path path, IOException e) {
-        logger.warn("Failed to visit file: " + path + " (" + e + ")");
+        log.warn("Failed to visit file: " + path + " (" + e + ")");
         return FileVisitResult.CONTINUE;
     }
 }

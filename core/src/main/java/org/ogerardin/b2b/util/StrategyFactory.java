@@ -1,7 +1,6 @@
 package org.ogerardin.b2b.util;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -14,9 +13,8 @@ import java.util.List;
  *
  * @param <T> the superclass of all candidate classes
  */
+@Slf4j
 public class StrategyFactory<T> {
-
-    private static final Log logger = LogFactory.getLog(StrategyFactory.class);
 
     private final List<Class<? extends T>> candidateClasses;
 
@@ -37,24 +35,24 @@ public class StrategyFactory<T> {
      * @throws InstantiationException if all candidate classes have been examined unsuccessfully
      */
     public T newInstance(Object... args) throws InstantiationException {
-        logger.debug("Trying to instantiate for args: " + Arrays.toString(args));
+        log.debug("Trying to instantiate for args: " + Arrays.toString(args));
         // get an array of argument classes
         Class<?> argClasses[] = Arrays.stream(args).map(Object::getClass).toArray(Class[]::new);
 
-        logger.debug("Arg classes: " + Arrays.toString(args));
+        log.debug("Arg classes: " + Arrays.toString(args));
         for (Class<? extends T> candidateClass : candidateClasses) {
-            logger.debug("  Trying class: " + candidateClass);
+            log.debug("  Trying class: " + candidateClass);
             try {
                 // lookup a constructor that matches argument types
                 Constructor<? extends T> candidateClassConstructor = candidateClass.getConstructor(argClasses);
                 // invoke it with actual parameters
                 T instance = candidateClassConstructor.newInstance(args);
-                logger.debug("  Successfully instantiated: " + instance);
+                log.debug("  Successfully instantiated: " + instance);
                 return instance;
             } catch (NoSuchMethodException e) {
-                logger.debug("    No suitable constructor");
+                log.debug("    No suitable constructor");
             } catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
-                logger.debug("    Exception while invoking constructor", e);
+                log.debug("    Exception while invoking constructor", e);
             }
         }
         // all candidate classes examined -> failure

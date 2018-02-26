@@ -1,7 +1,5 @@
 package org.ogerardin.b2b.batch.jobs;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.ogerardin.b2b.B2BProperties;
 import org.ogerardin.b2b.domain.PeerFileVersion;
 import org.ogerardin.b2b.domain.PeerTarget;
@@ -34,8 +32,6 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
 
     @Autowired
     private MongoOperations mongoOperations;
-
-    private static final Log logger = LogFactory.getLog(FilesystemToPeerBackupJobConfiguration.class);
 
     public FilesystemToPeerBackupJobConfiguration() {
         addStaticParameter("target.type", PeerTarget.class.getName());

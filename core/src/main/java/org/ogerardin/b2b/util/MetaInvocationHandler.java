@@ -1,7 +1,6 @@
 package org.ogerardin.b2b.util;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
@@ -15,9 +14,8 @@ import java.util.List;
  *
  * @param <T> the common type of candidate instances
  */
+@Slf4j
 public class MetaInvocationHandler<T> implements InvocationHandler {
-
-    private static final Log logger = LogFactory.getLog(MetaInvocationHandler.class);
 
     private final List<T> candidates;
 
@@ -27,10 +25,10 @@ public class MetaInvocationHandler<T> implements InvocationHandler {
 
     public <R> R invoke(Method method, Object... args) throws NoSuchMethodException {
         //TODO invocations of toString and such should not be delegated
-        logger.debug("Handling : " + method.getName() + " " + Arrays.toString(args));
+        log.debug("Handling : " + method.getName() + " " + Arrays.toString(args));
         // get an array of argument classes
         for (T candidate: candidates) {
-            logger.debug("  Trying: " + candidate);
+            log.debug("  Trying: " + candidate);
             Method candidateMethod;
             try {
                 // lookup a method that matches called method profile
@@ -38,12 +36,12 @@ public class MetaInvocationHandler<T> implements InvocationHandler {
                 // invoke it with actual parameters
                 @SuppressWarnings("unchecked")
                 R result = (R) candidateMethod.invoke(candidate, args);
-                logger.debug("    Success!");
+                log.debug("    Success!");
                 return result;
             } catch (InvocationTargetException e) {
-                logger.debug("    " + e.getCause().toString());
+                log.debug("    " + e.getCause().toString());
             } catch (Exception e) {
-                logger.debug("    " + e.toString());
+                log.debug("    " + e.toString());
             }
         }
         // all candidate classes examined -> failure

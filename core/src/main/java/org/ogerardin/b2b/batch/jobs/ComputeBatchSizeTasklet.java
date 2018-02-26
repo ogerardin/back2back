@@ -1,8 +1,7 @@
 package org.ogerardin.b2b.batch.jobs;
 
 import lombok.NonNull;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
@@ -14,8 +13,8 @@ import java.nio.file.attribute.BasicFileAttributes;
  * Computes the size of the current backup batch by summing the sizes of files in {@link BackupJobContext#toDoFiles}.
  * The result is stored into {@link BackupJobContext#toDoSize}.
  */
+@Slf4j
 class ComputeBatchSizeTasklet implements Tasklet {
-    private static final Log logger = LogFactory.getLog(ComputeBatchSizeTasklet.class);
 
     private final BackupJobContext context;
 
@@ -30,7 +29,7 @@ class ComputeBatchSizeTasklet implements Tasklet {
                 .mapToLong(BasicFileAttributes::size)
                 .sum();
 
-        logger.info("Computed to do size: " + batchSize + " bytes");
+        log.info("Computed to do size: " + batchSize + " bytes");
         context.setToDoSize(batchSize);
 
         return RepeatStatus.FINISHED;

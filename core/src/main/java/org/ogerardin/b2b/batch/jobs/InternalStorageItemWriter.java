@@ -1,7 +1,6 @@
 package org.ogerardin.b2b.batch.jobs;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.ogerardin.b2b.storage.StorageService;
 import org.springframework.batch.item.ItemWriter;
 
@@ -12,9 +11,8 @@ import java.util.List;
  * ItemWriter implementation that stores the file corresponding to the input {@link Path} into the
  * internal storage.
  */
+@Slf4j
 class InternalStorageItemWriter implements ItemWriter<FileInfo> {
-
-    private static final Log logger = LogFactory.getLog(InternalStorageItemWriter.class);
 
     private final StorageService storageService;
     private final long throttleDelay;
@@ -32,10 +30,10 @@ class InternalStorageItemWriter implements ItemWriter<FileInfo> {
         for (FileInfo item : items) {
             Path path = item.getPath();
             try {
-                logger.debug("STORING: " + path);
+                log.debug("STORING: " + path);
                 storageService.store(path);
             } catch (Exception e) {
-                logger.error("Failed to store file: " + path, e);
+                log.error("Failed to store file: " + path, e);
             }
 
             if (throttleDelay != 0) {
