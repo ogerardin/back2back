@@ -1,5 +1,6 @@
 package org.ogerardin.b2b.batch.jobs;
 
+import lombok.NonNull;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.batch.core.StepContribution;
@@ -7,7 +8,6 @@ import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 
-import javax.validation.constraints.NotNull;
 import java.nio.file.attribute.BasicFileAttributes;
 
 /**
@@ -19,7 +19,7 @@ class ComputeBatchSizeTasklet implements Tasklet {
 
     private final BackupJobContext context;
 
-    public ComputeBatchSizeTasklet(@NotNull BackupJobContext backupJobContext) {
+    public ComputeBatchSizeTasklet(@NonNull BackupJobContext backupJobContext) {
         this.context = backupJobContext;
     }
 

@@ -1,10 +1,10 @@
 package org.ogerardin.b2b.batch;
 
+import lombok.NonNull;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersInvalidException;
 import org.springframework.batch.core.JobParametersValidator;
 
-import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
 /**
@@ -14,7 +14,7 @@ public class StaticJobParameterValidator implements JobParametersValidator {
     private final String name;
     private final String expectedValue;
 
-    public StaticJobParameterValidator(String name, @NotNull String expectedValue) {
+    public StaticJobParameterValidator(@NonNull String name, @NonNull String expectedValue) {
         this.name = name;
         this.expectedValue = expectedValue;
     }

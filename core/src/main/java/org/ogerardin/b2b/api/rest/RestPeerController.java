@@ -76,8 +76,8 @@ public class RestPeerController {
         StorageService storageService = storageServiceFactory.getStorageService(backupSet.getId());
         storageService.store(file.getInputStream(), originalPath);
 
-        return new ResponseEntity<>("Successfully uploaded - " +
-                file.getOriginalFilename(), new HttpHeaders(), HttpStatus.OK);
+        return new ResponseEntity<>("Successfully uploaded '" + file.getOriginalFilename() +"'",
+                new HttpHeaders(), HttpStatus.OK);
 
     }
 

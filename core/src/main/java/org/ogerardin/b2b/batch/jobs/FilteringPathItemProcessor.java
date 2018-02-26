@@ -1,5 +1,6 @@
 package org.ogerardin.b2b.batch.jobs;
 
+import lombok.NonNull;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.ogerardin.b2b.files.md5.MD5Calculator;
@@ -8,7 +9,6 @@ import org.ogerardin.b2b.storage.StorageFileNotFoundException;
 import org.ogerardin.b2b.storage.StorageService;
 import org.springframework.batch.item.ItemProcessor;
 
-import javax.validation.constraints.NotNull;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -25,7 +25,7 @@ class FilteringPathItemProcessor implements ItemProcessor<FileInfo, FileInfo> {
 
     private final StorageService storageService;
 
-    FilteringPathItemProcessor(@NotNull StorageService storageService, @NotNull MD5Calculator md5Calculator) {
+    FilteringPathItemProcessor(@NonNull StorageService storageService, @NonNull MD5Calculator md5Calculator) {
         this.storageService = storageService;
         this.md5Calculator = md5Calculator;
     }

@@ -19,7 +19,7 @@ public class BackupSet implements JobParametersPopulator {
     @Id
     private String id;
 
-//    private UUID computerId;
+//    private UUID machineInfo;
 
     @DBRef
     private BackupSource backupSource;

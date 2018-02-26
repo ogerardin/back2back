@@ -3,6 +3,7 @@ package org.ogerardin.b2b;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.ogerardin.b2b.batch.JobStarter;
+import org.ogerardin.b2b.config.ConfigManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -26,6 +27,9 @@ public class Main {
     @Autowired
     private JobStarter jobStarter;
 
+    @Autowired
+    private ConfigManager configManager;
+
     public Main() {
     }
 
@@ -42,7 +46,8 @@ public class Main {
 
     @Bean
     CommandLineRunner init() {
-        return (args) -> {
+        return args -> {
+            configManager.init();
             jobStarter.startAllJobs();
         };
     }
