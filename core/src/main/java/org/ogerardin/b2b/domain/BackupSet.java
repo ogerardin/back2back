@@ -47,7 +47,6 @@ public class BackupSet implements JobParametersPopulator {
     @Override
     public void populateParams(Map<String, JobParameter> params) {
         params.put("backupset.id", new JobParameter(getId(), false));
-
         backupSource.populateParams(params);
         backupTarget.populateParams(params);
     }

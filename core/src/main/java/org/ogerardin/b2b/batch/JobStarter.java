@@ -56,6 +56,7 @@ public class JobStarter {
     public void startAllJobs() {
         sourceRepository.findAll().stream()
                 .filter(BackupSource::isEnabled)
+                .filter(BackupSource::shouldStartJob)
                 .forEach(this::startJobs);
     }
 

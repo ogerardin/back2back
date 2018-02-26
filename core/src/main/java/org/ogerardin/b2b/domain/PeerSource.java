@@ -30,6 +30,12 @@ public class PeerSource extends BackupSource {
 
     @Override
     public void populateParams(Map<String, JobParameter> params) {
-        //unused
+        params.put("source.type", new JobParameter(PeerSource.class.getName()));
+    }
+
+    @Override
+    public boolean shouldStartJob() {
+        // a Peer source is passive (it waits for remote requests) hence we mustn't start a local job for it.
+        return false;
     }
 }
