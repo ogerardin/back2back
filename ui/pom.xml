@@ -12,7 +12,10 @@
 
     <artifactId>back2back-ui</artifactId>
 
-    <description>Experimental UI using Project Guarana</description>
+    <description>
+        Experimental UI using Project Guarana.
+        This is not the project's main UI; the project's main ui is a web app located in core/src/main/resources/static
+    </description>
 
     <dependencies>
         <dependency>
