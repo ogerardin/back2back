@@ -1,9 +1,15 @@
 back2back
 =========
 
-The ultimate goal of this project is to provide a replacement for the
-"backup to a friend" feature of Code42's CrashPlan (and also local
-backup).
+The inspiration for this project is to provide a replacement for the "backup to a friend" feature of Code42's CrashPlan,
+which is going away in october 2018.
+
+
+Goals and assumptions
+-----
+- Cross-platform
+- ...
+
 
 Architecture
 ------------
