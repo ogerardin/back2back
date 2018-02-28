@@ -1,9 +1,9 @@
 package org.ogerardin.b2b.batch.jobs;
 
 import org.ogerardin.b2b.B2BProperties;
-import org.ogerardin.b2b.domain.PeerFileVersion;
+import org.ogerardin.b2b.domain.StoredFileVersionInfo;
 import org.ogerardin.b2b.domain.PeerTarget;
-import org.ogerardin.b2b.domain.mongorepository.PeerFileVersionRepository;
+import org.ogerardin.b2b.domain.mongorepository.PeerFileVersionInfoRepository;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
@@ -59,12 +59,12 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
 
     @Bean
     protected Step backupToPeerStep(
-            ItemReader<FileInfo> allFilesItemReader,
+            ItemReader<LocalFileInfo> allFilesItemReader,
             PeerItemWriter peerWriter
     )
     {
         return stepBuilderFactory.get("backupToPeerStep")
-                .<FileInfo, FileInfo>chunk(1) // handles 1 file at a time
+                .<LocalFileInfo, LocalFileInfo>chunk(1) // handles 1 file at a time
                 .reader(allFilesItemReader)
                 .processor(new PassThroughItemProcessor<>())
                 .writer(peerWriter)
@@ -82,24 +82,24 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
             targetPort = properties.getDefaultPeerPort();
         }
 
-        // The PeerFileVersionRepository used by the PeerItemWriter needs to be specific to this BackupSet,
+        // The PeerFileVersionInfoRepository used by the PeerItemWriter needs to be specific to this BackupSet,
         // so we need to instantiate one with a BackupSet-specific collection name
         String collectionName = backupSetId + ".peer";
-        PeerFileVersionRepository peerFileVersionRepository = getPeerFileVersionRepository(collectionName);
+        PeerFileVersionInfoRepository peerFileVersionInfoRepository = getPeerFileVersionRepository(collectionName);
 
-        return new PeerItemWriter(peerFileVersionRepository, targetHostname, targetPort);
+        return new PeerItemWriter(peerFileVersionInfoRepository, targetHostname, targetPort);
     }
 
-    private PeerFileVersionRepository getPeerFileVersionRepository(String collectionName) {
+    private PeerFileVersionInfoRepository getPeerFileVersionRepository(String collectionName) {
         MappingContext<? extends MongoPersistentEntity<?>, MongoPersistentProperty> mappingContext =
                 mongoOperations.getConverter().getMappingContext();
 
-        MongoPersistentEntity<?> entity = mappingContext.getPersistentEntity(PeerFileVersion.class);
+        MongoPersistentEntity<?> entity = mappingContext.getPersistentEntity(StoredFileVersionInfo.class);
 
-        MappingMongoEntityInformation<PeerFileVersion, String> entityInformation = new MappingMongoEntityInformation<>(
-                (MongoPersistentEntity<PeerFileVersion>) entity, collectionName);
+        MappingMongoEntityInformation<StoredFileVersionInfo, String> entityInformation = new MappingMongoEntityInformation<>(
+                (MongoPersistentEntity<StoredFileVersionInfo>) entity, collectionName);
 
-        return new PeerFileVersionRepository(entityInformation, mongoOperations);
+        return new PeerFileVersionInfoRepository(entityInformation, mongoOperations);
     }
 
 

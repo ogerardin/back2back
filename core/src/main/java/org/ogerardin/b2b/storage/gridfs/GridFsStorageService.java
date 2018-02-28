@@ -198,12 +198,13 @@ public class GridFsStorageService implements StorageService {
     }
 
     private FileVersion getFileVersion(GridFSDBFile fsdbFile) {
-        FileVersion info = new FileVersion();
-        info.setId(fsdbFile.getId().toString());
-        info.setFilename(fsdbFile.getFilename());
-        info.setSize(fsdbFile.getLength());
-        info.setMd5hash(fsdbFile.getMD5());
-        info.setStoredDate(fsdbFile.getUploadDate().toInstant());
+        FileVersion info = FileVersion.builder()
+                .id(fsdbFile.getId().toString())
+                .filename(fsdbFile.getFilename())
+                .size(fsdbFile.getLength())
+                .md5hash(fsdbFile.getMD5())
+                .storedDate(fsdbFile.getUploadDate().toInstant())
+                .build();
         return info;
     }
 

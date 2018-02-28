@@ -25,7 +25,7 @@ class ComputeBatchSizeTasklet implements Tasklet {
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
         long batchSize = context.getToDoFiles().stream()
-                .map(FileInfo::getFileAttributes)
+                .map(LocalFileInfo::getFileAttributes)
                 .mapToLong(BasicFileAttributes::size)
                 .sum();
 

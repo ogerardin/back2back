@@ -12,10 +12,10 @@ import java.util.List;
 
 @Component
 @JobScope
-public class PathItemWriteListener extends BackupSetAwareBean implements ItemWriteListener<FileInfo> {
+public class PathItemWriteListener extends BackupSetAwareBean implements ItemWriteListener<LocalFileInfo> {
 
     @Override
-    public void beforeWrite(List<? extends FileInfo> items) {
+    public void beforeWrite(List<? extends LocalFileInfo> items) {
         Path[] paths = getPaths(items);
         BackupSet backupSet = getBackupSet();
         backupSet.setStatus("Backing up " + Arrays.toString(paths));
@@ -23,13 +23,13 @@ public class PathItemWriteListener extends BackupSetAwareBean implements ItemWri
     }
 
     @Override
-    public void afterWrite(List<? extends FileInfo> items) {
+    public void afterWrite(List<? extends LocalFileInfo> items) {
         Path[] paths = getPaths(items);
         BackupSet backupSet = getBackupSet();
         backupSet.setStatus("Finished backing up " + Arrays.toString(paths));
         // subtract written size and count from to do
         long writtenSize = items.stream()
-                .map(FileInfo::getFileAttributes)
+                .map(LocalFileInfo::getFileAttributes)
                 .mapToLong(BasicFileAttributes::size)
                 .sum();
         backupSet.setToDoSize(backupSet.getToDoSize() - writtenSize);
@@ -38,7 +38,7 @@ public class PathItemWriteListener extends BackupSetAwareBean implements ItemWri
     }
 
     @Override
-    public void onWriteError(Exception exception, List<? extends FileInfo> items) {
+    public void onWriteError(Exception exception, List<? extends LocalFileInfo> items) {
         Path[] paths = getPaths(items);
         BackupSet backupSet = getBackupSet();
         backupSet.setStatus("ERROR backing up " + Arrays.toString(paths));
@@ -46,9 +46,9 @@ public class PathItemWriteListener extends BackupSetAwareBean implements ItemWri
 
     }
 
-    private Path[] getPaths(List<? extends FileInfo> items) {
+    private Path[] getPaths(List<? extends LocalFileInfo> items) {
         return items.stream()
-                .map(FileInfo::getPath)
+                .map(LocalFileInfo::getPath)
                 .toArray(Path[]::new);
     }
 }

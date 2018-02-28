@@ -1,5 +1,6 @@
 package org.ogerardin.b2b.storage;
 
+import lombok.Builder;
 import lombok.Data;
 
 import java.time.Instant;
@@ -8,6 +9,7 @@ import java.time.Instant;
  * Provides information about a specific version of a stored file.
  */
 @Data
+@Builder
 public class FileVersion {
     /** The version id (possibly null if the implementation doesn't manage multiple versions) */
     String id;

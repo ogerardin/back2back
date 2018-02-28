@@ -31,8 +31,8 @@ class ListFilesTasklet implements Tasklet {
         pathCollector.walkTree();
 
         //put results in context
-        Set<FileInfo> allFiles = pathCollector.getPaths().entrySet().stream()
-                .map(e -> new FileInfo(e.getKey(), e.getValue()))
+        Set<LocalFileInfo> allFiles = pathCollector.getPaths().entrySet().stream()
+                .map(e -> new LocalFileInfo(e.getKey(), e.getValue()))
                 .collect(Collectors.toSet());
         context.setAllFiles(allFiles);
         context.setTotalSize(pathCollector.getSize());

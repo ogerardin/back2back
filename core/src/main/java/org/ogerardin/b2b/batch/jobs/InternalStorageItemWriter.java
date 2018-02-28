@@ -12,7 +12,7 @@ import java.util.List;
  * internal storage.
  */
 @Slf4j
-class InternalStorageItemWriter implements ItemWriter<FileInfo> {
+class InternalStorageItemWriter implements ItemWriter<LocalFileInfo> {
 
     private final StorageService storageService;
     private final long throttleDelay;
@@ -26,8 +26,8 @@ class InternalStorageItemWriter implements ItemWriter<FileInfo> {
     }
 
     @Override
-    public void write(List<? extends FileInfo> items) throws Exception {
-        for (FileInfo item : items) {
+    public void write(List<? extends LocalFileInfo> items) throws Exception {
+        for (LocalFileInfo item : items) {
             Path path = item.getPath();
             try {
                 log.debug("STORING: " + path);

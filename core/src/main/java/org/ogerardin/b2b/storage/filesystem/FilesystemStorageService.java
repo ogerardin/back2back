@@ -231,12 +231,13 @@ public class FilesystemStorageService implements StorageService {
             }
         }
 
-        FileVersion info = new FileVersion();
-        info.setId(null); //no ID for FilesystemStorageService
-        info.setFilename(remotePath.toString());
-        info.setSize(fileAttributes.size());
-        info.setStoredDate(fileAttributes.creationTime().toInstant());
-        info.setMd5hash(md5hash);
+        FileVersion info = FileVersion.builder()
+                .id(null) //no ID for FilesystemStorageService
+                .filename(remotePath.toString())
+                .size(fileAttributes.size())
+                .storedDate(fileAttributes.creationTime().toInstant())
+                .md5hash(md5hash)
+                .build();
         return info;
     }
 

@@ -3,6 +3,7 @@ package org.ogerardin.b2b.batch.jobs;
 import org.ogerardin.b2b.B2BProperties;
 import org.ogerardin.b2b.domain.FilesystemSource;
 import org.ogerardin.b2b.domain.LocalTarget;
+import org.ogerardin.b2b.domain.StoredFileVersionInfoProvider;
 import org.ogerardin.b2b.files.md5.MD5Calculator;
 import org.ogerardin.b2b.storage.StorageService;
 import org.ogerardin.b2b.storage.StorageServiceFactory;
@@ -68,12 +69,12 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
     @Bean
     @JobScope
     protected Step backupToInternalStorageStep(
-            ItemReader<FileInfo> changedFilesItemReader,
+            ItemReader<LocalFileInfo> changedFilesItemReader,
             InternalStorageItemWriter internalStorageWriter,
             PathItemWriteListener itemWriteListener) {
         return stepBuilderFactory
                 .get("backupToInternalStorageStep")
-                .<FileInfo, FileInfo> chunk(1)  // handle 1 file at a time
+                .<LocalFileInfo, LocalFileInfo> chunk(1)  // handle 1 file at a time
                 .reader(changedFilesItemReader)
                 .processor(new PassThroughItemProcessor<>()) // no processing
                 .writer(internalStorageWriter)
@@ -107,7 +108,7 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
             @Qualifier("springMD5Calculator") MD5Calculator md5Calculator
     ) {
         StorageService storageService = storageServiceFactory.getStorageService(backupSetId);
-        return new FilteringPathItemProcessor(storageService, md5Calculator);
+        return new FilteringPathItemProcessor(StoredFileVersionInfoProvider.of(storageService), md5Calculator);
     }
 
     /**
@@ -117,12 +118,12 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
     @Bean
     @JobScope
     protected Step filterFilesStep(
-            ItemReader<FileInfo> allFilesItemReader,
+            ItemReader<LocalFileInfo> allFilesItemReader,
             FilteringPathItemProcessor filteringPathItemProcessor,
-            ItemWriter<FileInfo> changedFilesItemWriter) {
+            ItemWriter<LocalFileInfo> changedFilesItemWriter) {
         return stepBuilderFactory
                 .get("filterFilesStep")
-                .<FileInfo, FileInfo> chunk(10)
+                .<LocalFileInfo, LocalFileInfo> chunk(10)
                 .reader(allFilesItemReader)
                 .processor(filteringPathItemProcessor)
                 .writer(changedFilesItemWriter)

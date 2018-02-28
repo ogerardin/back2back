@@ -14,11 +14,11 @@ public class BackupJobContext {
     private final String backupSetId;
 
     // these fields are populated by the ListFilesTasklet (step 1)
-    private Set<FileInfo> allFiles = new HashSet<>();
+    private Set<LocalFileInfo> allFiles = new HashSet<>();
     private long totalSize = 0;
 
     // this field is populated by the ItemlWriter of step 2
-    private Set<FileInfo> toDoFiles = new HashSet<>();
+    private Set<LocalFileInfo> toDoFiles = new HashSet<>();
     private long toDoSize = 0;
 
     public BackupJobContext(String backupSetId) {

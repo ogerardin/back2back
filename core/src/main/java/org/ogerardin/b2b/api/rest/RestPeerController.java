@@ -1,5 +1,6 @@
 package org.ogerardin.b2b.api.rest;
 
+import lombok.extern.slf4j.Slf4j;
 import org.ogerardin.b2b.B2BException;
 import org.ogerardin.b2b.domain.BackupSet;
 import org.ogerardin.b2b.domain.LocalTarget;
@@ -9,8 +10,6 @@ import org.ogerardin.b2b.domain.mongorepository.BackupSourceRepository;
 import org.ogerardin.b2b.domain.mongorepository.BackupTargetRepository;
 import org.ogerardin.b2b.storage.StorageService;
 import org.ogerardin.b2b.storage.StorageServiceFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
@@ -32,9 +31,8 @@ import java.util.stream.Collectors;
  */
 @RestController
 @RequestMapping("/api/peer")
+@Slf4j
 public class RestPeerController {
-
-    private final Logger logger = LoggerFactory.getLogger(RestPeerController.class);
 
     @Autowired
     protected BackupSetRepository backupSetRepository;
@@ -60,7 +58,7 @@ public class RestPeerController {
             @RequestParam("file") MultipartFile file
             ) throws B2BException, IOException {
 
-        logger.debug("Single file upload!");
+        log.debug("Single file upload from " + computerId);
 
         if (file.isEmpty()) {
             return new ResponseEntity<>("File is empty", HttpStatus.BAD_REQUEST);

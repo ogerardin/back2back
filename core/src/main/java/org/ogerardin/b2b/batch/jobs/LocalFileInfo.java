@@ -10,7 +10,7 @@ import java.nio.file.attribute.BasicFileAttributes;
  * {@link org.springframework.batch.item.ItemProcessor} and related.
  */
 @Data
-public class FileInfo {
+public class LocalFileInfo {
 
     private final Path path;
 

@@ -4,8 +4,8 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.ogerardin.b2b.config.ConfigManager;
-import org.ogerardin.b2b.domain.PeerFileVersion;
-import org.ogerardin.b2b.domain.mongorepository.PeerFileVersionRepository;
+import org.ogerardin.b2b.domain.StoredFileVersionInfo;
+import org.ogerardin.b2b.domain.mongorepository.PeerFileVersionInfoRepository;
 import org.ogerardin.b2b.files.md5.MD5Calculator;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,17 +25,17 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * ItemWriter implementation that uploads the file designated by the input {@link FileInfo} to a remote
+ * ItemWriter implementation that uploads the file designated by the input {@link LocalFileInfo} to a remote
  * peer instance using the "peer" REST API.
  * Also stores locally the MD5 hash of uploaded files to allow changed detection.
  */
 @Slf4j
-class PeerItemWriter implements ItemWriter<FileInfo> {
+class PeerItemWriter implements ItemWriter<LocalFileInfo> {
 
     private final String targetHostname;
     private final int targetPort;
 
-    private PeerFileVersionRepository peerFileVersionRepository;
+    private PeerFileVersionInfoRepository peerFileVersionInfoRepository;
 
     @Autowired
     @Qualifier("springMD5Calculator")
@@ -44,19 +44,19 @@ class PeerItemWriter implements ItemWriter<FileInfo> {
     @Autowired
     ConfigManager configManager;
 
-    PeerItemWriter(@NonNull PeerFileVersionRepository peerFileVersionRepository,
+    PeerItemWriter(@NonNull PeerFileVersionInfoRepository peerFileVersionInfoRepository,
                    @NonNull String targetHostname, int targetPort) {
-        this.peerFileVersionRepository = peerFileVersionRepository;
+        this.peerFileVersionInfoRepository = peerFileVersionInfoRepository;
         this.targetHostname = targetHostname;
         this.targetPort = targetPort;
 
     }
 
     @Override
-    public void write(List<? extends FileInfo> items) throws Exception {
+    public void write(List<? extends LocalFileInfo> items) throws Exception {
         log.debug("Writing " + Arrays.toString(items.toArray()));
 
-        for (FileInfo item : items) {
+        for (LocalFileInfo item : items) {
             uploadFile(item.getPath());
         }
 
@@ -90,8 +90,8 @@ class PeerItemWriter implements ItemWriter<FileInfo> {
         if (result.getStatusCode() == HttpStatus.OK) {
             byte[] fileBytes = Files.readAllBytes(path);
             String md5hash = md5Calculator.hexMd5Hash(fileBytes);
-            val peerFileVersion = new PeerFileVersion(path.toString(), md5hash);
-            peerFileVersionRepository.save(peerFileVersion);
+            val peerFileVersion = new StoredFileVersionInfo(path.toString(), md5hash);
+            peerFileVersionInfoRepository.save(peerFileVersion);
         }
     }
 

@@ -35,22 +35,22 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
     }
 
 
-    /** Provides a {@link ItemReader} that supplies {@link FileInfo} items from the current job's
+    /** Provides a {@link ItemReader} that supplies {@link LocalFileInfo} items from the current job's
      * {@link BackupJobContext#allFiles} */
     @Bean
     @JobScope
-    protected IteratorItemReader<FileInfo> allFilesItemReader(
+    protected IteratorItemReader<LocalFileInfo> allFilesItemReader(
             BackupJobContext backupJobContext
     ) {
         return new IteratorItemReader<>(backupJobContext.getAllFiles());
     }
 
 
-    /** Provides a {@link ItemReader} that supplies {@link FileInfo} items from the current job's
+    /** Provides a {@link ItemReader} that supplies {@link LocalFileInfo} items from the current job's
      * {@link BackupJobContext#toDoFiles} */
     @Bean
     @JobScope
-    protected IteratorItemReader<FileInfo> changedFilesItemReader(
+    protected IteratorItemReader<LocalFileInfo> changedFilesItemReader(
             BackupJobContext backupJobContext
     ) {
         return new IteratorItemReader<>(backupJobContext.getToDoFiles());
@@ -61,7 +61,7 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
      * {@link BackupJobContext#toDoFiles} */
     @Bean
     @JobScope
-    protected SetItemWriter<FileInfo> changedFilesItemWriter(
+    protected SetItemWriter<LocalFileInfo> changedFilesItemWriter(
             BackupJobContext backupJobContext
     ) {
         return new SetItemWriter<>(backupJobContext.getToDoFiles());
