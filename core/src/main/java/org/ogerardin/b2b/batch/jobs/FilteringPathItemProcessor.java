@@ -12,14 +12,14 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 /**
- * ItemProcessor implementation that filters (eliminates from further processing) the input {@link Path} item if
+ * ItemProcessor implementation that filters (eliminates from further processing) the input item if
  * and only if it has been stored already and the stored version has the same MD5 hash as the locally computed version.
  */
 @Data
 @Slf4j
 class FilteringPathItemProcessor implements ItemProcessor<LocalFileInfo, LocalFileInfo> {
 
-    /** Provides a way to query information (including MD5) abouth the stored file */
+    /** Provides a way to query information (specifically MD5) abouth the stored file */
     private final StoredFileVersionInfoProvider storedFileVersionInfoProvider;
 
     /** The hash engine to use. See implementations of {@link MD5Calculator} */
@@ -34,6 +34,7 @@ class FilteringPathItemProcessor implements ItemProcessor<LocalFileInfo, LocalFi
         // retrieve MD5 of stored file version
         Optional<StoredFileVersionInfo> info = storedFileVersionInfoProvider.getStoredFileVersionInfo(path);
         if (! info.isPresent()) {
+            // no stored information yet: the file is a new file
             log.debug("NEW FILE: " + path);
             return item;
 
@@ -43,7 +44,7 @@ class FilteringPathItemProcessor implements ItemProcessor<LocalFileInfo, LocalFi
         // compute current file's MD5 and compare with stored file MD5
         byte[] bytes = Files.readAllBytes(path);
         String computedMd5Hash = md5Calculator.hexMd5Hash(bytes);
-        //TODO maybe it would be more efficient to work with raw bytes instead of doing a String comparison?
+        //TODO maybe it would be more efficient to work with MD5 as raw bytes instead of doing a String comparison?
         if (computedMd5Hash.equalsIgnoreCase(storedMd5hash)) {
             // same MD5, file can be skipped
             log.debug("Unchanged: " + path);
