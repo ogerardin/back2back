@@ -14,6 +14,7 @@ import org.springframework.core.io.PathResource;
 import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
@@ -62,6 +63,7 @@ class PeerItemWriter implements ItemWriter<LocalFileInfo> {
 
     }
 
+    //FIXME uploading a zero-bytes file generates an error 400
     private void uploadFile(@NonNull Path path) throws IOException, URISyntaxException {
         RestTemplate restTemplate = new RestTemplate();
 
@@ -79,11 +81,17 @@ class PeerItemWriter implements ItemWriter<LocalFileInfo> {
 
         // perform HTTP request
         log.debug("Trying to upload " + path);
-        ResponseEntity<String> result = restTemplate.exchange(
-                url.toURI(),
-                HttpMethod.POST,
-                requestEntity,
-                String.class);
+        ResponseEntity<String> result;
+        try {
+            result = restTemplate.exchange(
+                    url.toURI(),
+                    HttpMethod.POST,
+                    requestEntity,
+                    String.class);
+        } catch (RestClientException e) {
+            log.error("Exception during file upload: ", e);
+            return;
+        }
         log.debug("Result of upload: " + result);
 
         //if the upload was successful, store the file's MD5 locally

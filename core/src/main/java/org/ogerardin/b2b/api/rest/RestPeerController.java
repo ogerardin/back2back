@@ -79,10 +79,13 @@ public class RestPeerController {
 
     }
 
+    /**
+     * Retrieve (or create if it doesn't exist) the BackupSet for the specified remote computer
+     */
     private BackupSet getBackupSet(UUID computerId) throws B2BException {
         // try to find existing BackupSet with a PeerSource corresponding to this computer
         List<BackupSet> backupSets = backupSetRepository.findAll().stream()
-                .filter(s -> s.getBackupSource().getClass() == PeerSource.class)
+                .filter(s -> s.getBackupSource() instanceof PeerSource)
                 .filter(s -> ((PeerSource) s.getBackupSource()).getRemoteComputerId().equals(computerId))
                 .collect(Collectors.toList());
 
@@ -90,13 +93,17 @@ public class RestPeerController {
         if (backupSets.isEmpty()) {
             return createBackupSet(computerId);
         }
-
         if (backupSets.size() > 1) {
             throw new B2BException("More than 1 BackupSet found for remote computer " + computerId);
         }
         return backupSets.get(0);
     }
 
+    /**
+     * Create a {@link BackupSet} for the specified remote computer ID.
+     * The BackupSet is configured with the default internal storage as target and a newly created {@link PeerSource}
+     * as source.
+     */
     private BackupSet createBackupSet(UUID computerId) throws B2BException {
         // find local target (or fail with exception)
         LocalTarget localTarget = backupTargetRepository.findAll().stream()

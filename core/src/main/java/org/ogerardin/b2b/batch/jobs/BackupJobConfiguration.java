@@ -1,5 +1,6 @@
 package org.ogerardin.b2b.batch.jobs;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.ogerardin.b2b.batch.StaticJobParameterValidator;
 import org.springframework.batch.core.JobParametersValidator;
 import org.springframework.batch.core.Step;

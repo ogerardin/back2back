@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import java.nio.file.Path;
 
 /**
- * Custom configuration for Jackson (JSON serialization)
+ * Custom configuration for Jackson (JSON serialization for REST services)
  */
 @Configuration
 public class JacksonConfig {
@@ -24,11 +24,12 @@ public class JacksonConfig {
         SimpleModule module = new SimpleModule();
         // Jackson handles {@link Path} serialization/deserialization correctly out of the box, but it wraps
         // the path in a URI. Here we just provide a serializer and deserializer that handle the native form
-        // of the path.
+        // of the pathto make the JSON a bit lighter.
         module.addSerializer(Path.class, new PathSerializer());
         module.addDeserializer(Path.class, new PathDeserializer());
         // We need to take some precautions when deserializing StepExecution otherwise we get a StackOverflowError
-        // because of circular references
+        // because of circular references. Since we don't have access to the problematic class, we get around this
+        // by using a mixin
         module.setMixInAnnotation(StepExecution.class, StepExecutionMixin.class);
         return module;
     }

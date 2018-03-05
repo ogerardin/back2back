@@ -1,12 +1,14 @@
 package org.ogerardin.b2b.domain;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.batch.core.JobParameter;
 
-import java.io.File;
 import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -16,33 +18,31 @@ import java.util.Map;
 @Data
 public class FilesystemSource extends BackupSource {
 
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
     /** root directory to be backed up */
-    private Path path;
+    private List<Path> paths;
 
     public FilesystemSource() {
     }
 
-    public FilesystemSource(String dir) {
-        this(Paths.get(dir));
-    }
-
-    public FilesystemSource(Path path) {
-        this.path = path;
-    }
-
-    public FilesystemSource(File dir) {
-        this(dir.toPath());
+    public FilesystemSource(List<Path> paths) {
+        this.paths = paths;
     }
 
     @Override
     public void populateParams(Map<String, JobParameter> params) {
         params.put("source.type", new JobParameter(FilesystemSource.class.getName()));
-        params.put("source.root", new JobParameter(path.toString()));
+        try {
+            params.put("source.roots", new JobParameter(OBJECT_MAPPER.writeValueAsString(paths)));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public String getDescription() {
-        return "Local folder " + getPath();
+        return "Source folders: " + Arrays.toString(getPaths().toArray());
     }
 }
 

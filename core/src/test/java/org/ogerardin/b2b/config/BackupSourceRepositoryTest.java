@@ -19,6 +19,7 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @RunWith(SpringRunner.class)
@@ -41,7 +42,7 @@ public class BackupSourceRepositoryTest {
         {
             URL url = getClass().getResource(FILESET_RSC);
             Path dir = Paths.get(url.toURI());
-            FilesystemSource fileSource = new FilesystemSource(dir);
+            FilesystemSource fileSource = new FilesystemSource(Collections.singletonList(dir));
             sources.add(fileSource);
         }
 //        sources.add(new FilesystemSource("C:\\Users\\oge\\Downloads"));
@@ -52,6 +53,18 @@ public class BackupSourceRepositoryTest {
         Assert.assertThat(fetchedSources, Matchers.equalTo(sources));
 
 //        Thread.sleep(100000);
+    }
+
+    @Test
+    public void init() throws URISyntaxException, IOException, InterruptedException {
+        backupSourceRepository.deleteAll();
+
+        {
+            Path dir = Paths.get("C:\\Users\\oge\\Downloads");
+            FilesystemSource fileSource = new FilesystemSource(Collections.singletonList(dir));
+            backupSourceRepository.insert(fileSource);
+        }
+        Thread.sleep(100000);
     }
 
 }

@@ -9,6 +9,8 @@ import java.util.UUID;
 
 /**
  * Represents a remote peer source, i.e. a remote computer backing up to this computer.
+ * This source is not meant to be user-configurable, but is created automatically the first time an new peer
+ * saves to this computer.
  */
 @EqualsAndHashCode(callSuper = true)
 @Data

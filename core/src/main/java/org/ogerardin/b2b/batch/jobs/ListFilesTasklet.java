@@ -7,7 +7,8 @@ import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -16,26 +17,33 @@ import java.util.stream.Collectors;
  * just iterate over this list. This effectively decouples the directory walking from the backup itself.
  */
 class ListFilesTasklet implements Tasklet {
-    private final Path root;
+    private final List<Path> roots;
     private final BackupJobContext context;
 
-    public ListFilesTasklet(String root, BackupJobContext backupJobContext) {
-        this.root = Paths.get(root);
+    public ListFilesTasklet(List<Path> roots, BackupJobContext backupJobContext) {
+        this.roots = roots;
         this.context = backupJobContext;
     }
 
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-        //walk the root directory
-        RecursivePathCollector pathCollector = new RecursivePathCollector(root);
-        pathCollector.walkTree();
 
-        //put results in context
-        Set<LocalFileInfo> allFiles = pathCollector.getPaths().entrySet().stream()
-                .map(e -> new LocalFileInfo(e.getKey(), e.getValue()))
-                .collect(Collectors.toSet());
-        context.setAllFiles(allFiles);
-        context.setTotalSize(pathCollector.getSize());
+        context.setAllFiles(new HashSet<>());
+        context.setTotalSize(0);
+
+        for (Path root: roots) {
+            //walk the root directory
+            RecursivePathCollector pathCollector = new RecursivePathCollector(root);
+            pathCollector.walkTree();
+
+            //put results in context
+            Set<LocalFileInfo> allFiles = pathCollector.getPaths().entrySet().stream()
+                    .map(e -> new LocalFileInfo(e.getKey(), e.getValue()))
+                    .collect(Collectors.toSet());
+
+            context.appendFiles(allFiles);
+            context.addToTotalSize(pathCollector.getSize());
+        }
 
         return RepeatStatus.FINISHED;
     }

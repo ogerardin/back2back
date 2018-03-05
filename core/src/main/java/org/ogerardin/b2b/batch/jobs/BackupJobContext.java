@@ -13,11 +13,11 @@ public class BackupJobContext {
 
     private final String backupSetId;
 
-    // these fields are populated by the ListFilesTasklet (step 1)
+    // these fields are populated by the "list files" step of the backup job
     private Set<LocalFileInfo> allFiles = new HashSet<>();
     private long totalSize = 0;
 
-    // this field is populated by the ItemlWriter of step 2
+    // these fields are populated by the "filtering" step of the backup job
     private Set<LocalFileInfo> toDoFiles = new HashSet<>();
     private long toDoSize = 0;
 
@@ -25,4 +25,11 @@ public class BackupJobContext {
         this.backupSetId = backupSetId;
     }
 
+    public void appendFiles(Set<LocalFileInfo> files) {
+        allFiles.addAll(files);
+    }
+
+    public void addToTotalSize(long size) {
+        totalSize += size;
+    }
 }

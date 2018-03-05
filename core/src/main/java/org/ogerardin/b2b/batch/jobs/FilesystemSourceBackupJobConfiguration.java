@@ -1,5 +1,7 @@
 package org.ogerardin.b2b.batch.jobs;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.ogerardin.b2b.batch.SetItemWriter;
 import org.ogerardin.b2b.domain.FilesystemSource;
 import org.springframework.batch.core.Step;
@@ -11,27 +13,32 @@ import org.springframework.batch.item.support.IteratorItemReader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 
+import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 
 /**
  * Abstract superclass for jobs that accept a source of type {@link FilesystemSource}
  */
 public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobConfiguration {
 
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
 
     public FilesystemSourceBackupJobConfiguration() {
         addStaticParameter("source.type", FilesystemSource.class.getName());
-        addMandatoryParameter("source.root");
+        addMandatoryParameter("source.roots");
     }
 
     /** Provides a {@link Tasklet} that populates the current job's {@link BackupJobContext#allFiles} */
     @Bean
     @JobScope
     protected ListFilesTasklet listFilesTasklet(
-            @Value("#{jobParameters['source.root']}") String sourceRootParam,
+            @Value("#{jobParameters['source.roots']}") String sourceRootsParam,
             BackupJobContext backupJobContext
-    ) {
-        return new ListFilesTasklet(sourceRootParam, backupJobContext);
+    ) throws IOException {
+        List<Path> roots = OBJECT_MAPPER.readValue(sourceRootsParam, new TypeReference<List<Path>>() {});
+        return new ListFilesTasklet(roots, backupJobContext);
     }
 
 

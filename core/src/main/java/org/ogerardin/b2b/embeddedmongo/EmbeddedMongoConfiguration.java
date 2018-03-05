@@ -1,16 +1,12 @@
 package org.ogerardin.b2b.embeddedmongo;
 
-import com.github.markusbernhardt.proxy.ProxySearch;
-import com.github.markusbernhardt.proxy.util.Logger.LogBackEnd;
 import de.flapdoodle.embed.mongo.Command;
 import de.flapdoodle.embed.mongo.config.DownloadConfigBuilder;
 import de.flapdoodle.embed.mongo.config.ExtractedArtifactStoreBuilder;
 import de.flapdoodle.embed.mongo.config.RuntimeConfigBuilder;
 import de.flapdoodle.embed.process.config.IRuntimeConfig;
 import de.flapdoodle.embed.process.config.io.ProcessOutput;
-import de.flapdoodle.embed.process.config.store.HttpProxyFactory;
 import de.flapdoodle.embed.process.config.store.IProxyFactory;
-import de.flapdoodle.embed.process.config.store.NoProxyFactory;
 import de.flapdoodle.embed.process.io.Processors;
 import de.flapdoodle.embed.process.io.Slf4jLevel;
 import de.flapdoodle.embed.process.io.progress.Slf4jProgressListener;
@@ -21,15 +17,11 @@ import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoCo
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.net.InetSocketAddress;
-import java.net.Proxy;
-import java.net.ProxySelector;
-import java.net.URI;
-import java.text.MessageFormat;
-import java.util.List;
-
 @Configuration
 public class EmbeddedMongoConfiguration {
+
+    // custom logger for embedded Mongo
+    private static final Logger MONGO_LOGGER = LoggerFactory.getLogger(EmbeddedMongoConfiguration.class.getPackage().getName() + ".EmbeddedMongo");
 
     /**
      * Override default configuration provided by
@@ -38,18 +30,17 @@ public class EmbeddedMongoConfiguration {
      */
     @Bean
     public static IRuntimeConfig runtimeConfig() {
-        Logger logger = LoggerFactory.getLogger(EmbeddedMongoConfiguration.class.getPackage().getName() + ".EmbeddedMongo");
 
         // how do we handle Mongo output ?
         ProcessOutput processOutput = new ProcessOutput(
-                Processors.logTo(logger, Slf4jLevel.INFO), // stdout logs an INFO message
-                Processors.logTo(logger, Slf4jLevel.ERROR), // stderr logs an ERROR message
-                Processors.named("[console>]", Processors.logTo(logger, Slf4jLevel.DEBUG)));
+                Processors.logTo(MONGO_LOGGER, Slf4jLevel.INFO), // stdout logs an INFO message
+                Processors.logTo(MONGO_LOGGER, Slf4jLevel.ERROR), // stderr logs an ERROR message
+                Processors.named("[console>]", Processors.logTo(MONGO_LOGGER, Slf4jLevel.DEBUG)));
 
         return new RuntimeConfigBuilder()
-                .defaultsWithLogger(Command.MongoD, logger)
+                .defaultsWithLogger(Command.MongoD, MONGO_LOGGER)
                 .processOutput(processOutput)
-                .artifactStore(getArtifactStore(logger))
+                .artifactStore(getArtifactStore(MONGO_LOGGER))
                 .build();
     }
 
@@ -58,73 +49,18 @@ public class EmbeddedMongoConfiguration {
      */
     private static ArtifactStoreBuilder getArtifactStore(Logger logger) {
 
-        IProxyFactory proxyFactory = detectProxyFactory(logger);
+        // automatic proxy detecttion
+        IProxyFactory proxyFactory = ProxyHelper.detectProxyFactory();
 
         return new ExtractedArtifactStoreBuilder()
                 .defaults(Command.MongoD)
                 .download(new DownloadConfigBuilder()
                         .defaultsForCommand(Command.MongoD)
                         .proxyFactory(proxyFactory)
+                        //TODO Mongo loading progress will have to be handled in the UI eventually
+                        //TODO unless we provide a bundled mongo executable
                         .progressListener(new Slf4jProgressListener(logger))
                         .build());
-    }
-
-    /**
-     * Returns an {@link IProxyFactory} matching the system's proxy settings.
-     * We use proxy-vole to detect proxy configuration, see: https://github.com/MarkusBernhardt/proxy-vole
-     */
-    private static IProxyFactory detectProxyFactory(Logger logger) {
-        // if the logger is enabled for debug, set an adapter to log debug output of proxy-vole
-        if (logger != null && logger.isDebugEnabled()) {
-            com.github.markusbernhardt.proxy.util.Logger.setBackend(new LogBackEnd() {
-                @Override
-                public void log(Class<?> clazz, com.github.markusbernhardt.proxy.util.Logger.LogLevel loglevel, String msg, Object... params) {
-                    logger.debug(MessageFormat.format(msg, params));
-                }
-                @Override
-                public boolean isLogginEnabled(com.github.markusbernhardt.proxy.util.Logger.LogLevel logLevel) {
-                    return true;
-                }
-            });
-        }
-
-        ProxySearch proxySearch = ProxySearch.getDefaultProxySearch();
-        ProxySelector proxySelector = proxySearch.getProxySelector();
-        if (proxySelector != null) {
-            List<Proxy> proxies = proxySelector.select(URI.create("https://mongodb.org"));
-            for (Proxy proxy : proxies) {
-                try {
-                    return getProxyFactory(proxy);
-                } catch (Exception e) {
-                    logger.debug("Failed to convert " + proxy + " to IProxyFactory", e);
-                }
-            }
-        }
-        return new NoProxyFactory();
-    }
-
-    /**
-     * Convert a Java {@link Proxy} object to a {@link IProxyFactory} suitable for
-     * passing to {@link DownloadConfigBuilder#proxyFactory}
-     * @throws IllegalArgumentException if the proxy type is not supported
-     */
-    private static IProxyFactory getProxyFactory(Proxy proxy) {
-        switch (proxy.type()) {
-            case DIRECT:
-                return new NoProxyFactory();
-            case HTTP: {
-                if (! (proxy.address() instanceof InetSocketAddress)) {
-                    throw new IllegalArgumentException("proxy.address() must be an InetSocketAddress");
-                }
-                InetSocketAddress inetSocketAddress = (InetSocketAddress) proxy.address();
-                if (inetSocketAddress == null) {
-                    throw new IllegalArgumentException("proxy.address() is null");
-                }
-                return new HttpProxyFactory(inetSocketAddress.getHostName(), inetSocketAddress.getPort());
-            }
-            default:
-                throw new IllegalArgumentException("proxy.type() must be DIRECT or HTTP");
-        }
     }
 
 }

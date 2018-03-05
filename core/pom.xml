@@ -79,14 +79,14 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.16.12</version>
+            <version>1.16.18</version>
         </dependency>
 
         <!-- automatic proxy detection -->
         <dependency>
             <groupId>com.github.markusbernhardt</groupId>
             <artifactId>proxy-vole</artifactId>
-            <version>1.0.3</version>
+            <version>1.0.4</version>
         </dependency>
 
 <!--
@@ -99,7 +99,7 @@
         <dependency>
             <groupId>org.ocpsoft.prettytime</groupId>
             <artifactId>prettytime</artifactId>
-            <version>3.2.7.Final</version>
+            <version>4.0.1.Final</version>
         </dependency>
 
         <dependency>
@@ -133,8 +133,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>19.0</version>
-            <scope>compile</scope>
+            <version>21.0</version>
         </dependency>
 
     </dependencies>
