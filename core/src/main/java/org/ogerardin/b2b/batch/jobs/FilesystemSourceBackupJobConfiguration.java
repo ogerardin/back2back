@@ -2,7 +2,7 @@ package org.ogerardin.b2b.batch.jobs;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.ogerardin.b2b.batch.SetItemWriter;
+import org.ogerardin.b2b.batch.FileSetItemWriter;
 import org.ogerardin.b2b.domain.FilesystemSource;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
@@ -49,7 +49,7 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
     protected IteratorItemReader<LocalFileInfo> allFilesItemReader(
             BackupJobContext backupJobContext
     ) {
-        return new IteratorItemReader<>(backupJobContext.getAllFiles());
+        return new IteratorItemReader<>(backupJobContext.getAllFiles().getFiles());
     }
 
 
@@ -60,7 +60,7 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
     protected IteratorItemReader<LocalFileInfo> changedFilesItemReader(
             BackupJobContext backupJobContext
     ) {
-        return new IteratorItemReader<>(backupJobContext.getToDoFiles());
+        return new IteratorItemReader<>(backupJobContext.getToDoFiles().getFiles());
     }
 
 
@@ -68,10 +68,10 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
      * {@link BackupJobContext#toDoFiles} */
     @Bean
     @JobScope
-    protected SetItemWriter<LocalFileInfo> changedFilesItemWriter(
+    protected FileSetItemWriter changedFilesItemWriter(
             BackupJobContext backupJobContext
     ) {
-        return new SetItemWriter<>(backupJobContext.getToDoFiles());
+        return new FileSetItemWriter(backupJobContext.getToDoFiles());
     }
 
 
@@ -83,11 +83,11 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
     @JobScope
     protected Step listFilesStep(
             Tasklet listFilesTasklet,
-            ListFilesTaskletExecutionListener listFilesTaskletListener) {
+            UpdateAllFilesInfo stepListener) {
         return stepBuilderFactory
                 .get("listFilesStep")
                 .tasklet(listFilesTasklet)
-                .listener(listFilesTaskletListener)
+                .listener(stepListener)
                 .build();
     }
 

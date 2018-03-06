@@ -48,7 +48,6 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
             Step listFilesStep,
             Step filterFilesStep,
             Step backupToInternalStorageStep,
-            Step computeBatchSizeStep,
             BackupJobExecutionListener jobListener) {
         return jobBuilderFactory
                 .get("filesystemToInternalBackupJob")
@@ -57,8 +56,7 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
                 .listener(jobListener)
                 .start(listFilesStep)               //step 1: list files and put them in the job context
                 .next(filterFilesStep)              //step 2: filter unchanged files
-                .next(computeBatchSizeStep)         //step 3: compute backup batch size
-                .next(backupToInternalStorageStep)  //step 4: save changed files
+                .next(backupToInternalStorageStep)  //step 3: backup changed files
                 .build();
     }
 
@@ -71,7 +69,8 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
     protected Step backupToInternalStorageStep(
             ItemReader<LocalFileInfo> changedFilesItemReader,
             InternalStorageItemWriter internalStorageWriter,
-            PathItemWriteListener itemWriteListener) {
+            FileBackupListener itemWriteListener
+    ) {
         return stepBuilderFactory
                 .get("backupToInternalStorageStep")
                 .<LocalFileInfo, LocalFileInfo> chunk(1)  // handle 1 file at a time
@@ -120,13 +119,16 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
     protected Step filterFilesStep(
             ItemReader<LocalFileInfo> allFilesItemReader,
             FilteringPathItemProcessor filteringPathItemProcessor,
-            ItemWriter<LocalFileInfo> changedFilesItemWriter) {
+            ItemWriter<LocalFileInfo> changedFilesItemWriter,
+            UpdateToDoInfo stepListener
+    ) {
         return stepBuilderFactory
                 .get("filterFilesStep")
                 .<LocalFileInfo, LocalFileInfo> chunk(10)
                 .reader(allFilesItemReader)
                 .processor(filteringPathItemProcessor)
                 .writer(changedFilesItemWriter)
+                .listener(stepListener)
                 .build();
     }
 

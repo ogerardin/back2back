@@ -49,25 +49,24 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
             Step listFilesStep,
             Step peerFilterFilesStep,
             Step backupToPeerStep,
-            Step computeBatchSizeStep,
             BackupJobExecutionListener jobListener
     ) {
         return jobBuilderFactory
-                .get(FilesystemToPeerBackupJobConfiguration.class.getSimpleName())
+                .get("filesystemToPeerBackupJob")
                 .validator(getValidator())
                 .incrementer(new RunIdIncrementer())
                 .listener(jobListener)
                 .start(listFilesStep)       //step 1: list files and put them in the job context
                 .next(peerFilterFilesStep)  //step 2: filter unchanged files
-                .next(computeBatchSizeStep) //step 3: compute backup batch size
-                .next(backupToPeerStep)     //step 4: backup
+                .next(backupToPeerStep)     //step 3: backup changed files
                 .build();
     }
 
     @Bean
     protected Step backupToPeerStep(
             ItemReader<LocalFileInfo> changedFilesItemReader,
-            PeerItemWriter peerWriter
+            PeerItemWriter peerWriter,
+            FileBackupListener itemWriteListener
     )
     {
         return stepBuilderFactory.get("backupToPeerStep")
@@ -75,6 +74,7 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
                 .reader(changedFilesItemReader)
                 .processor(new PassThroughItemProcessor<>())
                 .writer(peerWriter)
+                .listener(itemWriteListener)
                 .build();
     }
 
@@ -114,13 +114,17 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
     protected Step peerFilterFilesStep(
             ItemReader<LocalFileInfo> allFilesItemReader,
             FilteringPathItemProcessor peerFilteringPathItemProcessor,
-            ItemWriter<LocalFileInfo> changedFilesItemWriter) {
+            ItemWriter<LocalFileInfo> changedFilesItemWriter,
+            UpdateToDoInfo stepListener
+
+    ) {
         return stepBuilderFactory
                 .get("filterFilesStep")
                 .<LocalFileInfo, LocalFileInfo> chunk(10)
                 .reader(allFilesItemReader)
                 .processor(peerFilteringPathItemProcessor)
                 .writer(changedFilesItemWriter)
+                .listener(stepListener)
                 .build();
     }
 

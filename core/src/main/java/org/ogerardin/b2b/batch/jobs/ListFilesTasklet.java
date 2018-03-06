@@ -7,7 +7,6 @@ import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 
 import java.nio.file.Path;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -28,8 +27,7 @@ class ListFilesTasklet implements Tasklet {
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
 
-        context.setAllFiles(new HashSet<>());
-        context.setTotalSize(0);
+        context.reset();
 
         for (Path root: roots) {
             //walk the root directory
@@ -37,12 +35,11 @@ class ListFilesTasklet implements Tasklet {
             pathCollector.walkTree();
 
             //put results in context
-            Set<LocalFileInfo> allFiles = pathCollector.getPaths().entrySet().stream()
+            Set<LocalFileInfo> files = pathCollector.getPaths().entrySet().stream()
                     .map(e -> new LocalFileInfo(e.getKey(), e.getValue()))
                     .collect(Collectors.toSet());
 
-            context.appendFiles(allFiles);
-            context.addToTotalSize(pathCollector.getSize());
+            context.getAllFiles().add(files);
         }
 
         return RepeatStatus.FINISHED;

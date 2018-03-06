@@ -4,9 +4,8 @@ import org.ogerardin.batch.mongodb.MongoJobRepositoryFactoryBean;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobInstance;
-import org.springframework.batch.core.configuration.JobRegistry;
+import org.springframework.batch.core.configuration.annotation.BatchConfigurer;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
-import org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor;
 import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.explore.support.SimpleJobExplorer;
 import org.springframework.batch.core.launch.JobLauncher;
@@ -14,9 +13,7 @@ import org.springframework.batch.core.launch.support.SimpleJobLauncher;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.stereotype.Component;
@@ -34,7 +31,7 @@ import javax.annotation.PostConstruct;
 @ComponentScan(basePackages = "org.ogerardin.batch.mongodb")
 @EnableBatchProcessing
 @ConditionalOnProperty(name = "org.ogerardin.b2b.batch.repository", havingValue = "mongodb")
-public class EmbeddedMongoBatchConfigurer implements org.springframework.batch.core.configuration.annotation.BatchConfigurer {
+public class EmbeddedMongoBatchConfigurer implements BatchConfigurer {
 
     private final AsyncTaskExecutor asyncTaskExecutor;
 

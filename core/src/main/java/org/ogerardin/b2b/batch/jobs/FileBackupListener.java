@@ -12,7 +12,7 @@ import java.util.List;
 
 @Component
 @JobScope
-public class PathItemWriteListener extends BackupSetAwareBean implements ItemWriteListener<LocalFileInfo> {
+public class FileBackupListener extends BackupSetAwareBean implements ItemWriteListener<LocalFileInfo> {
 
     @Override
     public void beforeWrite(List<? extends LocalFileInfo> items) {

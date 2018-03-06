@@ -1,16 +1,12 @@
 package org.ogerardin.b2b.batch.jobs;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.ogerardin.b2b.batch.StaticJobParameterValidator;
 import org.springframework.batch.core.JobParametersValidator;
-import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
-import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.job.CompositeJobParametersValidator;
 import org.springframework.batch.core.job.DefaultJobParametersValidator;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,33 +50,5 @@ public abstract class BackupJobConfiguration {
     void addStaticParameter(String name, String value) {
         validators.add(new StaticJobParameterValidator(name, value));
     }
-
-
-    /**
-     * Provides a {@link Step} that computes the size of the current backup batch
-     */
-    @Bean
-    @JobScope
-    protected Step computeBatchSizeStep(
-            ComputeBatchSizeTasklet computeBatchSizeTasklet,
-            ComputeBatchSizeExecutionListener computeBatchSizeExecutionListener
-    ) {
-        return stepBuilderFactory
-                .get("computeBatchSizeStep")
-                .tasklet(computeBatchSizeTasklet)
-                .listener(computeBatchSizeExecutionListener)
-                .build();
-    }
-
-
-    /** Provides an instance of {@link ComputeBatchSizeTasklet} for the current job */
-    @Bean
-    @JobScope
-    protected ComputeBatchSizeTasklet computeBatchSizeTasklet(
-            BackupJobContext backupJobContext
-    ) {
-        return new ComputeBatchSizeTasklet(backupJobContext);
-    }
-
 
 }

@@ -24,7 +24,6 @@ import java.util.Map;
 public class RecursivePathCollector extends SimpleFileVisitor<Path> {
 
     private final Map<Path, BasicFileAttributes> paths = new HashMap<>();
-    private long size = 0;
 
     private final Path rootDir;
 
@@ -42,7 +41,6 @@ public class RecursivePathCollector extends SimpleFileVisitor<Path> {
     public FileVisitResult visitFile(Path path, BasicFileAttributes basicFileAttributes) {
         if (basicFileAttributes.isRegularFile()) {
             this.paths.put(path, basicFileAttributes);
-            this.size += basicFileAttributes.size();
         }
         return FileVisitResult.CONTINUE;
     }
