@@ -63,7 +63,6 @@ class PeerItemWriter implements ItemWriter<LocalFileInfo> {
 
     }
 
-    //FIXME uploading a zero-bytes file generates an error 400
     private void uploadFile(@NonNull Path path) throws IOException, URISyntaxException {
         RestTemplate restTemplate = new RestTemplate();
 
@@ -89,7 +88,12 @@ class PeerItemWriter implements ItemWriter<LocalFileInfo> {
                     requestEntity,
                     String.class);
         } catch (RestClientException e) {
-            log.error("Exception during file upload: ", e);
+            if (log.isDebugEnabled()) {
+                log.error("Exception during file upload: ", e);
+            }
+            else {
+                log.error("Exception during file upload: " + e.toString());
+            }
             return;
         }
         log.debug("Result of upload: " + result);

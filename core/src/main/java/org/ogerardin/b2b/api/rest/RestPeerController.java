@@ -60,9 +60,11 @@ public class RestPeerController {
 
         log.debug("Single file upload from " + computerId);
 
+/*
         if (file.isEmpty()) {
             return new ResponseEntity<>("File is empty", HttpStatus.BAD_REQUEST);
         }
+*/
 
         //TODO we should also check credentials for the remote computer
 
