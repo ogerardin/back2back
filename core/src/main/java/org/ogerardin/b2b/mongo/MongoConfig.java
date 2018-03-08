@@ -1,5 +1,6 @@
 package org.ogerardin.b2b.mongo;
 
+import org.ogerardin.b2b.mongo.cascade.CascadeSaveMongoEventListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.core.convert.CustomConversions;
@@ -22,5 +23,10 @@ public class MongoConfig
                 new StringToPathConverter(),
                 new PathToStringConverter()
         ));
+    }
+
+    @Bean
+    public CascadeSaveMongoEventListener userCascadingMongoEventListener() {
+        return new CascadeSaveMongoEventListener();
     }
 }

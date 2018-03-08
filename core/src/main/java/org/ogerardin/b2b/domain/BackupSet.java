@@ -1,6 +1,7 @@
 package org.ogerardin.b2b.domain;
 
 import lombok.Data;
+import org.ogerardin.b2b.mongo.cascade.CascadeSave;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
@@ -22,9 +23,11 @@ public class BackupSet implements JobParametersPopulator {
 //    private UUID machineInfo;
 
     @DBRef
+    @CascadeSave
     private BackupSource backupSource;
 
     @DBRef
+    @CascadeSave
     private BackupTarget backupTarget;
 
     private Instant lastBackupCompleteTime;
