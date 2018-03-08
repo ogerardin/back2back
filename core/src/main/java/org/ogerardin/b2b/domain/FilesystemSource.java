@@ -26,6 +26,10 @@ public class FilesystemSource extends BackupSource {
     public FilesystemSource() {
     }
 
+    // results of the latest computation of source file count and total size (for information)
+    private long totalBytes = 0;
+    private int totalFiles = 0;
+
     public FilesystemSource(List<Path> paths) {
         this.paths = paths;
     }
@@ -34,6 +38,7 @@ public class FilesystemSource extends BackupSource {
     public void populateParams(Map<String, JobParameter> params) {
         params.put("source.type", new JobParameter(FilesystemSource.class.getName()));
         try {
+            // store param value as JSON array
             params.put("source.roots", new JobParameter(OBJECT_MAPPER.writeValueAsString(paths)));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
@@ -43,6 +48,11 @@ public class FilesystemSource extends BackupSource {
     @Override
     public String getDescription() {
         return "Source folders: " + Arrays.toString(getPaths().toArray());
+    }
+
+    @Override
+    public boolean shouldStartJob() {
+        return true;
     }
 }
 

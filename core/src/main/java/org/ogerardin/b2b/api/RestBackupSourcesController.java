@@ -1,4 +1,4 @@
-package org.ogerardin.b2b.api.rest;
+package org.ogerardin.b2b.api;
 
 import org.ogerardin.b2b.domain.BackupSource;
 import org.ogerardin.b2b.domain.mongorepository.BackupSourceRepository;

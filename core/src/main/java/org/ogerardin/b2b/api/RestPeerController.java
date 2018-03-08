@@ -1,4 +1,4 @@
-package org.ogerardin.b2b.api.rest;
+package org.ogerardin.b2b.api;
 
 import lombok.extern.slf4j.Slf4j;
 import org.ogerardin.b2b.B2BException;

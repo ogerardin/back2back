@@ -2,6 +2,7 @@ package org.ogerardin.b2b.batch.jobs;
 
 import lombok.extern.slf4j.Slf4j;
 import org.ogerardin.b2b.domain.BackupSet;
+import org.ogerardin.b2b.domain.FilesystemSource;
 import org.ogerardin.b2b.util.FormattingHelper;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepExecution;
@@ -36,11 +37,15 @@ public class UpdateAllFilesInfo extends BackupSetAwareBean implements StepExecut
         if (exitCode.equals(ExitStatus.COMPLETED.getExitCode())) {
             int fileCount = backupJobContext.getAllFiles().fileCount();
             long byteCount = backupJobContext.getAllFiles().getByteCount();
+            String status = "Collected files: " + fileCount + " file(s), " + FormattingHelper.humanReadableByteCount(byteCount);
+            log.info(status);
+
             backupSet.setFileCount(fileCount);
             backupSet.setSize(byteCount);
 
-            String status = "Collected files: " + fileCount + " file(s), " + FormattingHelper.humanReadableByteCount(byteCount);
-            log.info(status);
+            ((FilesystemSource)backupSet.getBackupSource()).setTotalBytes(byteCount);
+            ((FilesystemSource)backupSet.getBackupSource()).setTotalFiles(fileCount);
+
             backupSet.setStatus(status);
         }
         else {

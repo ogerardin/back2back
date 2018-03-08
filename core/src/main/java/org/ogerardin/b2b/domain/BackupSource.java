@@ -21,8 +21,6 @@ public abstract class BackupSource implements JobParametersPopulator, HasDescrip
 
     private String name;
 
-    public boolean shouldStartJob() {
-        return true;
-    }
+    public abstract boolean shouldStartJob();
 
 }

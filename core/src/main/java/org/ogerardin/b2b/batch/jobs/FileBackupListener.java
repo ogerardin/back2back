@@ -32,6 +32,7 @@ public class FileBackupListener extends BackupSetAwareBean implements ItemWriteL
                 .map(LocalFileInfo::getFileAttributes)
                 .mapToLong(BasicFileAttributes::size)
                 .sum();
+
         backupSet.setToDoSize(backupSet.getToDoSize() - writtenSize);
         backupSet.setToDoCount(backupSet.getToDoCount() - items.size());
         backupSetRepository.save(backupSet);
