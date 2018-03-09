@@ -13,7 +13,7 @@
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>back2back</name>
+    <name>back2back-parent</name>
     <description>Backup tool with the ability to remotely backup through the internet</description>
 
     <parent>
@@ -24,10 +24,11 @@
 
     <modules>
         <module>core</module>
-        <!--<module>ui</module>-->
+        <module>vuejs-ui</module>
+        <module>bundle</module>
     </modules>
 
-    <build>
+   <build>
         <pluginManagement>
             <plugins>
                 <plugin>
@@ -45,5 +46,27 @@
             </plugins>
         </pluginManagement>
     </build>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.ogerardin</groupId>
+                <artifactId>back2back-core</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ogerardin</groupId>
+                <artifactId>back2back-core</artifactId>
+                <version>1.0-SNAPSHOT</version>
+                <classifier>repackaged</classifier>
+            </dependency>
+            <dependency>
+                <groupId>org.ogerardin</groupId>
+                <artifactId>back2back-vuejs-ui</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
 
 </project>

@@ -109,16 +109,6 @@
             <scope>test</scope>
         </dependency>
 
-<!--
-        <dependency>
-            <groupId>javax.jnlp</groupId>
-            <artifactId>jnlp-api</artifactId>
-            <version>8.0</version>
-            <scope>system</scope>
-            <systemPath>${java.home}/lib/javaws.jar</systemPath>
-        </dependency>
--->
-
         <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
@@ -141,6 +131,8 @@
 
     <build>
         <plugins>
+            <!-- Repackage the jar to include dependencies and make it executable -->
+<!--
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -150,53 +142,14 @@
                             <goal>repackage</goal>
                         </goals>
                         <configuration>
+                            &lt;!&ndash; Specifying a classifier makes sure we keep the original jar alongside the repackaged one &ndash;&gt;
                             <classifier>repackaged</classifier>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
-
-<!--
-            <plugin>
-                <artifactId>maven-jar-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>make-jnlp-jar</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                        <configuration>
-                            <finalName>classes/static/selectPath</finalName>
-                            <classifier>jnlp</classifier>
-                            <includes>
-                                <include>**/SelectPath*</include>
-                            </includes>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
 -->
 
-<!--
-            <plugin>
-                <artifactId>maven-jarsigner-plugin</artifactId>
-                <version>1.4</version>
-                <executions>
-                    <execution>
-                        <id>sign-jar</id>
-                        <goals>
-                            <goal>sign</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <alias>mykey</alias>
-                    <storepass>ogeoge</storepass>
-                    <keypass>ogeoge</keypass>
-                </configuration>
-            </plugin>
--->
         </plugins>
 
     </build>
