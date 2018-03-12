@@ -1,6 +1,9 @@
 <template>
   <div id="app">
     <img src="./assets/logo.png">
+    <br>
+    <router-link v-bind:to="'/'">Home</router-link>
+    <router-link v-bind:to="'/backupsets'">Backup Sets</router-link>
     <router-view/>
   </div>
 </template>
