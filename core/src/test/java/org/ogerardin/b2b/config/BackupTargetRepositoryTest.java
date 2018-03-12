@@ -3,26 +3,18 @@ package org.ogerardin.b2b.config;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.ogerardin.b2b.domain.BackupTarget;
 import org.ogerardin.b2b.domain.LocalTarget;
 import org.ogerardin.b2b.domain.PeerTarget;
 import org.ogerardin.b2b.domain.mongorepository.BackupTargetRepository;
+import org.ogerardin.b2b.test.AbstractMongoTest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-@RunWith(SpringRunner.class)
-@DataMongoTest
-@SpringBootTest
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class BackupTargetRepositoryTest {
+public class BackupTargetRepositoryTest extends AbstractMongoTest {
 
     @Autowired
     BackupTargetRepository backupTargetRepository;

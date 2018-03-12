@@ -1,7 +1,6 @@
 package org.ogerardin.b2b.files.md5;
 
 import lombok.Data;
-import org.junit.Test;
 import org.springframework.util.StopWatch;
 
 import java.util.*;
@@ -19,8 +18,7 @@ public class MD5CalculatorTest {
             SpringMD5Calculator.class
     );
 
-   @Test
-    public void benchmarkMd5Implementations() throws IllegalAccessException, InstantiationException {
+    public static void main(String args[]) throws IllegalAccessException, InstantiationException {
         benchmark(1000, "1K bytes");
         benchmark(10 * 1000, "10K bytes");
         benchmark(100 * 1000, "100K bytes");
@@ -36,7 +34,7 @@ public class MD5CalculatorTest {
         final long time;
     }
 
-    private void benchmark(int size, String description) throws IllegalAccessException, InstantiationException {
+    private static void benchmark(int size, String description) throws IllegalAccessException, InstantiationException {
         System.out.println("Benchmarking: " + description);
 
         // generate a random byte array

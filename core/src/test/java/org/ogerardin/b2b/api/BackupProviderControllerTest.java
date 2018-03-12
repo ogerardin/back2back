@@ -26,7 +26,7 @@ public class BackupProviderControllerTest {
     private MockMvc mvc;
 
     @Test
-    public void getHello() throws Exception {
+    public void getVersion() throws Exception {
         mvc.perform(MockMvcRequestBuilders.get("/api/app/version").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().string(not(isEmptyOrNullString())));

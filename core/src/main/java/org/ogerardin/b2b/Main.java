@@ -21,6 +21,9 @@ public class Main {
     private static ConfigurableApplicationContext context;
 
     @Autowired
+    B2BProperties properties;
+
+    @Autowired
     private JobStarter jobStarter;
 
     @Autowired
@@ -44,7 +47,9 @@ public class Main {
     CommandLineRunner init() {
         return args -> {
             configManager.init();
-            jobStarter.startAllJobs();
+            if (properties.startJobs) {
+                jobStarter.startAllJobs();
+            }
         };
     }
 

@@ -132,7 +132,6 @@
     <build>
         <plugins>
             <!-- Repackage the jar to include dependencies and make it executable -->
-<!--
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -142,13 +141,12 @@
                             <goal>repackage</goal>
                         </goals>
                         <configuration>
-                            &lt;!&ndash; Specifying a classifier makes sure we keep the original jar alongside the repackaged one &ndash;&gt;
+                            <!-- Specifying a classifier makes sure we keep the original jar alongside the repackaged one. -->
                             <classifier>repackaged</classifier>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
--->
 
         </plugins>
 

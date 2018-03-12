@@ -13,11 +13,15 @@
     <artifactId>back2back-bundle</artifactId>
     <packaging>jar</packaging>
 
+    <description>
+        This module merges the core engine and the web UI into a single self-contained executable
+        Spring Boot jar.
+    </description>
+
     <dependencies>
         <dependency>
             <groupId>org.ogerardin</groupId>
             <artifactId>back2back-core</artifactId>
-            <!--<classifier>repackaged</classifier>-->
         </dependency>
         <dependency>
             <groupId>org.ogerardin</groupId>
@@ -45,41 +49,6 @@
                     </execution>
                 </executions>
             </plugin>
-
-            <!-- Disable the jar plugin (nothing to jar here) -->
-<!--
-            <plugin>
-                <artifactId>maven-jar-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>default-jar</id>
-                        <phase>none</phase>
-                    </execution>
-                </executions>
-            </plugin>
--->
-
-             <!--Merge dependencies into one jar-->
-<!--
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>package-all</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                        <configuration>
-                            <descriptors>
-                                <descriptor>src/main/assembly/bundle.xml</descriptor>
-                            </descriptors>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
--->
-
 
             <plugin>
                 <groupId>org.springframework.boot</groupId>

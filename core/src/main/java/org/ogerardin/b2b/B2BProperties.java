@@ -15,7 +15,7 @@ public class B2BProperties {
     // Debug properties
     //
 
-    /** Delay between files */
+    /** Delay between files (for testing) */
     long fileThrottleDelay = 1000;
 
     /** Automatically restart full backup job when finished */
@@ -23,4 +23,7 @@ public class B2BProperties {
 
     /** Pause between backup jobs */
     long pauseAfterBackup = 30 * 60 * 1000;
+
+    /** Start backup jobs automatically */
+    boolean startJobs = true;
 }

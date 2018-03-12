@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -197,17 +196,17 @@ public class FilesystemStorageService implements StorageService {
 
     @Override
     public FileVersion getFileVersion(String versionId) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Not implemented");
     }
 
     @Override
     public InputStream getFileVersionAsInputStream(String versionId) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Not implemented");
     }
 
     @Override
     public Resource getFileVersionAsResource(String versionId) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Not implemented");
     }
 
     private FileVersion _getFileVersion(Path remotePath, Path localPath) throws StorageFileNotFoundException {

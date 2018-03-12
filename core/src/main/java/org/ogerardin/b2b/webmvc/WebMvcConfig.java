@@ -11,6 +11,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
  * Spring MVC configuration to:
  * -serve /webjars/** from /META-INF/resources/webjars
  * -serve everything else from the classpath
+ * -enable CORS for localhost
  */
 @Configuration
 public class WebMvcConfig extends WebMvcConfigurerAdapter {
