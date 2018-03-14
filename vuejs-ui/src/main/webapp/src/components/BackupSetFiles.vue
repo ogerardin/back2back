@@ -13,7 +13,7 @@
         <tr v-for="f in files">
           <td>{{ f }}</td>
           <td>
-            <router-link class="btn btn-default btn-xs" v-bind:to="{name: 'backupset-fileversions', params: {file_path: f}}">Versions</router-link>
+            <router-link class="btn btn-default btn-xs" v-bind:to="{name: 'backupset-fileversions', params: {id: id, file_path: f}}">Versions</router-link>
           </td>
         </tr>
         </tbody>

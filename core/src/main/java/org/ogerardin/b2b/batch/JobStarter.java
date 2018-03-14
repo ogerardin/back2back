@@ -52,16 +52,19 @@ public class JobStarter {
      * Attempt to start jobs for all enabled sources
      */
     public void startAllJobs() {
+        log.debug("STARTING JOBS");
         sourceRepository.findAll().stream()
                 .filter(BackupSource::isEnabled)
                 .filter(BackupSource::shouldStartJob)
                 .forEach(this::startJobs);
+        log.debug("Done strating jobs");
     }
 
     /**
      * Attempt to start backup jobs for all enabled targets and the specified source
      */
     private void startJobs(BackupSource source) {
+        log.debug("Starting jobs for source " + source);
         targetRepository.findAll().stream()
                 .filter(BackupTarget::isEnabled)
                 .forEach(target -> startJob(source, target));
@@ -71,6 +74,7 @@ public class JobStarter {
      * Attempt to start a backup job for the specified source and target
      */
     private void startJob(BackupSource source, BackupTarget target) {
+        log.error("Starting job for source:" + source + ", target:" + target);
         try {
             BackupSet backupSet = findBackupSet(source, target);
             startJob(backupSet);

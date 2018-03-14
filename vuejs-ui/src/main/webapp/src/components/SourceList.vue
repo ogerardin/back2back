@@ -12,19 +12,24 @@
         </tr>
         </thead>
         <tbody>
-        <tr v-for="source in sources">
+        <tr v-for="s in sources">
           <td>
-            <router-link v-bind:to="{name: 'source-details', params: {id: source.id}}">{{ source.id }}
+            <router-link v-bind:to="{name: 'source-details', params: {id: s.id}}">
+              {{ s.id }}
             </router-link>
           </td>
-          <td>{{ source.paths }}</td>
-          <td>{{ source.enabled }}</td>
+          <td>{{ s.paths }}</td>
+          <td>{{ s.enabled }}
+            <div v-if="s.enabled"><img src="../assets/green.png" height="24"></div>
+            <img v-else src="../assets/red.png" height="24">
+          </td>
+
           <td>
-            <router-link class="btn btn-warning btn-xs"
-                         v-bind:to="{name: 'source-edit', params: {id: source.id}}">Edit
+            <router-link class="btn btn-warning btn-xs" v-bind:to="{name: 'source-edit', params: {id: s.id}}">
+              Edit
             </router-link>
-            <router-link class="btn btn-danger btn-xs"
-                         v-bind:to="{name: 'source-delete', params: {id: source.id}}">Delete
+            <router-link class="btn btn-danger btn-xs" v-bind:to="{name: 'source-delete', params: {id: s.id}}">
+              Delete
             </router-link>
           </td>
         </tr>

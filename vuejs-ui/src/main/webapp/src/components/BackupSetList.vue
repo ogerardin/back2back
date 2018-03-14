@@ -13,7 +13,9 @@
         <tbody>
         <tr v-for="s in backupSets">
           <td>
-            <router-link v-bind:to="{name: 'backupset-files', params: {id: s.id}}">{{s.id}}</router-link>
+            <router-link v-bind:to="{name: 'backupset-files', params: {id: s.id}}">
+              {{s.id}}
+            </router-link>
           </td>
           <td><router-link  v-bind:to="{name: 'source-details', params: {id: s.backupSource.id}}">
             {{s.backupSource.id}}</router-link><br>

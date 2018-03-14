@@ -5,6 +5,7 @@ import HelloWorld from '@/components/HelloWorld'
 import BackupSets from '@/components/BackupSets'
 import BackupSetList from '@/components/BackupSetList'
 import BackupSetFiles from '@/components/BackupSetFiles'
+import BackupSetFileVersions from '@/components/BackupSetFileVersions'
 import Sources from '@/components/Sources'
 import SourceList from '@/components/SourceList'
 import SourceDetails from '@/components/SourceDetails'
@@ -23,7 +24,8 @@ export default new Router({
       component: BackupSets,
       children: [
         {path: '', component: BackupSetList},
-        {path: ':id/files', name:'backupset-files', component: BackupSetFiles}
+        {path: ':id/files', name:'backupset-files', component: BackupSetFiles},
+        {path: ':id/versions/:file_path', name:'backupset-fileversions', component: BackupSetFileVersions},
       ]
     },
     {

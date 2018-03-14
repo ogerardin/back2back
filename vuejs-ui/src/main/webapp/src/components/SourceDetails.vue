@@ -3,7 +3,7 @@
 
     <div>
       <h2>{{ source.id }}</h2>
-      <b>Path: </b>
+      <b>Paths: </b>
       <div>{{ source.paths }}</div>
       <b>Enabled:</b>
       <div>{{ source.enabled }}</div>
