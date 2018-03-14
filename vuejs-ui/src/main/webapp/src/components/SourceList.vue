@@ -28,9 +28,11 @@
             <router-link class="btn btn-warning btn-xs" v-bind:to="{name: 'source-edit', params: {id: s.id}}">
               Edit
             </router-link>
+<!--
             <router-link class="btn btn-danger btn-xs" v-bind:to="{name: 'source-delete', params: {id: s.id}}">
               Delete
             </router-link>
+-->
           </td>
         </tr>
         </tbody>
@@ -43,9 +45,14 @@
   export default {
     name: 'SourceList',
     data() {
-      return {sources: []};
+      return {
+        sources: []
+      };
     },
-    created() {
+    mounted() {
+      this.getSources();
+    },
+    updated() {
       this.getSources();
     },
     methods: {
@@ -57,7 +64,7 @@
         });
 
       }
-    }
+    },
   }
 </script>
 

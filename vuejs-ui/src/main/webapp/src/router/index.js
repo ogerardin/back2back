@@ -10,6 +10,7 @@ import Sources from '@/components/Sources'
 import SourceList from '@/components/SourceList'
 import SourceDetails from '@/components/SourceDetails'
 import SourceEdit from '@/components/SourceEdit'
+import SourceAddFolder from '@/components/SourceAddFolder'
 
 Vue.use(Router);
 
@@ -36,6 +37,7 @@ export default new Router({
         // { path: 'add', name: 'source-add', component: SourceAdd },
         { path: ':id', name: 'source-details', component: SourceDetails },
         { path: ':id/edit', name: 'source-edit', component: SourceEdit },
+        { path: ':id/add-folder', name: 'source-path-select', component: SourceAddFolder },
       ]
     },
   ]

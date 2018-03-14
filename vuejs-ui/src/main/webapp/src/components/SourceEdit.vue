@@ -5,7 +5,7 @@
       <form v-on:submit="updateSource">
         <div class="form-group" v-for="p in source.paths">
           Path: {{p}}
-          <router-link class="btn btn-warning btn-xs" v-bind:to="{name: 'source-path-delete', params: {id: source.id, path: p}}">Remove</router-link>
+          <button v-on:click="removeFolder(p)">Remove</button>
         </div>
         <router-link class="btn btn-warning btn-xs" v-bind:to="{name: 'source-path-select', params: {id: source.id}}">Add folder</router-link>
         <div class="form-group">
@@ -20,12 +20,15 @@
 </template>
 
 <script>
+
   export default {
     name: 'SourceEdit',
     data() {
-      return {source: {}};
+      return {
+        source: {},
+      };
     },
-    created() {
+    mounted() {
       this.getSource(this.$route.params.id);
     },
     methods: {
@@ -43,8 +46,21 @@
         }, error => {
           console.log(error)
         });
-        router.push('/sources');
+        this.$router.push('/sources');
+      },
+      removeFolder(path) {
+        let index = this.source.paths.indexOf(path);
+        if (index >= 0) {
+          this.source.paths.splice(index, 1)
+        }
+        this.$http.post('http://localhost:8080/api/sources', this.source).then(response => {
+          this.source.id = response.data;
+        }, error => {
+          console.log(error)
+        });
+        this.$router.push('/sources');
       }
+
     }
   }
 </script>

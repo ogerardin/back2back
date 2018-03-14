@@ -17,9 +17,11 @@
   export default {
     name: 'SourceDetails',
     data() {
-      return {source: {}};
+      return {
+        source: {}
+      };
     },
-    created: function () {
+    mounted() {
       this.getSource(this.$route.params.id);
     },
     methods: {
