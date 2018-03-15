@@ -10,10 +10,9 @@ import org.springframework.web.multipart.MultipartException;
 import javax.servlet.http.HttpServletRequest;
 
 @ControllerAdvice
-public class RestResponseEntityExceptionHandler {
+public class ResponseEntityExceptionHandler {
 
     @ExceptionHandler(MultipartException.class)
-   // @ResponseBody
     ResponseEntity<?> handleMultipartException(HttpServletRequest request, Throwable ex) throws Throwable {
         Throwable cause = ex.getCause();
         if (cause instanceof IllegalStateException) {

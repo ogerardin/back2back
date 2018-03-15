@@ -27,7 +27,7 @@ public class PeerSource extends BackupSource {
 
     @Override
     public String getDescription() {
-        return "Peer back2back source from " + getRemoteComputerId();
+        return "Peer instance with ID " + getRemoteComputerId();
     }
 
     @Override

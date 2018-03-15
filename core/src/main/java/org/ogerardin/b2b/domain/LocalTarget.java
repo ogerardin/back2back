@@ -23,6 +23,6 @@ public class LocalTarget extends BackupTarget {
 
     @Override
     public String getDescription() {
-        return "Internal back2back storage";
+        return "Internal storage";
     }
 }

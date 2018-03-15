@@ -12,12 +12,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/dashboard")
-public class RestDashboardController {
+public class DashboardController {
 
     private final BackupSetRepository backupSetRepository;
 
     @Autowired
-    public RestDashboardController(BackupSetRepository backupSetRepository) {
+    public DashboardController(BackupSetRepository backupSetRepository) {
         this.backupSetRepository = backupSetRepository;
     }
 

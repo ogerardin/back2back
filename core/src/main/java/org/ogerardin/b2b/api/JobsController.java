@@ -15,7 +15,7 @@ import java.util.Set;
 
 @RestController
 @RequestMapping("/api/jobs")
-public class RestJobsController {
+public class JobsController {
 
     @Autowired
     JobExplorer jobExplorer;

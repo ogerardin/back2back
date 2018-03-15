@@ -47,7 +47,7 @@ public class FilesystemSource extends BackupSource {
 
     @Override
     public String getDescription() {
-        return "Source folders: " + Arrays.toString(getPaths().toArray());
+        return "Folders: " + Arrays.toString(getPaths().toArray());
     }
 
     @Override

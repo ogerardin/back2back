@@ -12,12 +12,12 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/targets")
-public class RestBackupTargetsController {
+public class BackupTargetsController {
 
     private final BackupTargetRepository targetRepository;
 
     @Autowired
-    public RestBackupTargetsController(BackupTargetRepository targetRepository) {
+    public BackupTargetsController(BackupTargetRepository targetRepository) {
         this.targetRepository = targetRepository;
     }
 

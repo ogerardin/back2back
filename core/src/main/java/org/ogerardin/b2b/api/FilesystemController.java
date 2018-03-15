@@ -17,7 +17,7 @@ import java.util.stream.Stream;
  */
 @RestController
 @RequestMapping("/api/filesystem")
-public class RestFilesystemController {
+public class FilesystemController {
 
     @Data
     public static class FSItem {

@@ -19,14 +19,14 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/backupsets")
-public class RestBackupSetsController {
+public class BackupSetsController {
 
     private final BackupSetRepository backupSetRepository;
 
     private final StorageServiceFactory storageServiceFactory;
 
     @Autowired
-    public RestBackupSetsController(BackupSetRepository backupSetRepository, @Qualifier("gridFsStorageServiceFactory") StorageServiceFactory storageServiceFactory) {
+    public BackupSetsController(BackupSetRepository backupSetRepository, @Qualifier("gridFsStorageServiceFactory") StorageServiceFactory storageServiceFactory) {
         this.backupSetRepository = backupSetRepository;
         this.storageServiceFactory = storageServiceFactory;
     }

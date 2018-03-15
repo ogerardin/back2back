@@ -33,6 +33,6 @@ public class PeerTarget extends BackupTarget {
 
     @Override
     public String getDescription() {
-        return "Peer back2back instance at " + getHostname() + ":" + getPort();
+        return "Peer instance at " + getHostname() + ":" + getPort();
     }
 }

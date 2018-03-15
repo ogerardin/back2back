@@ -11,27 +11,38 @@
         </tr>
         </thead>
         <tbody>
-        <tr v-for="s in backupSets">
-          <td>
-            <router-link v-bind:to="{name: 'backupset-files', params: {id: s.id}}">
-              {{s.id}}
-            </router-link>
-          </td>
-          <td><router-link  v-bind:to="{name: 'source-details', params: {id: s.backupSource.id}}">
-            {{s.backupSource.id}}</router-link><br>
-            {{s.backupSource._class}}<br>
-            {{s.backupSource.paths}}
-          </td>
-          <td>
-            {{s.backupTarget.id}}<br>
-            {{s.backupTarget._class}}
-          </td>
-          <td>{{s.status}}
-            <div v-if="s.toDoCount!=0">
-              {{s.toDoCount}} to do ({{s.toDoSize}} bytes)
-            </div>
-          </td>
-        </tr>
+        <template v-for="s in backupSets">
+          <tr v-if="sourceClassFilter == null || s.backupSource._class == sourceClassFilter">
+            <td>
+              <router-link v-bind:to="{name: 'backupset-files', params: {id: s.id}}">
+                {{s.id}} {{s.description}}
+              </router-link>
+            </td>
+            <td>
+              <router-link v-bind:to="{name: 'source-details', params: {id: s.backupSource.id}}">
+                {{s.backupSource.id}}
+              </router-link>
+              <br>
+<!--
+              {{s.backupSource._class}}<br>
+              {{s.backupSource.paths}}
+-->
+              {{s.backupSource.description}}
+            </td>
+            <td>
+<!--
+              {{s.backupTarget.id}}<br>
+              {{s.backupTarget._class}}
+-->
+              {{s.backupTarget.description}}
+            </td>
+            <td>{{s.status}}
+              <div v-if="s.toDoCount!=0">
+                {{s.toDoCount}} to do ({{s.toDoSize}} bytes)
+              </div>
+            </td>
+          </tr>
+        </template>
         </tbody>
       </table>
     </div>
@@ -41,9 +52,12 @@
 <script>
   export default {
     name: 'BackupSetList',
+    props: [
+      'sourceClassFilter',
+    ],
     data() {
       return {
-        backupSets: []
+        backupSets: [],
       };
     },
     created() {

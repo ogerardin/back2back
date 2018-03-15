@@ -10,12 +10,12 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/sources")
-public class RestBackupSourcesController {
+public class BackupSourcesController {
 
     private final BackupSourceRepository sourceRepository;
 
     @Autowired
-    public RestBackupSourcesController(BackupSourceRepository sourceRepository) {
+    public BackupSourcesController(BackupSourceRepository sourceRepository) {
         this.sourceRepository = sourceRepository;
     }
 

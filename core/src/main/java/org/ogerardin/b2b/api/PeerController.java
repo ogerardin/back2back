@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/peer")
 @Slf4j
-public class RestPeerController {
+public class PeerController {
 
     @Autowired
     protected BackupSetRepository backupSetRepository;
