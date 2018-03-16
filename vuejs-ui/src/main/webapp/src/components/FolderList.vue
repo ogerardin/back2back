@@ -1,5 +1,11 @@
 <template>
     <div>
+      <b-table :items="paths">
+        <template slot="path" slot-scope="data">
+          {{data.item}}
+        </template>
+      </b-table>
+
       <table class="table">
         <thead>
         <tr>

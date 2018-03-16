@@ -11,6 +11,8 @@ import SourceList from '@/components/SourceList'
 import SourceDetails from '@/components/SourceDetails'
 import SourceEdit from '@/components/SourceEdit'
 import SourceAddFolder from '@/components/SourceAddFolder'
+import Targets from '@/components/Targets'
+import TargetList from '@/components/TargetList'
 
 Vue.use(Router);
 
@@ -38,6 +40,17 @@ export default new Router({
         { path: ':id', name: 'source-details', component: SourceDetails },
         { path: ':id/edit', name: 'source-edit', component: SourceEdit },
         { path: ':id/add-folder', name: 'source-path-select', component: SourceAddFolder },
+      ]
+    },
+    {
+      path: '/targets',
+      component: Targets,
+      children: [
+        { path: '', component: TargetList },
+        // { path: 'add', name: 'source-add', component: SourceAdd },
+        // { path: ':id', name: 'target-details', component: TargetDetails },
+        // { path: ':id/edit', name: 'target-edit', component: TargetEdit },
+        // { path: ':id/add-folder', name: 'target-path-select', component: TargetAddFolder },
       ]
     },
   ]

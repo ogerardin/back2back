@@ -1,23 +1,17 @@
 <template>
-    <div>
-      <h2>Backup set: {{ id }}</h2>
-      <table>
-        <thead>
-        <tr>
-          <th>File path</th>
-          <th class="col-sm-2">Actions</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr v-for="f in files">
-          <td>{{ f }}</td>
-          <td>
-            <router-link class="btn btn-default btn-xs" v-bind:to="{name: 'backupset-fileversions', params: {id: id, file_path: f}}">Versions</router-link>
-          </td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
+  <div>
+    <h2>Files for backup set: {{ id }}</h2>
+    <b-table :items="files" :fields="fields">
+      <template slot="path" slot-scope="data">
+        {{data.item}}
+      </template>
+      <template slot="actions" slot-scope="data">
+        <b-button size="sm" variant="secondary" :to="{name: 'backupset-fileversions', params: {id: id, file_path: data.item}}">
+          Versions
+        </b-button>
+      </template>
+    </b-table>
+  </div>
 </template>
 
 <script>
@@ -26,15 +20,19 @@
     data: function () {
       return {
         id: null,
-        files: []
+        files: [],
+        fields: [
+          'path',
+          'actions',
+        ]
       };
     },
-    created: function() {
+    created: function () {
       console.log(this.$route);
       this.getFiles();
     },
     methods: {
-      getFiles: function() {
+      getFiles: function () {
         var id = this.$route.params.id;
         this.$http.get('http://localhost:8080/api/backupsets/' + id + '/files').then(response => {
           this.id = id;

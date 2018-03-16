@@ -1,18 +1,14 @@
 <template>
   <div id="app">
-<!--
-    <router-link v-bind:to="'/'">Home</router-link>
-    <router-link v-bind:to="'/backupsets'">Backup Sets</router-link>
-    <router-link v-bind:to="'/sources'">Sources</router-link>
--->
     <b-navbar toggleable type="dark" variant="info">
 
       <b-navbar-brand> <img src="./assets/logo.png"></b-navbar-brand>
 
       <b-navbar-nav>
         <b-nav-item v-bind:to="'/home'">Home</b-nav-item>
-        <b-nav-item v-bind:to="'/backupsets'">Backup Sets</b-nav-item>
         <b-nav-item v-bind:to="'/sources'">Sources</b-nav-item>
+        <b-nav-item v-bind:to="'/targets'">Targets</b-nav-item>
+        <b-nav-item v-bind:to="'/backupsets'">Backup Sets</b-nav-item>
       </b-navbar-nav>
     </b-navbar>
 

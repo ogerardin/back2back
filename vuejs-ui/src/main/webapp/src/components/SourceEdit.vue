@@ -1,19 +1,41 @@
 <template>
     <div>
       <h2>Edit source</h2>
-      <form v-on:submit="updateSource">
-        <div class="form-group" v-for="p in source.paths">
-          Path: {{p}}
-          <button v-on:click="removeFolder(p)">Remove</button>
-        </div>
-        <router-link class="btn btn-warning btn-xs" v-bind:to="{name: 'source-path-select', params: {id: source.id}}">Add folder</router-link>
-        <div class="form-group">
-          <label for="edit-price">Enabled</label>
-          <input type="checkbox" class="form-control" id="edit-price" v-model="source.enabled"/>
-        </div>
-        <button type="submit" class="btn btn-primary">Save</button>
-        <router-link class="btn btn-default" v-bind:to="'/sources'">Cancel</router-link>
-      </form>
+
+      <b-form v-on:submit="updateSource">
+        <b-form-group
+          label="ID"
+          label-for="id">
+          <b-form-input id="id" v-model="source.id" readonly="true"></b-form-input>
+        </b-form-group>
+        <b-form-group
+          label="Name"
+          label-for="name">
+          <b-form-input id="name" v-model="source.name"></b-form-input>
+        </b-form-group>
+
+        <b-form-group label="Folders">
+        <b-input-group prepend="Folder" v-for="p in source.paths">
+          <b-form-input readonly :value="p"></b-form-input>
+          <b-input-group-append>
+            <b-btn variant="warning" v-on:click="removeFolder(p)">Remove</b-btn>
+          </b-input-group-append>
+        </b-input-group>
+        <b-button size="sm" variant="secondary" :to="{name: 'source-path-select', params: {id: source.id}}">
+          Add Folder
+        </b-button>
+        </b-form-group>
+
+        <b-form-group>
+        <b-form-checkbox v-model="source.enabled">Enabled</b-form-checkbox>
+        </b-form-group>
+        <b-button type="submit" variant="primary">
+          Save
+        </b-button>
+        <b-button variant="secondary" :to="'/sources'">
+          Cancel
+        </b-button>
+      </b-form>
     </div>
 </template>
 
