@@ -1,5 +1,4 @@
 <template>
-  <div class="container">
     <div>
       <h2>File: {{ path }}</h2>
       <table>
@@ -26,7 +25,6 @@
         </tbody>
       </table>
     </div>
-  </div>
 </template>
 
 <script>

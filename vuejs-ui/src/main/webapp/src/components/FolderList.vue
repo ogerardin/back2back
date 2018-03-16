@@ -1,28 +1,23 @@
 <template>
-  <div class="container">
-
     <div>
       <table class="table">
         <thead>
         <tr>
-          <th>Paths</th>
-          <th>enabled</th>
+          <th>Path</th>
         </tr>
         </thead>
         <tbody>
         <tr v-for="p in paths">
           <td>{{p}}</td>
-          <td><img src="../assets/green.png" height="24"></td>
         </tr>
         </tbody>
       </table>
     </div>
-  </div>
 </template>
 
 <script>
   export default {
-    name: 'Folders',
+    name: 'FolderList',
     data() {
       return {
         paths: []

@@ -1,5 +1,4 @@
 <template>
-  <div class="container">
     <div>
       <h2>Backup set: {{ id }}</h2>
       <table>
@@ -19,7 +18,6 @@
         </tbody>
       </table>
     </div>
-  </div>
 </template>
 
 <script>

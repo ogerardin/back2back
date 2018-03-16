@@ -1,52 +1,32 @@
 <template>
-  <div class="container">
-    <div>
-      <table class="table">
-        <thead>
-        <tr>
-          <th>ID</th>
-          <th>Source</th>
-          <th>Target</th>
-          <th>Status</th>
-        </tr>
-        </thead>
-        <tbody>
-        <template v-for="s in backupSets">
-          <tr v-if="sourceClassFilter == null || s.backupSource._class == sourceClassFilter">
-            <td>
-              <router-link v-bind:to="{name: 'backupset-files', params: {id: s.id}}">
-                {{s.id}} {{s.description}}
-              </router-link>
-            </td>
-            <td>
-              <router-link v-bind:to="{name: 'source-details', params: {id: s.backupSource.id}}">
-                {{s.backupSource.id}}
-              </router-link>
-              <br>
-<!--
-              {{s.backupSource._class}}<br>
-              {{s.backupSource.paths}}
--->
-              {{s.backupSource.description}}
-            </td>
-            <td>
-<!--
-              {{s.backupTarget.id}}<br>
-              {{s.backupTarget._class}}
--->
-              {{s.backupTarget.description}}
-            </td>
-            <td>{{s.status}}
-              <div v-if="s.toDoCount!=0">
-                {{s.toDoCount}} to do ({{s.toDoSize}} bytes)
-              </div>
-            </td>
-          </tr>
+      <b-table :items="backupSets" :fields="fields">
+        <template slot="id" slot-scope="data">
+          <router-link v-bind:to="{name: 'backupset-files', params: {id: data.value}}">
+            {{data.value}}
+          </router-link>
         </template>
-        </tbody>
-      </table>
-    </div>
-  </div>
+        <template slot="backupSource" slot-scope="data">
+          <router-link v-bind:to="{name: 'source-details', params: {id: data.value.id}}">
+            {{data.value.id}}
+          </router-link>
+          <br/>
+          {{data.value.description}}
+        </template>
+        <template slot="backupTarget" slot-scope="data">
+            {{data.value.description}}
+        </template>
+        <template slot="actions" slot-scope="data">
+          <router-link v-bind:to="{name: 'backupset-files', params: {id: data.item.id}}">
+            View files
+          </router-link>
+        </template>
+        <template slot="status" slot-scope="data">
+          {{data.value}}
+          <div v-if="data.item.toDoCount!=0">
+            {{data.item.toDoCount}} to do ({{data.item.toDoSize}} bytes)
+          </div>
+        </template>
+      </b-table>
 </template>
 
 <script>
@@ -58,15 +38,33 @@
     data() {
       return {
         backupSets: [],
+        fields: [
+          'id',
+          'backupSource',
+          'backupTarget',
+          // 'description',
+          'lastBackupCompleteTime',
+          'currentBackupStartTime',
+          'nextBackupTime',
+          'fileCount',
+          'size',
+          // 'toDoCount',
+          // 'toDoSize',
+          // 'lastError',
+          'status',
+          'actions',
+        ],
       };
     },
     created() {
-      this.getbackupSets();
+      this.getbackupSets(this.sourceClassFilter);
     },
     methods: {
-      getbackupSets() {
+      getbackupSets(sourceClassFilter) {
         this.$http.get('http://localhost:8080/api/backupsets').then(response => {
-          this.backupSets = response.data;
+          this.backupSets = response.data.filter(
+            s => sourceClassFilter == null || s.backupSource._class == sourceClassFilter
+          );
         }, error => {
           // error callback
           console.log(error)

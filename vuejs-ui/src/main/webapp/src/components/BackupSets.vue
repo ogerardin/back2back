@@ -1,7 +1,7 @@
 <template>
-  <div class="container">
-    <h1>Backup Sets</h1>
+  <div>
 
+    <h1>Backup Sets</h1>
     <router-view></router-view>
 
   </div>

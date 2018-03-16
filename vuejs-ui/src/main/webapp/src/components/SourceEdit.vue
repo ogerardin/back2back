@@ -1,5 +1,4 @@
 <template>
-  <div class="container">
     <div>
       <h2>Edit source</h2>
       <form v-on:submit="updateSource">
@@ -16,7 +15,6 @@
         <router-link class="btn btn-default" v-bind:to="'/sources'">Cancel</router-link>
       </form>
     </div>
-  </div>
 </template>
 
 <script>

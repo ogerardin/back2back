@@ -1,9 +1,8 @@
 <template>
-  <div class="container">
+  <div>
 
     <h1>Sources</h1>
-
-    <router-view key="$route.fullPath"></router-view>
+    <router-view></router-view>
 
   </div>
 </template>

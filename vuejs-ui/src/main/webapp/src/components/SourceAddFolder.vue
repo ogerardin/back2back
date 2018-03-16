@@ -1,5 +1,4 @@
 <template>
-  <div class="container">
     <div>
       <h2>Add new source folder</h2>
       <form v-on:submit="addFolder">
@@ -16,7 +15,6 @@
         <router-link class="btn btn-default" v-bind:to="'/'">Cancel</router-link>
       </form>
     </div>
-  </div>
 </template>
 
 <script>

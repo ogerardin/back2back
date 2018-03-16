@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 
-import Home from '@/components/Home'
+import HomeView from '@/components/HomeView'
 import BackupSets from '@/components/BackupSets'
 import BackupSetList from '@/components/BackupSetList'
 import BackupSetFiles from '@/components/BackupSetFiles'
@@ -17,8 +17,8 @@ Vue.use(Router);
 export default new Router({
   routes: [
     {
-      path: '/',
-      component: Home
+      path: '/home',
+      component: HomeView
     },
     {
       path: '/backupsets',

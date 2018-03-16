@@ -6,7 +6,8 @@
     </div>
 
     <div>
-      <folders></folders>
+      <h2>Source Folders</h2>
+      <folder-list></folder-list>
     </div>
 
     <div>
@@ -18,13 +19,14 @@
 
 <script>
   import BackupSetList from "./BackupSetList";
-  import Folders from "./Folders";
+  import FolderList from "./FolderList";
 
   export default {
     components: {
-      Folders,
-      BackupSetList},
-    name: 'Home',
+      FolderList,
+      BackupSetList,
+    },
+    name: 'HomeView',
     data() {
       return {}
     }

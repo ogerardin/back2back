@@ -1,44 +1,31 @@
 <template>
-  <div class="container">
-
-    <div>
-      <table class="table">
-        <thead>
-        <tr>
-          <th>ID</th>
-          <th>Paths</th>
-          <th>enabled</th>
-          <th class="col-sm-2">Actions</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr v-for="s in sources">
-          <td>
-            <router-link v-bind:to="{name: 'source-details', params: {id: s.id}}">
-              {{ s.id }}
-            </router-link>
-          </td>
-          <td>{{ s.paths }}</td>
-          <td>{{ s.enabled }}
-            <div v-if="s.enabled"><img src="../assets/green.png" height="24"></div>
-            <img v-else src="../assets/red.png" height="24">
-          </td>
-
-          <td>
-            <router-link class="btn btn-warning btn-xs" v-bind:to="{name: 'source-edit', params: {id: s.id}}">
-              Edit
-            </router-link>
+      <b-table :items="sources" :fields="fields" hover>
+        <template slot="id" slot-scope="data">
+          <router-link v-bind:to="{name: 'source-details', params: {id: data.item.id}}">
+            {{ data.item.id }}
+          </router-link>
+        </template>
+        <template slot="paths" slot-scope="data">
+          <template v-for="p in data.item.paths">
+            {{p}}<br/>
+          </template>
+        </template>
+        <template slot="enabled" slot-scope="data">
+          <div v-if="data.item.enabled"><img src="../assets/green.png" height="24"></div>
+          <img v-else src="../assets/red.png" height="24">
+        </template>
+        <template slot="actions" slot-scope="data">
+          <router-link class="btn btn-warning btn-xs" v-bind:to="{name: 'source-edit', params: {id: data.item.id}}">
+            Edit
+          </router-link>
 <!--
             <router-link class="btn btn-danger btn-xs" v-bind:to="{name: 'source-delete', params: {id: s.id}}">
               Delete
             </router-link>
 -->
-          </td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+        </template>
+      </b-table>
+
 </template>
 
 <script>
@@ -46,7 +33,18 @@
     name: 'SourceList',
     data() {
       return {
-        sources: []
+        sources: [],
+        fields: [
+          'id',
+          'enabled',
+          '_class',
+          // 'name',
+          'paths',
+          'totalFiles',
+          'totalBytes',
+          // 'description',
+          'actions',
+        ],
       };
     },
     mounted() {
