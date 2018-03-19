@@ -1,21 +1,23 @@
 <template>
-    <div>
+  <div>
+    <slot name="title">
       <h2>Edit source</h2>
+    </slot>
 
-      <b-form v-on:submit="updateSource">
-        <b-form-group
-          label="ID"
-          label-for="id">
-          <b-form-input id="id" v-model="source.id" readonly="true"></b-form-input>
-        </b-form-group>
-        <b-form-group
-          label="Name"
-          label-for="name">
-          <b-form-input id="name" v-model="source.name"></b-form-input>
-        </b-form-group>
+    <b-form v-on:submit="updateSource">
+      <b-form-group
+        label="ID"
+        label-for="id">
+        <b-form-input id="id" v-model="source.id" readonly></b-form-input>
+      </b-form-group>
+      <b-form-group
+        label="Name"
+        label-for="name">
+        <b-form-input id="name" v-model="source.name"></b-form-input>
+      </b-form-group>
 
-        <b-form-group label="Folders">
-        <b-input-group prepend="Folder" v-for="p in source.paths">
+      <b-form-group label="Folders">
+        <b-input-group prepend="Folder" v-for="p in source.paths" :key="p">
           <b-form-input readonly :value="p"></b-form-input>
           <b-input-group-append>
             <b-btn variant="warning" v-on:click="removeFolder(p)">Remove</b-btn>
@@ -24,32 +26,43 @@
         <b-button size="sm" variant="secondary" :to="{name: 'source-path-select', params: {id: source.id}}">
           Add Folder
         </b-button>
-        </b-form-group>
+      </b-form-group>
 
-        <b-form-group>
+      <b-form-group>
         <b-form-checkbox v-model="source.enabled">Enabled</b-form-checkbox>
-        </b-form-group>
+      </b-form-group>
+
+      <slot name="buttons">
         <b-button type="submit" variant="primary">
           Save
         </b-button>
         <b-button variant="secondary" :to="'/sources'">
           Cancel
         </b-button>
-      </b-form>
-    </div>
+      </slot>
+    </b-form>
+  </div>
 </template>
 
 <script>
 
   export default {
     name: 'SourceEdit',
+    props: [
+      'sourceId',
+    ],
     data() {
       return {
         source: {},
       };
     },
     mounted() {
-      this.getSource(this.$route.params.id);
+      if (this.sourceId) {
+        this.getSource(this.sourceId);
+      }
+      else {
+        this.getSource(this.$route.params.id);
+      }
     },
     methods: {
       getSource(id) {

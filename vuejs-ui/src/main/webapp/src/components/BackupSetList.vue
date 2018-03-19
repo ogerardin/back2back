@@ -37,7 +37,7 @@
   export default {
     name: 'BackupSetList',
     props: [
-      'sourceClassFilter',
+      'sourceClassFilter', // optionnal value to filter by backupSet.sourceClass
     ],
     data() {
       return {

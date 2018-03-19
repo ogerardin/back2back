@@ -13,6 +13,7 @@ import SourceEdit from '@/components/SourceEdit'
 import SourceAddFolder from '@/components/SourceAddFolder'
 import Targets from '@/components/Targets'
 import TargetList from '@/components/TargetList'
+import AdminPanel from '@/components/AdminPanel'
 
 Vue.use(Router);
 
@@ -52,6 +53,10 @@ export default new Router({
         // { path: ':id/edit', name: 'target-edit', component: TargetEdit },
         // { path: ':id/add-folder', name: 'target-path-select', component: TargetAddFolder },
       ]
+    },
+    {
+      path: '/admin',
+      component: AdminPanel,
     },
   ]
 })

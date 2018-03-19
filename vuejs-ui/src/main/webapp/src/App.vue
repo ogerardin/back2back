@@ -9,6 +9,7 @@
         <b-nav-item v-bind:to="'/sources'">Sources</b-nav-item>
         <b-nav-item v-bind:to="'/targets'">Targets</b-nav-item>
         <b-nav-item v-bind:to="'/backupsets'">Backup Sets</b-nav-item>
+        <b-nav-item v-bind:to="'/admin'">Admin</b-nav-item>
       </b-navbar-nav>
     </b-navbar>
 
