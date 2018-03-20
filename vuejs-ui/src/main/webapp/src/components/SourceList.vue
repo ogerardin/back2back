@@ -1,8 +1,11 @@
 <template>
   <div>
-    <!-- Modal Component -->
-    <b-modal ref="editSourceModal" title="Edit Source" lazy="true" @ok="saveSource()">
-      <source-edit ref="editSourceComponent" :source-id="selectedId">
+
+    <!-- Modal edit dialog -->
+    <b-modal ref="editSourceModal" title="Edit Source" lazy
+             v-model="showEditModal" @ok="saveSource()" @cancel="cancelEdit()">
+      <!-- The modal dialog uses the SourceEdit component, with its sourceId prop mapped to this component's id prop -->
+      <source-edit ref="editSourceComponent" :source-id="id">
         <div slot="title"></div> <!-- don't show title -->
         <div slot="buttons"></div> <!-- don't show buttons -->
       </source-edit>
@@ -27,9 +30,6 @@
         <b-button size="sm" variant="primary" :to="{name: 'source-edit', params: {id: data.item.id}}">
           Edit
         </b-button>
-        <b-button size="sm" variant="secondary" @click="editModal(data.item.id)">
-          Edit (modal)
-        </b-button>
 <!--
         <b-button size="sm" variant="danger" :to="{name: 'source-delete', params: {id: data.item.id}}">
           Delete
@@ -46,6 +46,9 @@
   export default {
     components: {SourceEdit},
     name: 'SourceList',
+    props: [
+      'id', /*This prop is */
+    ],
     data() {
       return {
         sources: [],
@@ -60,7 +63,7 @@
           'totalBytes',
           'actions',
         ],
-        selectedId: 0,
+        showEditModal: false,
       };
     },
     mounted() {
@@ -68,6 +71,12 @@
     },
     updated() {
       this.getSources();
+    },
+    watch: {
+        '$route' (to, from) {
+          // show the model edit dialog if the matched route is 'source-edit'
+          this.showEditModal = (this.$route.name === 'source-edit');
+      }
     },
     methods: {
       getSources: function () {
@@ -77,13 +86,13 @@
           console.log(error)
         });
       },
-      editModal(id) {
-        this.selectedId = id;
-        this.$refs.editSourceModal.show();
-      },
       saveSource() {
         this.$refs.editSourceComponent.updateSource();
+        this.$router.push({name: 'source-list'});
       },
+      cancelEdit() {
+        this.$router.push({name: 'source-list'});
+      }
     },
   }
 </script>
