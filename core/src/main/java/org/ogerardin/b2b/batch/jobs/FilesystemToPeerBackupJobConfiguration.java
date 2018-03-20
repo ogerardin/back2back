@@ -5,6 +5,7 @@ import org.ogerardin.b2b.domain.StoredFileVersionInfo;
 import org.ogerardin.b2b.domain.PeerTarget;
 import org.ogerardin.b2b.domain.mongorepository.PeerFileVersionInfoRepository;
 import org.ogerardin.b2b.files.md5.MD5Calculator;
+import org.ogerardin.b2b.files.md5.StreamingMd5Calculator;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
@@ -23,6 +24,7 @@ import org.springframework.data.mongodb.core.mapping.MongoPersistentEntity;
 import org.springframework.data.mongodb.core.mapping.MongoPersistentProperty;
 import org.springframework.data.mongodb.repository.support.MappingMongoEntityInformation;
 
+import java.net.MalformedURLException;
 import java.nio.file.Path;
 
 /**
@@ -83,8 +85,7 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
     protected PeerItemWriter peerItemWriter(
             @Value("#{jobParameters['target.hostname']}") String targetHostname,
             @Value("#{jobParameters['target.port']}") Integer targetPort,
-            PeerFileVersionInfoRepository peerFileVersionInfoRepository)
-    {
+            PeerFileVersionInfoRepository peerFileVersionInfoRepository) throws MalformedURLException {
         if (targetPort == null) {
             targetPort = properties.getDefaultPeerPort();
         }
@@ -99,7 +100,7 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
     @Bean
     @JobScope
     protected FilteringPathItemProcessor peerFilteringPathItemProcessor(
-            @Qualifier("springMD5Calculator") MD5Calculator md5Calculator,
+            @Qualifier("springMD5Calculator") StreamingMd5Calculator md5Calculator,
             PeerFileVersionInfoRepository peerFileVersionRepository
     ) {
         return new FilteringPathItemProcessor(peerFileVersionRepository, md5Calculator);
@@ -115,7 +116,7 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
             ItemReader<LocalFileInfo> allFilesItemReader,
             FilteringPathItemProcessor peerFilteringPathItemProcessor,
             ItemWriter<LocalFileInfo> changedFilesItemWriter,
-            UpdateToDoInfo stepListener
+            FilteringStepExecutionListener stepListener
 
     ) {
         return stepBuilderFactory

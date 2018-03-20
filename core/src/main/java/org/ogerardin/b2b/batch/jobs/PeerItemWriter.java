@@ -6,7 +6,7 @@ import lombok.val;
 import org.ogerardin.b2b.config.ConfigManager;
 import org.ogerardin.b2b.domain.StoredFileVersionInfo;
 import org.ogerardin.b2b.domain.mongorepository.PeerFileVersionInfoRepository;
-import org.ogerardin.b2b.files.md5.MD5Calculator;
+import org.ogerardin.b2b.files.md5.StreamingMd5Calculator;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -17,10 +17,11 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
@@ -33,24 +34,23 @@ import java.util.List;
 @Slf4j
 class PeerItemWriter implements ItemWriter<LocalFileInfo> {
 
-    private final String targetHostname;
-    private final int targetPort;
-
     private PeerFileVersionInfoRepository peerFileVersionInfoRepository;
 
     @Autowired
     @Qualifier("springMD5Calculator")
-    MD5Calculator md5Calculator;
+    StreamingMd5Calculator md5Calculator;
 
     @Autowired
     ConfigManager configManager;
+    private final URL url;
 
     PeerItemWriter(@NonNull PeerFileVersionInfoRepository peerFileVersionInfoRepository,
-                   @NonNull String targetHostname, int targetPort) {
-        this.peerFileVersionInfoRepository = peerFileVersionInfoRepository;
-        this.targetHostname = targetHostname;
-        this.targetPort = targetPort;
+                   @NonNull String targetHostname, int targetPort) throws MalformedURLException {
 
+        this.peerFileVersionInfoRepository = peerFileVersionInfoRepository;
+
+        // construct URL of remote "peer" API
+        this.url = new URL("http", targetHostname, targetPort, "/api/peer/upload");
     }
 
     @Override
@@ -66,8 +66,6 @@ class PeerItemWriter implements ItemWriter<LocalFileInfo> {
     private void uploadFile(@NonNull Path path) throws IOException, URISyntaxException {
         RestTemplate restTemplate = new RestTemplate();
 
-        // construct URL of remote "peer" API
-        URL url = new URL("http", this.targetHostname, this.targetPort, "/api/peer/upload");
 
         // build request
         MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
@@ -98,10 +96,9 @@ class PeerItemWriter implements ItemWriter<LocalFileInfo> {
         }
         log.debug("Result of upload: " + result);
 
-        //if the upload was successful, store the file's MD5 locally
+        //if the upload was successful, store the file's MD5 in the local repository
         if (result.getStatusCode() == HttpStatus.OK) {
-            byte[] fileBytes = Files.readAllBytes(path);
-            String md5hash = md5Calculator.hexMd5Hash(fileBytes);
+            String md5hash = md5Calculator.hexMd5Hash(new FileInputStream(path.toFile()));
             val peerFileVersion = new StoredFileVersionInfo(path.toString(), md5hash);
             peerFileVersionInfoRepository.save(peerFileVersion);
         }

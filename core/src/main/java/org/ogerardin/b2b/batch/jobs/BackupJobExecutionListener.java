@@ -54,10 +54,12 @@ public class BackupJobExecutionListener extends BackupSetAwareBean implements Jo
         BackupSet backupSet = getBackupSet();
         Instant completeTime = jobExecution.getEndTime().toInstant();
         backupSet.setLastBackupCompleteTime(completeTime);
+        backupSet.setBatchCount(0);
+        backupSet.setBatchSize(0);
         String status = "Complete";
 
         if (properties != null && properties.isContinuousBackup()) {
-            // Pause and schedule a job restart. This is done asynchronously because
+            // Schedule a job restart. This is done asynchronously because
             // the current job is not considered as complete until we exit this function.
             long pauseAfterBackup = properties.getPauseAfterBackup();
             Instant nextBackupTime = completeTime.plusMillis(pauseAfterBackup);

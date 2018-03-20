@@ -5,6 +5,7 @@ import org.ogerardin.b2b.domain.FilesystemSource;
 import org.ogerardin.b2b.domain.LocalTarget;
 import org.ogerardin.b2b.domain.StoredFileVersionInfoProvider;
 import org.ogerardin.b2b.files.md5.MD5Calculator;
+import org.ogerardin.b2b.files.md5.StreamingMd5Calculator;
 import org.ogerardin.b2b.storage.StorageService;
 import org.ogerardin.b2b.storage.StorageServiceFactory;
 import org.springframework.batch.core.Job;
@@ -62,7 +63,7 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
 
     /**
      * Provides a {@link Step} that performs backup of the files taken from the current job's
-     * {@link BackupJobContext#toDoFiles} into the internal storage.
+     * {@link BackupJobContext#changedFiles} into the internal storage.
      */
     @Bean
     @JobScope
@@ -104,7 +105,7 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
     @JobScope
     protected FilteringPathItemProcessor filteringPathItemProcessor(
             @Value("#{jobParameters['backupset.id']}") String backupSetId,
-            @Qualifier("springMD5Calculator") MD5Calculator md5Calculator
+            @Qualifier("springMD5Calculator") StreamingMd5Calculator md5Calculator
     ) {
         StorageService storageService = storageServiceFactory.getStorageService(backupSetId);
         return new FilteringPathItemProcessor(StoredFileVersionInfoProvider.of(storageService), md5Calculator);
@@ -120,7 +121,7 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
             ItemReader<LocalFileInfo> allFilesItemReader,
             FilteringPathItemProcessor filteringPathItemProcessor,
             ItemWriter<LocalFileInfo> changedFilesItemWriter,
-            UpdateToDoInfo stepListener
+            FilteringStepExecutionListener stepListener
     ) {
         return stepBuilderFactory
                 .get("filterFilesStep")

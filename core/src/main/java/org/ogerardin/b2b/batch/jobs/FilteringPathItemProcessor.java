@@ -5,9 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.ogerardin.b2b.domain.StoredFileVersionInfo;
 import org.ogerardin.b2b.domain.StoredFileVersionInfoProvider;
 import org.ogerardin.b2b.files.md5.MD5Calculator;
+import org.ogerardin.b2b.files.md5.StreamingMd5Calculator;
 import org.springframework.batch.item.ItemProcessor;
 
-import java.nio.file.Files;
+import java.io.FileInputStream;
 import java.nio.file.Path;
 import java.util.Optional;
 
@@ -23,7 +24,7 @@ class FilteringPathItemProcessor implements ItemProcessor<LocalFileInfo, LocalFi
     private final StoredFileVersionInfoProvider storedFileVersionInfoProvider;
 
     /** The hash engine to use. See implementations of {@link MD5Calculator} */
-    private final MD5Calculator md5Calculator;
+    private final StreamingMd5Calculator md5Calculator;
 
 
     @Override
@@ -42,9 +43,7 @@ class FilteringPathItemProcessor implements ItemProcessor<LocalFileInfo, LocalFi
         String storedMd5hash = info.get().getMd5hash();
 
         // compute current file's MD5 and compare with stored file MD5
-        byte[] bytes = Files.readAllBytes(path);
-        String computedMd5Hash = md5Calculator.hexMd5Hash(bytes);
-        //TODO maybe it would be more efficient to work with MD5 as raw bytes instead of doing a String comparison?
+        String computedMd5Hash = md5Calculator.hexMd5Hash(new FileInputStream(path.toFile()));
         if (computedMd5Hash.equalsIgnoreCase(storedMd5hash)) {
             // same MD5, file can be skipped
             log.debug("Unchanged: " + path);

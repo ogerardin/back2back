@@ -14,7 +14,7 @@ public class BackupJobContext {
     private final FileSet allFiles = new FileSet();
 
     // populated by the "filtering" step of the backup job
-    private final FileSet toDoFiles = new FileSet();
+    private final FileSet changedFiles = new FileSet();
 
     public BackupJobContext(String backupSetId) {
         this.backupSetId = backupSetId;
@@ -22,7 +22,7 @@ public class BackupJobContext {
 
     public void reset() {
         allFiles.reset();
-        toDoFiles.reset();
+        changedFiles.reset();
     }
 
 

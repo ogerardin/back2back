@@ -15,10 +15,6 @@ public interface StoredFileVersionInfoProvider {
      */
     Optional<StoredFileVersionInfo> getStoredFileVersionInfo(String path);
 
-    /**
-     * @return the {@link StoredFileVersionInfo} for the latest stored version of the file corresponding to the
-     * specified local path, {@link Optional#empty()} if not found
-     */
     default Optional<StoredFileVersionInfo> getStoredFileVersionInfo(Path path) {
         return getStoredFileVersionInfo(path.toString());
     }

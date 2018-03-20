@@ -11,7 +11,7 @@ import java.time.Instant;
 import java.util.Map;
 
 /**
- * Represents a backup task from a single source to a single target.
+ * Represents a backup stream from a single source to a single target.
  */
 @Document
 @Data
@@ -38,7 +38,11 @@ public class BackupSet implements JobParametersPopulator {
     private long fileCount;
     private long size;
 
-    // remaining files/bytes to backup during this run
+    // total files/bytes to backup during the current job run
+    private long batchCount;
+    private long batchSize;
+
+    // remaining files/bytes to backup during the current job run
     private long toDoCount;
     private long toDoSize;
 

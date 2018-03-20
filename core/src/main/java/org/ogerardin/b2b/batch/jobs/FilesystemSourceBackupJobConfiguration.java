@@ -54,24 +54,24 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
 
 
     /** Provides a {@link ItemReader} that supplies {@link LocalFileInfo} items from the current job's
-     * {@link BackupJobContext#toDoFiles} */
+     * {@link BackupJobContext#changedFiles} */
     @Bean
     @JobScope
     protected IteratorItemReader<LocalFileInfo> changedFilesItemReader(
             BackupJobContext backupJobContext
     ) {
-        return new IteratorItemReader<>(backupJobContext.getToDoFiles().getFiles());
+        return new IteratorItemReader<>(backupJobContext.getChangedFiles().getFiles());
     }
 
 
     /** Provides an {@link ItemWriter} that stores {@link Path} items in the current job's
-     * {@link BackupJobContext#toDoFiles} */
+     * {@link BackupJobContext#changedFiles} */
     @Bean
     @JobScope
     protected FileSetItemWriter changedFilesItemWriter(
             BackupJobContext backupJobContext
     ) {
-        return new FileSetItemWriter(backupJobContext.getToDoFiles());
+        return new FileSetItemWriter(backupJobContext.getChangedFiles());
     }
 
 
@@ -83,7 +83,7 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
     @JobScope
     protected Step listFilesStep(
             Tasklet listFilesTasklet,
-            UpdateAllFilesInfo stepListener) {
+            CollectingStepExecutionListener stepListener) {
         return stepBuilderFactory
                 .get("listFilesStep")
                 .tasklet(listFilesTasklet)
@@ -95,7 +95,7 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
      * Provides a job-scoped context that contains contextual data for the current job, including the list of files
      * to backup.
      * We do not use {@link org.springframework.batch.core.scope.context.JobContext} because it has limitations on
-     * size  (and we don't need to persist it anyway)
+     * size (and we don't need to persist it anyway)
      */
     @Bean
     @JobScope
