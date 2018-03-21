@@ -27,6 +27,12 @@
         <img v-else src="../assets/red.png" height="24">
       </template>
       <template slot="actions" slot-scope="data">
+        <b-button v-if="data.item.enabled" size="sm" variant="outline-success"  v-on:click="setEnabled(data.item, false)">
+          Disable
+        </b-button>
+        <b-button v-else size="sm" variant="success" v-on:click="setEnabled(data.item, true)">
+          Enable
+        </b-button>
         <b-button size="sm" variant="primary" :to="{name: 'source-edit', params: {id: data.item.id}}">
           Edit
         </b-button>
@@ -97,6 +103,13 @@
         }
         this.$http.delete('http://localhost:8080/api/sources/' + id).then(response => {
           this.getSources();
+        }, error => {
+          console.log(error)
+        });
+      },
+      setEnabled(source, enabled) {
+        source.enabled = enabled;
+        this.$http.put('http://localhost:8080/api/sources/' + source.id, source).then(response => {
         }, error => {
           console.log(error)
         });

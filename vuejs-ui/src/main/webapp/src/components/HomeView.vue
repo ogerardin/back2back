@@ -9,7 +9,7 @@
         <folder-list></folder-list>
       </b-card>
 
-      <b-card title="Incoming">
+      <b-card title="Inbound">
         <backup-set-progress sourceClassFilter=".PeerSource"></backup-set-progress>
       </b-card>
   </b-container>
