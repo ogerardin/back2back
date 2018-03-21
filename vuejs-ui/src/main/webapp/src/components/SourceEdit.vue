@@ -1,18 +1,15 @@
 <template>
-  <div>
+  <b-container>
     <slot name="title">
       <h2>Edit source</h2>
     </slot>
 
     <b-form v-on:submit="updateSource">
-      <b-form-group
-        label="ID"
-        label-for="id">
+      <b-form-group label="ID" label-for="id">
         <b-form-input id="id" v-model="source.id" readonly></b-form-input>
       </b-form-group>
-      <b-form-group
-        label="Name"
-        label-for="name">
+
+      <b-form-group label="Name" label-for="name">
         <b-form-input id="name" v-model="source.name"></b-form-input>
       </b-form-group>
 
@@ -23,6 +20,7 @@
             <b-btn variant="warning" v-on:click="removeFolder(p)">Remove</b-btn>
           </b-input-group-append>
         </b-input-group>
+
         <b-button size="sm" variant="secondary" :to="{name: 'source-path-select', params: {id: source.id}}">
           Add Folder
         </b-button>
@@ -33,15 +31,11 @@
       </b-form-group>
 
       <slot name="buttons">
-        <b-button type="submit" variant="primary">
-          Save
-        </b-button>
-        <b-button variant="secondary" :to="'/sources'">
-          Cancel
-        </b-button>
+        <b-button variant="primary" type="submit">Save</b-button>
+        <b-button variant="secondary" v-on:click="cancel()">Cancel</b-button>
       </slot>
     </b-form>
-  </div>
+  </b-container>
 </template>
 
 <script>
@@ -74,26 +68,22 @@
       },
       updateSource() {
         const source = this.source;
-        this.$http.post('http://localhost:8080/api/sources', source).then(response => {
-          this.source.id = response.data;
+        this.$http.put('http://localhost:8080/api/sources/' + source.id, source).then(response => {
+          this.source = response.data;
         }, error => {
           console.log(error)
         });
-        this.$router.push('/sources');
       },
       removeFolder(path) {
         let index = this.source.paths.indexOf(path);
         if (index >= 0) {
           this.source.paths.splice(index, 1)
         }
-        this.$http.post('http://localhost:8080/api/sources', this.source).then(response => {
-          this.source.id = response.data;
-        }, error => {
-          console.log(error)
-        });
-        this.$router.push('/sources');
-      }
-
+        this.updateSource();
+      },
+      cancel() {
+        this.$router.go(-1);
+      },
     }
   }
 </script>

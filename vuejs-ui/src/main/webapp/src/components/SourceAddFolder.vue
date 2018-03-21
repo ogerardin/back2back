@@ -1,20 +1,25 @@
 <template>
-    <div>
-      <h2>Add new source folder</h2>
-      <form v-on:submit="addFolder">
-        <div class="form-group">
-          <label for="add-name">Path</label>
-          <input type="text" class="form-control" id="add-name" v-model="path"/>
-          <ul>
-            <li v-for="f in files">
-              <button v-on:click.prevent="getFiles(f.path)">{{f.name}}</button>
-            </li>
-          </ul>
-        </div>
-        <button type="submit" class="btn btn-primary">Add</button>
-        <router-link class="btn btn-default" v-bind:to="'/'">Cancel</router-link>
-      </form>
-    </div>
+    <b-container>
+      <slot name="title">
+        <h2>Add new source folder</h2>
+      </slot>
+
+      <b-form v-on:submit="addFolder">
+        <b-form-group label="Selected Folder" label-for="path">
+          <b-form-input id="path" v-model="path" readonly></b-form-input>
+        </b-form-group>
+
+        <b-form-group label="Sub-folders">
+            <b-button v-for="f in files" :key="f.name"
+                        variant="link" v-on:click.prevent="getFiles(f.path)"> &#x1f4c1; {{f.name}}</b-button>
+        </b-form-group>
+
+        <slot name="buttons">
+          <b-button variant="primary" type="submit">Add</b-button>
+          <b-button variant="secondary" v-on:click="cancel()">Cancel</b-button>
+        </slot>
+      </b-form>
+    </b-container>
 </template>
 
 <script>
@@ -50,13 +55,16 @@
       },
       addFolder() {
         this.source.paths.push(this.path);
-        this.$http.post('http://localhost:8080/api/sources', this.source).then(response => {
-          this.source.id = response.data;
+        this.$http.put('http://localhost:8080/api/sources/' + this.source.id, this.source).then(response => {
+          this.source = response.data;
+          this.$router.go(-1)
         }, error => {
           console.log(error)
         });
-        this.$router.push('/sources');
-      }
+      },
+      cancel() {
+        this.$router.go(-1);
+      },
     }
   }
 </script>

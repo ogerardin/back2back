@@ -1,7 +1,7 @@
 <template>
 
   <b-container>
-    <b-card v-for="b in backupSets">
+    <b-card v-for="b in backupSets" :key="b.id">
       <b>{{b.backupSource.description}} &rarr; {{b.backupTarget.description}}</b><br>
       {{b.status}}
       <div v-if="b.batchCount!=0">

@@ -43,8 +43,8 @@ export default new Router({
         { path: '', name: 'source-list', component: SourceList },
         // { path: 'add', name: 'source-add', component: SourceAdd },
         { path: ':id', name: 'source-details', component: SourceDetails },
-        // { path: ':id/edit', name: 'source-edit', component: SourceEdit },
-        { path: ':id/edit', name: 'source-edit', component: SourceList, props: true },
+        { path: ':id/edit', name: 'source-edit', component: SourceEdit },
+        // { path: ':id/edit', name: 'source-edit', component: SourceList, props: true },
         { path: ':id/add-folder', name: 'source-path-select', component: SourceAddFolder },
       ]
     },

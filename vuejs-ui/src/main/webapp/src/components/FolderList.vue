@@ -1,7 +1,7 @@
 <template>
 
   <b-container>
-    <b-card v-for="p in paths">
+    <b-card v-for="p in paths" :key="p">
       {{p}}
     </b-card>
   </b-container>
