@@ -1,24 +1,11 @@
 <template>
-    <div>
-      <b-table :items="paths">
-        <template slot="path" slot-scope="data">
-          {{data.item}}
-        </template>
-      </b-table>
 
-      <table class="table">
-        <thead>
-        <tr>
-          <th>Path</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr v-for="p in paths">
-          <td>{{p}}</td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
+  <b-container>
+    <b-card v-for="p in paths">
+      {{p}}
+    </b-card>
+  </b-container>
+
 </template>
 
 <script>
@@ -41,7 +28,11 @@
         this.$http.get('http://localhost:8080/api/sources').then(response => {
           let sources = response.data;
           sources.forEach(
-            s => paths = paths.concat(s.paths)
+            s => {
+              if (s._class === '.FilesystemSource') {
+                paths = paths.concat(s.paths)
+              }
+            }
           );
           this.paths = paths;
         }, error => {

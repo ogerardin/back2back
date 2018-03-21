@@ -21,8 +21,10 @@
     </template>
     <template slot="status" slot-scope="data">
       {{data.value}}
-      <div v-if="data.item.toDoCount!=0">
-        {{data.item.toDoCount}} to do ({{data.item.toDoSize}} bytes)
+      <div v-if="data.item.batchCount!=0">
+        to do: {{data.item.toDoCount}} / {{data.item.batchCount}}
+        <b-progress :max="data.item.batchCount" :value="data.item.batchCount - data.item.toDoCount"
+                    variant="info" striped :animated="animate" class="mb-2"></b-progress>
       </div>
     </template>
     <template slot="actions" slot-scope="data">

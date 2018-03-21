@@ -1,28 +1,28 @@
 <template>
-  <div>
-    <div>
-      <h2>Backup Jobs</h2>
-      <backup-set-list sourceClassFilter=".FilesystemSource"></backup-set-list>
-    </div>
+  <b-container fluid>
 
-    <div>
-      <h2>Source Folders</h2>
-      <folder-list></folder-list>
-    </div>
+      <b-card title="Destinations">
+        <backup-set-progress sourceClassFilter=".FilesystemSource"></backup-set-progress>
+      </b-card>
 
-    <div>
-      <h2>Incoming</h2>
-      <backup-set-list sourceClassFilter=".PeerSource"></backup-set-list>
-    </div>
-  </div>
+      <b-card title="Source Folders">
+        <folder-list></folder-list>
+      </b-card>
+
+      <b-card title="Incoming">
+        <backup-set-progress sourceClassFilter=".PeerSource"></backup-set-progress>
+      </b-card>
+  </b-container>
 </template>
 
 <script>
   import BackupSetList from "./BackupSetList";
+  import BackupSetProgress from "./BackupSetProgress";
   import FolderList from "./FolderList";
 
   export default {
     components: {
+      BackupSetProgress,
       FolderList,
       BackupSetList,
     },
