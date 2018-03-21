@@ -29,9 +29,7 @@ public class FilesystemController {
         }
 
         public FSItem(Path path, boolean directory) {
-            this.name = path.getFileName().toString();
-            this.path = path;
-            this.directory = directory;
+            this(path.getFileName().toString(), path, directory);
         }
 
         public FSItem(String name, Path path, boolean directory) {
@@ -47,7 +45,7 @@ public class FilesystemController {
         if (dir == null) {
             dir = System.getProperty("user.home");
         }
-        Path dirPath = Paths.get(dir);
+        Path dirPath = Paths.get(dir).toAbsolutePath();
 
         Stream<FSItem> itemStream = Files.list(dirPath)
                 .filter(Files::isReadable)
@@ -66,4 +64,9 @@ public class FilesystemController {
 
     }
 
+    @GetMapping("/root")
+    FSItem root() {
+        Path root = Paths.get("/").getRoot().normalize();
+        return new FSItem(root.toString(), root, true);
+    }
 }
