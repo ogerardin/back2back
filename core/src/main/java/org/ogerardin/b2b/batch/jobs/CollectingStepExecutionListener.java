@@ -28,6 +28,7 @@ public class CollectingStepExecutionListener extends BackupSetAwareBean implemen
     public void beforeStep(StepExecution stepExecution) {
         BackupSet backupSet = getBackupSet();
         backupSet.setStatus("Collecting files...");
+        backupSetRepository.save(backupSet);
     }
 
     @Override

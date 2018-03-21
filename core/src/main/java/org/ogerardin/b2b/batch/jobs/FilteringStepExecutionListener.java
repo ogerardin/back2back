@@ -25,7 +25,8 @@ public class FilteringStepExecutionListener extends BackupSetAwareBean implement
     @Override
     public void beforeStep(StepExecution stepExecution) {
         BackupSet backupSet = getBackupSet();
-        backupSet.setStatus("Filtering files...");
+        backupSet.setStatus("Checking for changed files...");
+        backupSetRepository.save(backupSet);
     }
 
     @Override
