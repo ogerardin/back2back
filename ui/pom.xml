@@ -14,7 +14,7 @@
 
     <description>
         Experimental UI using Project Guarana.
-        This is not the project's main UI; the project's main ui is a web app located in core/src/main/resources/static
+        This is not the project's main UI; the project's main ui is a web app located in module vuejs-ui
     </description>
 
     <dependencies>
