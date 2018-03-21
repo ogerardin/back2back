@@ -27,15 +27,33 @@ public class BackupSourcesController {
     }
 
     @GetMapping("/{id}")
-    public BackupSource get(@PathVariable String id) {
-        return sourceRepository.findOne(id);
+    public BackupSource get(@PathVariable String id) throws NotFoundException {
+        BackupSource backupSource = sourceRepository.findOne(id);
+        if (backupSource == null) {
+            throw new NotFoundException(id);
+        }
+        return backupSource;
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public String create(@RequestBody BackupSource source) {
+    @ResponseBody
+    public BackupSource create(@RequestBody BackupSource source) {
         BackupSource savedSource = sourceRepository.save(source);
         //TODO: adding a source should trigger an update of current jobs
-        return savedSource.getId();
+        return savedSource;
+    }
+
+    @PutMapping(path="/{id}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @ResponseBody
+    public BackupSource update(@PathVariable String id,
+                         @RequestBody BackupSource source) throws NotFoundException {
+        if (!sourceRepository.exists(id)) {
+            throw new NotFoundException(id);
+        }
+        source.setId(id);
+        BackupSource savedSource = sourceRepository.save(source);
+        //TODO: updating a source should trigger an update of current jobs
+        return savedSource;
     }
 
 /*
