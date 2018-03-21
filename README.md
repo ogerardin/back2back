@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/ogerardin/back2back.svg?branch=master)](https://travis-ci.org/ogerardin/back2back)
+
 back2back
 =========
 
