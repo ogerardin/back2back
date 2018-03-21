@@ -7,6 +7,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/sources")
@@ -28,11 +29,8 @@ public class BackupSourcesController {
 
     @GetMapping("/{id}")
     public BackupSource get(@PathVariable String id) throws NotFoundException {
-        BackupSource backupSource = sourceRepository.findOne(id);
-        if (backupSource == null) {
-            throw new NotFoundException(id);
-        }
-        return backupSource;
+        Optional<BackupSource> backupSource = Optional.ofNullable(sourceRepository.findOne(id));
+        return backupSource.orElseThrow(() -> new NotFoundException(id));
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -43,18 +41,17 @@ public class BackupSourcesController {
         return savedSource;
     }
 
-    @PutMapping(path="/{id}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
     public BackupSource update(@PathVariable String id,
-                         @RequestBody BackupSource source) throws NotFoundException {
-        if (!sourceRepository.exists(id)) {
-            throw new NotFoundException(id);
-        }
+                               @RequestBody BackupSource source) throws NotFoundException {
+        assertExists(id);
         source.setId(id);
         BackupSource savedSource = sourceRepository.save(source);
         //TODO: updating a source should trigger an update of current jobs
         return savedSource;
     }
+
 
 /*
     @PostMapping("/{id}/path")
@@ -71,10 +68,16 @@ public class BackupSourcesController {
         sourceRepository.save(filesystemSource);
     }
 */
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable String id) throws NotFoundException {
+        assertExists(id);
+        sourceRepository.delete(id);
+    }
 
-    @DeleteMapping ("/{id}")
-    public void delete(@PathVariable String id) {
-         sourceRepository.delete(id);
+    private void assertExists(@PathVariable String id) throws NotFoundException {
+        if (!sourceRepository.exists(id)) {
+            throw new NotFoundException(id);
+        }
     }
 
 }

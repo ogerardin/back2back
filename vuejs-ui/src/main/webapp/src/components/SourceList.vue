@@ -30,11 +30,9 @@
         <b-button size="sm" variant="primary" :to="{name: 'source-edit', params: {id: data.item.id}}">
           Edit
         </b-button>
-<!--
-        <b-button size="sm" variant="danger" :to="{name: 'source-delete', params: {id: data.item.id}}">
+        <b-button size="sm" variant="danger" v-on:click="deleteSource(data.item.id)">
           Delete
         </b-button>
--->
       </template>
     </b-table>
   </div>
@@ -92,6 +90,17 @@
       },
       cancelEdit() {
         this.$router.push({name: 'source-list'});
+      },
+      deleteSource(id) {
+        if (! confirm("Really delete Source? This action cannot be undone.")) {
+          return;
+        }
+        this.$http.delete('http://localhost:8080/api/sources/' + id).then(response => {
+          this.getSources();
+        }, error => {
+          console.log(error)
+        });
+
       }
     },
   }
