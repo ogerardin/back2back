@@ -58,7 +58,7 @@ public class FilesystemController {
 
         // if the specified directory is not a root, add parent directory as first item
         if (dirPath.getParent() != null) {
-            fsItems.add(new FSItem("⬑", dirPath.getParent(), true));
+            fsItems.add(0, new FSItem("⬑", dirPath.getParent(), true));
         }
         return fsItems.toArray(new FSItem[0]);
     }
@@ -70,7 +70,9 @@ public class FilesystemController {
     FSItem[] roots() {
         List<FSItem> fsItems = new ArrayList<>();
         for (Path path : FileSystems.getDefault().getRootDirectories()) {
-            fsItems.add(new FSItem(path.toString(), path, true));
+            if (Files.isReadable(path)) {
+                fsItems.add(new FSItem(path.toString(), path, true));
+            }
         }
         return fsItems.toArray(new FSItem[0]);
     }

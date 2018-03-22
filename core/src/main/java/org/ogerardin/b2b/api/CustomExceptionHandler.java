@@ -9,9 +9,10 @@ import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 
 @ControllerAdvice
-public class MultipartExceptionHandler extends ResponseEntityExceptionHandler {
+public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(MultipartException.class)
     ResponseEntity<?> handleMultipartException(HttpServletRequest request, Throwable ex) throws Throwable {
@@ -23,7 +24,11 @@ public class MultipartExceptionHandler extends ResponseEntityExceptionHandler {
                 return responseEntity;
             }
         }
-
         throw ex;
+    }
+
+    @ExceptionHandler(IOException.class)
+    ResponseEntity<?> handleIOException(HttpServletRequest request, IOException e) {
+        return new ResponseEntity<>(e.toString(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
