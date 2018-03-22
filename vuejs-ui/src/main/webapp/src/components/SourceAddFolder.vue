@@ -9,9 +9,14 @@
           <b-form-input id="path" v-model="path" readonly></b-form-input>
         </b-form-group>
 
+        <b-form-group label="Roots">
+          <b-button v-for="f in roots" :key="f.name"
+                    variant="link" v-on:click.prevent="getFolders(f.path)"> &#x1f4c1; {{f.name}}</b-button>
+        </b-form-group>
+
         <b-form-group label="Sub-folders">
             <b-button v-for="f in files" :key="f.name"
-                        variant="link" v-on:click.prevent="getFiles(f.path)"> &#x1f4c1; {{f.name}}</b-button>
+                        variant="link" v-on:click.prevent="getFolders(f.path)"> &#x1f4c1; {{f.name}}</b-button>
         </b-form-group>
 
         <slot name="buttons">
@@ -27,6 +32,7 @@
     name: 'SourceAddFolder',
     data() {
       return {
+        roots: [],
         path: null,
         files: [],
         source: {},
@@ -34,7 +40,7 @@
     },
     mounted() {
       this.getSource(this.$route.params.id);
-      this.getFiles('/')
+      this.getRoots()
     },
     methods: {
       getSource(id) {
@@ -45,7 +51,15 @@
         });
 
       },
-      getFiles(dir) {
+      getRoots() {
+        this.$http.get('http://localhost:8080/api/filesystem/roots').then(response => {
+          this.roots = response.data;
+          this.getFolders(this.roots[0].path)
+        }, error => {
+          console.log(error)
+        });
+      },
+      getFolders(dir) {
         this.$http.get('http://localhost:8080/api/filesystem?dirOnly=true&dir=' + encodeURIComponent(dir)).then(response => {
           this.path = dir;
           this.files = response.data;

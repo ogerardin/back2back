@@ -7,10 +7,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.stream.Stream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * This controller is meant to interact with the local filesystem, to allow browsing files from a web UI.
@@ -47,26 +50,28 @@ public class FilesystemController {
         }
         Path dirPath = Paths.get(dir).toAbsolutePath();
 
-        Stream<FSItem> itemStream = Files.list(dirPath)
+        List<FSItem> fsItems = Files.list(dirPath)
                 .filter(Files::isReadable)
                 .map(p -> new FSItem(p, Files.isDirectory(p)))
-                .filter(fsi -> !dirOnly || fsi.isDirectory());
+                .filter(fsi -> !dirOnly || fsi.isDirectory())
+                .collect(Collectors.toList());
 
         // if the specified directory is not a root, add parent directory as first item
         if (dirPath.getParent() != null) {
-            itemStream = Stream.concat(
-                    Stream.of(new FSItem("⬑", dirPath.getParent(), true)),
-                    itemStream
-            );
+            fsItems.add(new FSItem("⬑", dirPath.getParent(), true));
         }
-
-        return itemStream.toArray(FSItem[]::new);
-
+        return fsItems.toArray(new FSItem[0]);
     }
 
-    @GetMapping("/root")
-    FSItem root() {
-        Path root = Paths.get("/").getRoot().normalize();
-        return new FSItem(root.toString(), root, true);
+    /**
+     * Return the set of filesystem roots. On Windows this will be the drives C:\, D:\, ...
+     */
+    @GetMapping("/roots")
+    FSItem[] roots() {
+        List<FSItem> fsItems = new ArrayList<>();
+        for (Path path : FileSystems.getDefault().getRootDirectories()) {
+            fsItems.add(new FSItem(path.toString(), path, true));
+        }
+        return fsItems.toArray(new FSItem[0]);
     }
 }

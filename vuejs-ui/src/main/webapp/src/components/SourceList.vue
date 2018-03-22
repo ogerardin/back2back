@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <b-container>
 
     <!-- Modal edit dialog -->
     <b-modal ref="editSourceModal" title="Edit Source" lazy
@@ -41,7 +41,7 @@
         </b-button>
       </template>
     </b-table>
-  </div>
+  </b-container>
 </template>
 
 <script>
