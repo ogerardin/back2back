@@ -12,6 +12,9 @@
     </b-modal>
 
     <b-table :items="sources" :fields="fields" hover>
+      <template slot="index" slot-scope="data">
+        {{data.index + 1}}
+      </template>
       <template slot="id" slot-scope="data">
         <router-link v-bind:to="{name: 'source-details', params: {id: data.item.id}}">
           {{ data.item.id }}
@@ -27,6 +30,7 @@
         <img v-else src="../assets/red.png" height="24">
       </template>
       <template slot="actions" slot-scope="data">
+        <b-button-group>
         <b-button v-if="data.item.enabled" size="sm" variant="outline-success"  v-on:click="setEnabled(data.item, false)">
           Disable
         </b-button>
@@ -39,6 +43,7 @@
         <b-button size="sm" variant="danger" v-on:click="deleteSource(data.item.id)">
           Delete
         </b-button>
+        </b-button-group>
       </template>
     </b-table>
   </b-container>
@@ -57,7 +62,8 @@
       return {
         sources: [],
         fields: [
-          'id',
+          'index',
+          //'id',
           'enabled',
           'name',
           // '_class',

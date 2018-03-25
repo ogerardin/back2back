@@ -1,10 +1,11 @@
 <template>
-  <div>
+  <b-container>
 
-    <h1>Sources</h1>
+    <b-card title="Sources">
     <router-view></router-view>
+    </b-card>
 
-  </div>
+  </b-container>
 </template>
 
 <script>

@@ -53,10 +53,9 @@ export default new Router({
       component: Targets,
       children: [
         { path: '', component: TargetList },
-        // { path: 'add', name: 'source-add', component: SourceAdd },
+        // { path: 'add', name: 'source-add', component: TargetAdd },
         // { path: ':id', name: 'target-details', component: TargetDetails },
         // { path: ':id/edit', name: 'target-edit', component: TargetEdit },
-        // { path: ':id/add-folder', name: 'target-path-select', component: TargetAddFolder },
       ]
     },
     {

@@ -1,6 +1,9 @@
 <template>
   <b-container>
       <b-table :items="targets" :fields="fields" hover>
+        <template slot="index" slot-scope="data">
+          {{data.index + 1}}
+        </template>
         <template slot="id" slot-scope="data">
           <router-link v-bind:to="{name: 'target-details', params: {id: data.item.id}}">
             {{ data.item.id }}
@@ -34,7 +37,8 @@
       return {
         targets: [],
         fields: [
-          'id',
+          'index',
+          //'id',
           'enabled',
           // '_class',
           'description',

@@ -1,10 +1,12 @@
 <template>
-  <div>
+  <b-container>
 
-    <h1>Targets</h1>
+    <b-card title="Targets">
     <router-view></router-view>
+    </b-card>
 
-  </div>
+
+  </b-container>
 </template>
 
 <script>
