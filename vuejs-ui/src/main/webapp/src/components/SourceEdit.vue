@@ -70,7 +70,7 @@
         const source = this.source;
         this.$http.put('http://localhost:8080/api/sources/' + source.id, source).then(response => {
           this.source = response.data;
-          // this.$router.go(-1);
+          this.$router.go(-1);
         }, error => {
           console.log(error)
         });

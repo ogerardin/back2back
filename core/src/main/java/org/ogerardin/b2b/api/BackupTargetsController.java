@@ -3,10 +3,8 @@ package org.ogerardin.b2b.api;
 import org.ogerardin.b2b.domain.BackupTarget;
 import org.ogerardin.b2b.domain.mongorepository.BackupTargetRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -33,4 +31,34 @@ public class BackupTargetsController {
         return targetRepository.findOne(id);
     }
 
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @ResponseBody
+    public BackupTarget create(@RequestBody BackupTarget target) {
+        BackupTarget savedTarget = targetRepository.save(target);
+        //TODO: adding a target should trigger an update of current jobs
+        return savedTarget;
+    }
+
+    @PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @ResponseBody
+    public BackupTarget update(@PathVariable String id,
+                               @RequestBody BackupTarget target) throws NotFoundException {
+        assertExists(id);
+        target.setId(id);
+        BackupTarget savedTarget = targetRepository.save(target);
+        //TODO: updating a target should trigger an update of current jobs
+        return savedTarget;
+    }
+
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable String id) throws NotFoundException {
+        assertExists(id);
+        targetRepository.delete(id);
+    }
+
+    private void assertExists(@PathVariable String id) throws NotFoundException {
+        if (!targetRepository.exists(id)) {
+            throw new NotFoundException(id);
+        }
+    }
 }

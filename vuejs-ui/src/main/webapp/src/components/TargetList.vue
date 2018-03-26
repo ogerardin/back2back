@@ -22,7 +22,7 @@
           <b-button size="sm" variant="primary" :to="{name: 'target-edit', params: {id: data.item.id}}">
             Edit
           </b-button>
-          <b-button size="sm" variant="danger" :to="{name: 'target-delete', params: {id: data.item.id}}">
+          <b-button size="sm" variant="danger" v-on:click="deleteTarget(data.item.id)">
             Delete
           </b-button>
         </template>
@@ -40,6 +40,7 @@
           'index',
           //'id',
           'enabled',
+          'name',
           // '_class',
           'description',
           'actions',
@@ -53,14 +54,24 @@
       this.getTargets();
     },
     methods: {
-      getTargets: function () {
+      getTargets() {
         this.$http.get('http://localhost:8080/api/targets').then(response => {
           this.targets = response.data;
         }, error => {
           console.log(error)
         });
+      },
+      deleteTarget(id) {
+        if (! confirm("Really delete Target? This action cannot be undone.")) {
+          return;
+        }
+        this.$http.delete('http://localhost:8080/api/targets/' + id).then(response => {
+          this.getTargets();
+        }, error => {
+          console.log(error)
+        });
+      },
 
-      }
     },
   }
 </script>

@@ -30,7 +30,6 @@
         <img v-else src="../assets/red.png" height="24">
       </template>
       <template slot="actions" slot-scope="data">
-        <b-button-group>
         <b-button v-if="data.item.enabled" size="sm" variant="outline-success"  v-on:click="setEnabled(data.item, false)">
           Disable
         </b-button>
@@ -43,7 +42,6 @@
         <b-button size="sm" variant="danger" v-on:click="deleteSource(data.item.id)">
           Delete
         </b-button>
-        </b-button-group>
       </template>
     </b-table>
   </b-container>
@@ -68,7 +66,7 @@
           'name',
           // '_class',
           'description',
-          'paths',
+          //'paths',
           'totalFiles',
           'totalBytes',
           'actions',
@@ -89,7 +87,7 @@
       }
     },
     methods: {
-      getSources: function () {
+      getSources() {
         this.$http.get('http://localhost:8080/api/sources').then(response => {
           this.sources = response.data;
         }, error => {
