@@ -5,13 +5,23 @@
     </slot>
 
     <b-form v-on:submit="updateTarget">
-      <b-form-group label="ID" label-for="id">
+
+      <b-form-group label="ID:" label-for="id">
         <b-form-input id="id" v-model="target.id" readonly></b-form-input>
       </b-form-group>
 
-      <b-form-group label="Name" label-for="name">
+      <b-form-group label="Name:" label-for="name">
         <b-form-input id="name" v-model="target.name"></b-form-input>
       </b-form-group>
+
+      <template v-if="target._class=='.PeerTarget'">
+        <b-form-group label="Hostname:" label-for="host">
+          <b-form-input id="host" required v-model="target.hostname"></b-form-input>
+        </b-form-group>
+        <b-form-group label="Port:" label-for="port">
+          <b-form-input id="port" required type="number" v-model="target.port"></b-form-input>
+        </b-form-group>
+      </template>
 
       <b-form-group>
         <b-form-checkbox v-model="target.enabled">Enabled</b-form-checkbox>
@@ -21,6 +31,7 @@
         <b-button variant="primary" type="submit">Save</b-button>
         <b-button variant="secondary" v-on:click="cancel()">Cancel</b-button>
       </slot>
+
     </b-form>
   </b-container>
 </template>
