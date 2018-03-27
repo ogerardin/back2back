@@ -13,6 +13,7 @@ import SourceAddFolder from '@/components/SourceAddFolder'
 import Targets from '@/components/Targets'
 import TargetList from '@/components/TargetList'
 import TargetEdit from '@/components/TargetEdit'
+import TargetAdd from '@/components/TargetAdd'
 import AdminPanel from '@/components/AdminPanel'
 
 Vue.use(Router);
@@ -52,7 +53,7 @@ export default new Router({
       component: Targets,
       children: [
         { path: '', component: TargetList },
-        // { path: 'add', name: 'target-add', component: TargetAdd },
+        { path: 'add', name: 'target-add', component: TargetAdd },
         { path: ':id/edit', name: 'target-edit', component: TargetEdit },
       ]
     },

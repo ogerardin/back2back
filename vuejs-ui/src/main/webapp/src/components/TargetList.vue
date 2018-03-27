@@ -27,6 +27,10 @@
           </b-button>
         </template>
       </b-table>
+
+    <b-button variant="secondary" :to="{name: 'target-add'}">
+      Add Target
+    </b-button>
   </b-container>
 </template>
 
