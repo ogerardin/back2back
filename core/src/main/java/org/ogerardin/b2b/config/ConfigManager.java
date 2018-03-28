@@ -14,7 +14,7 @@ import java.util.UUID;
 @Slf4j
 public class ConfigManager {
 
-    public static final String CONFIG_KEY_MACHINE_INFO = "machineInfo";
+    public static final String KEY_MACHINE_INFO = "machineInfo";
 
     private ConfigItem.MachineInfo machineInfo;
 
@@ -23,10 +23,10 @@ public class ConfigManager {
 
     public void init() {
         // get the stored computerId, if we don't have one assign a random one and sotre it
-        machineInfo = (ConfigItem.MachineInfo) configItemRepository.findOne(CONFIG_KEY_MACHINE_INFO);
+        machineInfo = (ConfigItem.MachineInfo) configItemRepository.findOne(KEY_MACHINE_INFO);
         if (machineInfo == null) {
             UUID uuid = UUID.randomUUID();
-            machineInfo = new ConfigItem.MachineInfo(CONFIG_KEY_MACHINE_INFO, uuid.toString());
+            machineInfo = new ConfigItem.MachineInfo(KEY_MACHINE_INFO, uuid.toString());
             machineInfo = configItemRepository.insert(machineInfo);
         }
         log.info("Machine ID: " + machineInfo.getComputerId());

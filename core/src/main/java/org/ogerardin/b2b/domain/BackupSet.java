@@ -1,13 +1,16 @@
 package org.ogerardin.b2b.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import org.ogerardin.b2b.mongo.cascade.CascadeSave;
 import org.springframework.batch.core.JobParameter;
+import org.springframework.batch.core.JobParameters;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -46,12 +49,13 @@ public class BackupSet implements JobParametersPopulator {
     private long toDoCount;
     private long toDoSize;
 
-//    private Path lastFile;
-//    private Path currentFile;
-
     private String lastError;
 
     private String status;
+
+    // Job information
+    private String jobName;
+    private Long jobId;
 
     @Override
     public void populateParams(Map<String, JobParameter> params) {
@@ -60,4 +64,23 @@ public class BackupSet implements JobParametersPopulator {
         backupTarget.populateParams(params);
     }
 
+    @JsonIgnore
+    public JobParameters getJobParameters() {
+        Map<String, JobParameter> params = new HashMap<>();
+        populateParams(params);
+        return new JobParameters(params);
+    }
+
+    public void resetState() {
+        currentBackupStartTime = null;
+        nextBackupTime = null;
+        batchCount = 0;
+        batchSize = 0;
+        toDoCount = 0;
+        toDoSize = 0;
+        lastError = null;
+        status = "Inactive";
+        jobName = null;
+        jobId = null;
+    }
 }

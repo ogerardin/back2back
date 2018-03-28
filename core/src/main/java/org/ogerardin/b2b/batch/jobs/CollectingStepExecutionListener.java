@@ -40,19 +40,20 @@ public class CollectingStepExecutionListener extends BackupSetAwareBean implemen
             FileSet allFiles = backupJobContext.getAllFiles();
             int fileCount = allFiles.fileCount();
             long byteCount = allFiles.getByteCount();
+
             String status = "Collected files: " + fileCount + " file(s), " + FormattingHelper.humanReadableByteCount(byteCount);
             log.info(status);
 
             backupSet.setFileCount(fileCount);
             backupSet.setSize(byteCount);
+            backupSet.setStatus(status);
 
             BackupSource backupSource = backupSet.getBackupSource();
-            if (backupSource != null) {
+            if (backupSource instanceof FilesystemSource) {
                 ((FilesystemSource) backupSource).setTotalBytes(byteCount);
                 ((FilesystemSource) backupSource).setTotalFiles(fileCount);
             }
 
-            backupSet.setStatus(status);
         }
         else {
             String status = "Failed to collect files";

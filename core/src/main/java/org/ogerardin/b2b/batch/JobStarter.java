@@ -14,9 +14,8 @@ import org.springframework.batch.core.repository.JobExecutionAlreadyRunningExcep
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 
 /**
  * Class responsible for starting appropriate {@link Job}s based on the stored configuration.
@@ -53,10 +52,11 @@ public class JobStarter {
      */
     public void startAllJobs() {
         log.debug("STARTING JOBS");
-        sourceRepository.findAll().stream()
-                .filter(BackupSource::isEnabled)
-                .filter(BackupSource::shouldStartJob)
-                .forEach(this::startJobs);
+        for (BackupSource backupSource : sourceRepository.findAll()) {
+            if (backupSource.shouldStartJob() && backupSource.isEnabled()) {
+                startJobs(backupSource);
+            }
+        }
         log.debug("Done strating jobs");
     }
 
@@ -65,16 +65,18 @@ public class JobStarter {
      */
     private void startJobs(BackupSource source) {
         log.debug("Starting jobs for source " + source);
-        targetRepository.findAll().stream()
-                .filter(BackupTarget::isEnabled)
-                .forEach(target -> startJob(source, target));
+        for (BackupTarget target : targetRepository.findAll()) {
+            if (target.isEnabled()) {
+                startJob(source, target);
+            }
+        }
     }
 
     /**
      * Attempt to start a backup job for the specified source and target
      */
     private void startJob(BackupSource source, BackupTarget target) {
-        log.error("Starting job for source:" + source + ", target:" + target);
+        log.debug("Starting job for source:" + source + ", target:" + target);
         try {
             BackupSet backupSet = findBackupSet(source, target);
             startJob(backupSet);
@@ -110,49 +112,43 @@ public class JobStarter {
      * Attempts to start the appropriate backup job for the specified BackupSet.
      * @throws JobExecutionException in case Spring Batch failed to start the job
      */
-    private void startJob(BackupSet backupSet) throws JobExecutionException, B2BException {
+    private void  startJob(BackupSet backupSet) throws JobExecutionException, B2BException {
         log.debug("Looking for job matching backup set: " + backupSet);
 
-        Map<String, JobParameter> params = new HashMap<>();
-        backupSet.populateParams(params);
-        JobParameters jobParameters = new JobParameters(params);
+        JobParameters jobParameters = backupSet.getJobParameters();
         log.debug("Parameters: " + jobParameters);
 
         // try to find a Job that is applicable to the parameters
-        Job job = findApplicableJob(jobParameters);
-        if (job == null) {
-            throw new B2BException("No job found for parameters " + jobParameters);
-        }
+        Job job = findApplicableJob(jobParameters).orElseThrow(() ->
+            new B2BException("No job found for parameters " + jobParameters));
 
         // launch it
-        // FIXME: in case we have a persistent JobRepository, we should find the latest instance with these
-        // FIXME parameters and apply org.springframework.batch.core.getJobParametersIncrementer.getNext before staring
         log.info("Starting job: " + job.getName() + " with params: " + jobParameters);
-        jobLauncher.run(job, jobParameters);
+        JobExecution jobExecution = jobLauncher.run(job, jobParameters);
+        backupSet.setJobName(job.getName());
+        backupSet.setJobId(jobExecution.getJobId());
+        backupSetRepository.save(backupSet);
     }
 
     /**
      * Finds a Job from all jobs that exist in the Spring application context, which matches the specified parameters
-     * i.e. for which calling the validator doesn't throw a {@link JobParametersInvalidException}. If several jobs
-     * match, which one is returned is undefined.
-     * @return The Job, or null if none found
+     * i.e. for which calling the validator doesn't throw a {@link JobParametersInvalidException}. The first job to
+     * match is returned.
+     * @return The Job, or Optional#empty() if not found
      */
-    private Job findApplicableJob(JobParameters jobParameters) {
+    private Optional<Job> findApplicableJob(JobParameters jobParameters) {
         for (Job job: allJobs) {
             JobParametersValidator parametersValidator = job.getJobParametersValidator();
-            if (parametersValidator != null) {
-                try {
-                    parametersValidator.validate(jobParameters);
-                } catch (JobParametersInvalidException e) {
-                    // validation failed: try next job
-                    continue;
-                }
+            try {
+                parametersValidator.validate(jobParameters);
+                // validation succeeded: use this job
+                return Optional.of(job);
+            } catch (JobParametersInvalidException e) {
+                // validation failed
             }
-            // validation succeeded: use this job
-            return job;
         }
         // none of the jobs passed validation
-        return null;
+        return Optional.empty();
     }
 
 

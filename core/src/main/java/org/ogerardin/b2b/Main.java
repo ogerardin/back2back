@@ -2,6 +2,7 @@ package org.ogerardin.b2b;
 
 import org.ogerardin.b2b.batch.JobStarter;
 import org.ogerardin.b2b.config.ConfigManager;
+import org.ogerardin.b2b.domain.BackupSetManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -29,6 +30,9 @@ public class Main {
     @Autowired
     private ConfigManager configManager;
 
+    @Autowired
+    private BackupSetManager backupSetManager;
+
     public Main() {
     }
 
@@ -46,7 +50,13 @@ public class Main {
     @Bean
     CommandLineRunner init() {
         return args -> {
+            // load initial config
             configManager.init();
+
+            // reset the state of all backupsets
+            backupSetManager.resetAll();
+
+            // start backup jobs
             if (properties.startJobs) {
                 jobStarter.startAllJobs();
             }
