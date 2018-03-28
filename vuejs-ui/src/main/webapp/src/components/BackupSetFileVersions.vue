@@ -1,14 +1,14 @@
 <template>
-    <div>
+    <b-container>
       <h2>File: {{ path }}</h2>
-      <b-table :items="versions" :fields="fields">
+      <b-table small hover :items="versions" :fields="fields">
         <template slot="actions" slot-scope="data">
           <b-button size="sm" variant="secondary" :href="'http://localhost:8080/api/backupsets/' + id + '/versions/' + data.item.id + '/contents'">
             Get
           </b-button>
         </template>
       </b-table>
-    </div>
+    </b-container>
 </template>
 
 <script>
@@ -35,8 +35,8 @@
     },
     methods: {
       getFiles: function() {
-        var id = this.$route.params.id;
-        var path = this.$route.params.file_path;
+        let id = this.$route.params.id;
+        let path = this.$route.params.file_path;
         this.$http.get('http://localhost:8080/api/backupsets/' + id + '/versions?path=' + encodeURIComponent(path)).then(response => {
           this.id = id;
           this.path = path;

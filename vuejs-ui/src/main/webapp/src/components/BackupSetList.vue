@@ -1,23 +1,22 @@
 <template>
   <b-table :items="backupSets" :fields="fields">
+    <template slot="index" slot-scope="data">
+      {{data.index + 1}}
+    </template>
     <template slot="id" slot-scope="data">
       <router-link v-bind:to="{name: 'backupset-files', params: {id: data.value}}">
         {{data.value}}
       </router-link>
     </template>
     <template slot="backupSource" slot-scope="data">
-      <router-link v-bind:to="{name: 'source-details', params: {id: data.value.id}}">
-        {{data.value.id}}
+      <router-link v-bind:to="{name: 'source-edit', params: {id: data.value.id}}">
+        {{data.value.description}}
       </router-link>
-      <br/>
-      {{data.value.description}}
     </template>
     <template slot="backupTarget" slot-scope="data">
-      <router-link v-bind:to="{name: 'target-details', params: {id: data.value.id}}">
-        {{data.value.id}}
+      <router-link v-bind:to="{name: 'target-edit', params: {id: data.value.id}}">
+        {{data.value.description}}
       </router-link>
-      <br/>
-      {{data.value.description}}
     </template>
     <template slot="status" slot-scope="data">
       {{data.value}}
@@ -45,7 +44,8 @@
       return {
         backupSets: [],
         fields: [
-          'id',
+          'index',
+          // 'id',
           'backupSource',
           'backupTarget',
           // 'description',

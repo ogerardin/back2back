@@ -13,18 +13,20 @@
         <b-form-input id="name" v-model="source.name"></b-form-input>
       </b-form-group>
 
-      <b-form-group label="Folders">
-        <b-input-group prepend="Folder" v-for="p in source.paths" :key="p">
-          <b-form-input readonly :value="p"></b-form-input>
-          <b-input-group-append>
-            <b-btn variant="warning" v-on:click="removeFolder(p)">Remove</b-btn>
-          </b-input-group-append>
-        </b-input-group>
+      <template v-if="source._class=='.FilesystemSource'">
+        <b-form-group label="Folders">
+          <b-input-group prepend="Folder" v-for="p in source.paths" :key="p">
+            <b-form-input readonly :value="p"></b-form-input>
+            <b-input-group-append>
+              <b-btn variant="warning" v-on:click="removeFolder(p)">Remove</b-btn>
+            </b-input-group-append>
+          </b-input-group>
 
-        <b-button size="sm" variant="secondary" :to="{name: 'source-path-select', params: {id: source.id}}">
-          Add Folder
-        </b-button>
-      </b-form-group>
+          <b-button size="sm" variant="secondary" :to="{name: 'source-path-select', params: {id: source.id}}">
+            Add Folder
+          </b-button>
+        </b-form-group>
+      </template>
 
       <b-form-group>
         <b-form-checkbox v-model="source.enabled">Enabled</b-form-checkbox>

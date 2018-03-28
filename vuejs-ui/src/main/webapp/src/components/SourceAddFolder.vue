@@ -54,6 +54,7 @@
       getRoots() {
         this.$http.get('http://localhost:8080/api/filesystem/roots').then(response => {
           this.roots = response.data;
+          // by default we start in the first root folder
           this.getFolders(this.roots[0].path)
         }, error => {
           console.log(error)

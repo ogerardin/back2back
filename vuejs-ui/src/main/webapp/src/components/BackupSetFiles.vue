@@ -1,7 +1,7 @@
 <template>
-  <div>
+  <b-container>
     <h2>Files for backup set: {{ id }}</h2>
-    <b-table :items="files" :fields="fields">
+    <b-table small hover :items="files" :fields="fields">
       <template slot="path" slot-scope="data">
         {{data.item}}
       </template>
@@ -11,7 +11,7 @@
         </b-button>
       </template>
     </b-table>
-  </div>
+  </b-container>
 </template>
 
 <script>
