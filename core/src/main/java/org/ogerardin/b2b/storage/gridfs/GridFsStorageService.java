@@ -25,6 +25,8 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -40,6 +42,7 @@ public class GridFsStorageService implements StorageService {
 
     private final GridFsTemplate gridFsTemplate;
     private final MongoTemplate mongoTemplate;
+    private final MongoConverter mongoConverter;
     private final String bucket;
 
     public GridFsStorageService(MongoDbFactory mongoDbFactory, MongoConverter mongoConverter, MongoTemplate mongoTemplate) {
@@ -49,6 +52,7 @@ public class GridFsStorageService implements StorageService {
     public GridFsStorageService(MongoDbFactory mongoDbFactory, MongoConverter mongoConverter, MongoTemplate mongoTemplate, String bucket) {
         this.gridFsTemplate = new GridFsTemplate(mongoDbFactory, mongoConverter, bucket);
         this.mongoTemplate = mongoTemplate;
+        this.mongoConverter = mongoConverter;
         this.bucket = bucket;
     }
 
@@ -80,12 +84,35 @@ public class GridFsStorageService implements StorageService {
 
     }
 
+
     @Override
-    public Stream<Path> getAllPaths() {
-        return gridFsTemplate.find(new Query()).stream()
-                .map(GridFSFile::getFilename)
-                .distinct()
-                .map(GridFsStorageService::asPath);
+    public Stream<FileInfo> getAllFiles(boolean includeDeleted) {
+        Stream<FileInfo> stream = gridFsTemplate.find(new Query()).stream()
+                // group by filename and map to the latest GridFSFile
+                .collect(Collectors.groupingBy(
+                        GridFSFile::getFilename,
+                        Collectors.maxBy(Comparator.comparing(GridFSFile::getUploadDate))))
+                // map values (=latest GridFSFile) to FileInfo
+                .values().stream()
+                .map(Optional::get)
+                .map(this::asFileInfo);
+
+        // if required, keep only those that are not deleted
+        if (!includeDeleted) {
+            stream = stream.filter(fileInfo -> !fileInfo.isDeleted());
+        }
+
+        return stream;
+    }
+
+    private FileInfo asFileInfo(GridFSDBFile gridFSDBFile) {
+        Path path = asPath(gridFSDBFile.getFilename());
+        Metadata metadata = this.getMetadata(gridFSDBFile);
+        return new FileInfo(path, metadata.isDeleted());
+    }
+
+    private Metadata getMetadata(GridFSDBFile f) {
+        return mongoConverter.read(Metadata.class, f.getMetaData());
     }
 
     @Override
@@ -96,7 +123,7 @@ public class GridFsStorageService implements StorageService {
 
     @Override
     public InputStream getAsInputStream(String filename) throws StorageFileNotFoundException {
-        GridFSDBFile fsdbFile = getGridFSDBFile(filename);
+        GridFSDBFile fsdbFile = getLatestGridFSDBFile(filename);
         return fsdbFile.getInputStream();
 
     }
@@ -179,7 +206,7 @@ public class GridFsStorageService implements StorageService {
     /**
      * Returns the {@link GridFSDBFile} corresponding to the most recent version of the specified file stored.
      */
-    private GridFSDBFile getGridFSDBFile(String filename) throws StorageFileNotFoundException {
+    private GridFSDBFile getLatestGridFSDBFile(String filename) throws StorageFileNotFoundException {
         // we do the sorting in the stream pipeline as GridFs doesn't support sorted queries
         GridFSDBFile fsdbFile = gridFsTemplate.find(new Query(GridFsCriteria.whereFilename().is(filename))).stream()
                 .max(Comparator.comparing(GridFSFile::getUploadDate))
@@ -222,7 +249,7 @@ public class GridFsStorageService implements StorageService {
 
     @Override
     public FileVersion getLatestFileVersion(String filename) throws StorageFileNotFoundException {
-        GridFSDBFile fsdbFile = getGridFSDBFile(filename);
+        GridFSDBFile fsdbFile = getLatestGridFSDBFile(filename);
         return getFileVersion(fsdbFile);
     }
 

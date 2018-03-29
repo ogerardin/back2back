@@ -19,7 +19,7 @@ public interface StorageService {
 
     void store(MultipartFile file);
 
-    Stream<Path> getAllPaths();
+    Stream<FileInfo> getAllFiles(boolean includeDeleted);
     Stream<FileVersion> getAllFileVersions();
 
     InputStream getAsInputStream(String filename) throws StorageFileNotFoundException;

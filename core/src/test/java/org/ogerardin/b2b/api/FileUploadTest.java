@@ -4,6 +4,7 @@ import org.hamcrest.Matchers;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.ogerardin.b2b.storage.FileInfo;
 import org.ogerardin.b2b.storage.StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -37,8 +38,10 @@ public class FileUploadTest {
 
     @Test
     public void shouldListAllFiles() throws Exception {
-        given(this.storageService.getAllPaths())
-                .willReturn(Stream.of(Paths.get("first.txt"), Paths.get("second.txt")));
+        given(this.storageService.getAllFiles(true))
+                .willReturn(Stream.of(
+                        new FileInfo(Paths.get("first.txt"), false),
+                        new FileInfo(Paths.get("second.txt"), false)));
 
         this.mvc.perform(get("/api/files")).andExpect(status().isOk())
                 .andExpect(model().attribute("files",

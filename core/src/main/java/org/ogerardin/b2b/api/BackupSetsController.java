@@ -2,10 +2,7 @@ package org.ogerardin.b2b.api;
 
 import org.ogerardin.b2b.domain.BackupSet;
 import org.ogerardin.b2b.domain.mongorepository.BackupSetRepository;
-import org.ogerardin.b2b.storage.StorageFileVersionNotFoundException;
-import org.ogerardin.b2b.storage.StorageService;
-import org.ogerardin.b2b.storage.StorageServiceFactory;
-import org.ogerardin.b2b.storage.FileVersion;
+import org.ogerardin.b2b.storage.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.Resource;
@@ -43,16 +40,23 @@ public class BackupSetsController {
         return backupSetRepository.findOne(id);
     }
 
+    /**
+     * Returns all the {@link Path}s stored as part of the {@link BackupSet} with the specified ID.
+     * @param includeDeleted is specified and true, also include the files that do not longer exist in the source.
+     */
     @GetMapping("/{id}/files")
-    public Path[] getFiles(@PathVariable String id) {
+    public FileInfo[] getFiles(@PathVariable String id, @RequestParam(required = false) Boolean includeDeleted) {
+        if (includeDeleted == null) {
+            includeDeleted = false;
+        }
         BackupSet backupSet = backupSetRepository.findOne(id);
         StorageService storageService = storageServiceFactory.getStorageService(backupSet.getId());
-        return storageService.getAllPaths().toArray(Path[]::new);
+        return storageService.getAllFiles(includeDeleted).toArray(FileInfo[]::new);
     }
 
     /**
      * @param path the path of the file to query; must be url-encoded. We use a request parameter rather than a
-     *             path parameter because it's more difficult to pass slashes inside a path parameter.
+     *             path variable because it's awkward to handle slashes inside a path variable.
      */
     @GetMapping("/{id}/versions")
     public FileVersion[] getVersions(@PathVariable String id, @RequestParam(required = false) String path) {
@@ -79,7 +83,7 @@ public class BackupSetsController {
         BackupSet backupSet = backupSetRepository.findOne(id);
         StorageService storageService = storageServiceFactory.getStorageService(backupSet.getId());
         FileVersion fileVersion = storageService.getFileVersion(versionId);
-        String filename =Paths.get(fileVersion.getFilename()).getFileName().toString();
+        String filename = Paths.get(fileVersion.getFilename()).getFileName().toString();
         Resource resource = storageService.getFileVersionAsResource(versionId);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename=\"" + filename + "\"")

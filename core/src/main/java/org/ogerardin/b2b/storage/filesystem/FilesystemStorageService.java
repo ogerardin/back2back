@@ -20,32 +20,33 @@ import java.util.stream.Stream;
 import static org.ogerardin.b2b.util.LambdaExceptionUtil.rethrowFunction;
 
 /**
- * Implementation of {@link StorageService} using the filesystem. All stored files are saved under a base directory; the
- * path of the local file is the path of the original file, re-rooted at the base directory; e.g. if saving file
- * /x/y/z and the base directory is /a/b/c, then the file will be saved as /a/b/c/x/y/z.
+ * Implementation of {@link StorageService} using the filesystem.
+ * All stored files are saved under a base directory; the path of the local file is the path of the original file,
+ * re-rooted at the base directory; for example if saving file /x/y/z and the base directory is /a/b/c, then the file
+ * will be saved as /a/b/c/x/y/z.
  *
- * This implemetation does not manage multiple versions of a stored file.
+ * This implemetation does not manage multiple versions of a stored file, nor deleted files.
  */
 public class FilesystemStorageService implements StorageService {
 
     @Autowired
     MD5Calculator md5Calculator;
 
-    private final Path directory;
+    private final Path baseDirectory;
 
-    public FilesystemStorageService(Path directory) {
-        this.directory = directory;
+    public FilesystemStorageService(Path baseDirectory) {
+        this.baseDirectory = baseDirectory;
     }
 
     @Override
     public void init() {
         try {
-            Files.createDirectories(directory);
+            Files.createDirectories(baseDirectory);
         } catch (IOException e) {
-            throw new StorageException("failed to create base directory: " + directory, e);
+            throw new StorageException("failed to create base directory: " + baseDirectory, e);
         }
-        if (! Files.isWritable(directory)) {
-            throw new StorageException("Base directory is not writable: " + directory);
+        if (! Files.isWritable(baseDirectory)) {
+            throw new StorageException("Base directory is not writable: " + baseDirectory);
         }
     }
 
@@ -63,11 +64,13 @@ public class FilesystemStorageService implements StorageService {
     }
 
     @Override
-    public Stream<Path> getAllPaths() {
+    public Stream<FileInfo> getAllFiles(boolean includeDeleted) {
+        //FIXME consider includeDeleted
         try {
-            return Files.walk(directory)
+            return Files.walk(baseDirectory)
                     .filter(p -> !Files.isDirectory(p))
-                    .map(this::localToRemote);
+                    .map(this::localToRemote)
+                    .map(path -> new FileInfo(path, false));
         } catch (IOException e) {
             throw new StorageException("Exception while listing local files", e);
         }
@@ -76,7 +79,7 @@ public class FilesystemStorageService implements StorageService {
     @Override
     public Stream<FileVersion> getAllFileVersions() {
         try {
-            return Files.walk(directory)
+            return Files.walk(baseDirectory)
                     .filter(p -> !Files.isDirectory(p))
                     .map(rethrowFunction(this::_getFileVersion));
         } catch (Exception e) {
@@ -90,7 +93,7 @@ public class FilesystemStorageService implements StorageService {
         Path relativePath = (root != null) ? root.relativize(remotePath) : remotePath;
 
         // local path is relative to the directory
-        return directory.resolve(relativePath);
+        return baseDirectory.resolve(relativePath);
     }
 
     /**
@@ -98,7 +101,7 @@ public class FilesystemStorageService implements StorageService {
      * The remote path is the local path relative to the storage base directory.
      */
     private Path localToRemote(Path localPath) {
-        return directory.relativize(localPath);
+        return baseDirectory.relativize(localPath);
     }
 
     @Override
@@ -124,13 +127,13 @@ public class FilesystemStorageService implements StorageService {
     public void deleteAll() {
         //noinspection ResultOfMethodCallIgnored
         try {
-            Files.walk(directory)
+            Files.walk(baseDirectory)
                     .sorted(Comparator.reverseOrder())
                     .map(Path::toFile)
     //                .peek(System.out::println)
                     .forEach(File::delete);
         } catch (IOException e) {
-            throw new StorageException("Exception while trying to recursively delete " + directory, e);
+            throw new StorageException("Exception while trying to recursively delete " + baseDirectory, e);
         }
     }
 

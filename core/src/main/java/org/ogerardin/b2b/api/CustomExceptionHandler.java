@@ -19,6 +19,7 @@ public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
         Throwable cause = ex.getCause();
         if (cause instanceof IllegalStateException) {
             Throwable cause2 = cause.getCause();
+            //FIXME this is Tomcat-dependent
             if (cause2 instanceof FileUploadBase.SizeLimitExceededException) {
                 ResponseEntity<String> responseEntity = new ResponseEntity<>(cause2.toString(), HttpStatus.PAYLOAD_TOO_LARGE);
                 return responseEntity;

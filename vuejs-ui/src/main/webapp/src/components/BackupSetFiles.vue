@@ -2,11 +2,14 @@
   <b-container>
     <h2>Files for backup set: {{ id }}</h2>
     <b-table small hover :items="files" :fields="fields">
+      <template slot="deleted" slot-scope="data">
+        {{data.item.deleted}}
+      </template>
       <template slot="path" slot-scope="data">
-        {{data.item}}
+        {{data.item.path}}
       </template>
       <template slot="actions" slot-scope="data">
-        <b-button size="sm" variant="secondary" :to="{name: 'backupset-fileversions', params: {id: id, file_path: data.item}}">
+        <b-button size="sm" variant="secondary" :to="{name: 'backupset-fileversions', params: {id: id, file_path: data.item.path}}">
           Versions
         </b-button>
       </template>
@@ -22,6 +25,7 @@
         id: null,
         files: [],
         fields: [
+          'deleted',
           'path',
           'actions',
         ]
