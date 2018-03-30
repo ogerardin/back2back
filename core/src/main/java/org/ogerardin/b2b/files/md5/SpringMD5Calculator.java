@@ -18,7 +18,7 @@ public class SpringMD5Calculator implements MD5Calculator, StreamingMd5Calculato
     }
 
     @Override
-    public byte[] md5Hash(InputStream is) throws IOException {
-        return DigestUtils.md5Digest(is);
+    public byte[] md5Hash(InputStream inputStream) throws IOException {
+        return DigestUtils.md5Digest(inputStream);
     }
 }

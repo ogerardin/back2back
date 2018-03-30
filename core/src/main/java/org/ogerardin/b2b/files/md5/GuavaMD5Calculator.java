@@ -14,16 +14,20 @@ import java.io.InputStream;
 @Component
 public class GuavaMD5Calculator implements MD5Calculator, StreamingMd5Calculator {
 
+    private static final int BUFFER_SIZE = 1024;
+
     @Override
     public byte[] md5Hash(byte[] bytes) {
+        //noinspection deprecation
         return Hashing.md5().hashBytes(bytes).asBytes();
     }
 
     @Override
-    public byte[] md5Hash(InputStream is) throws IOException {
+    public byte[] md5Hash(InputStream inputStream) throws IOException {
+        //noinspection deprecation
         Hasher hasher = Hashing.md5().newHasher();
-        byte[] buffer = new byte[1024];
-        for(int read = is.read(buffer, 0, 1024); read > -1; read = is.read(buffer, 0, 1024)) {
+        byte[] buffer = new byte[BUFFER_SIZE];
+        for(int read = inputStream.read(buffer, 0, buffer.length); read > -1; read = inputStream.read(buffer, 0, buffer.length)) {
             hasher.putBytes(buffer, 0, read);
         }
         return hasher.hash().asBytes();

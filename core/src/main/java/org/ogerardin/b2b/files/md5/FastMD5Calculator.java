@@ -12,6 +12,8 @@ import java.io.InputStream;
 @Component
 public class FastMD5Calculator implements MD5Calculator, StreamingMd5Calculator {
 
+    private static final int BUFFER_SIZE = 1024;
+
     @Override
     public byte[] md5Hash(byte[] bytes) {
         MD5 md5 = new MD5();
@@ -21,10 +23,10 @@ public class FastMD5Calculator implements MD5Calculator, StreamingMd5Calculator 
 
 
     @Override
-    public byte[] md5Hash(InputStream is) throws IOException {
+    public byte[] md5Hash(InputStream inputStream) throws IOException {
         MD5 md5 = new MD5();
-        byte[] buffer = new byte[1024];
-        for(int read = is.read(buffer, 0, 1024); read > -1; read = is.read(buffer, 0, 1024)) {
+        byte[] buffer = new byte[BUFFER_SIZE];
+        for(int read = inputStream.read(buffer, 0, buffer.length); read > -1; read = inputStream.read(buffer, 0, buffer.length)) {
             md5.Update(buffer, 0, read);
         }
         return md5.Final();

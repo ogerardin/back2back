@@ -20,7 +20,7 @@ public class ApacheCommonsMD5Calculator implements MD5Calculator, StreamingMd5Ca
     }
 
     @Override
-    public byte[] md5Hash(InputStream is) throws IOException {
-        return DigestUtils.md5(is);
+    public byte[] md5Hash(InputStream inputStream) throws IOException {
+        return DigestUtils.md5(inputStream);
     }
 }

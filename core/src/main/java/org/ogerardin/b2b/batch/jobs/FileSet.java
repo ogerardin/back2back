@@ -12,6 +12,7 @@ import java.util.Set;
  */
 @Data
 public class FileSet {
+
     private final Set<LocalFileInfo> files = new HashSet<>();
     private long byteCount = 0;
 
@@ -28,12 +29,16 @@ public class FileSet {
         this.byteCount += byteCount;
     }
 
-    public int fileCount() {
+    public int getFileCount() {
         return files.size();
     }
 
     public void reset() {
         this.files.clear();
         this.byteCount = 0;
+    }
+
+    FileSetStats getStats() {
+        return new FileSetStats(getFileCount(), getByteCount());
     }
 }

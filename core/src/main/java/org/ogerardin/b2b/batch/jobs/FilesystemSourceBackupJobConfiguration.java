@@ -5,10 +5,6 @@ import org.ogerardin.b2b.batch.FileSetItemWriter;
 import org.ogerardin.b2b.domain.FilesystemSource;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
-import org.springframework.batch.core.step.tasklet.Tasklet;
-import org.springframework.batch.item.ItemReader;
-import org.springframework.batch.item.ItemWriter;
-import org.springframework.batch.item.support.IteratorItemReader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 
@@ -26,67 +22,6 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
         addMandatoryParameter("source.roots");
     }
 
-    /** Provides a {@link Tasklet} that populates the current job's {@link BackupJobContext#allFiles} */
-    @Bean
-    @JobScope
-    protected ListFilesTasklet listFilesTasklet(
-            @Value("#{jobParameters['source.roots']}") String sourceRootsParam,
-            BackupJobContext backupJobContext
-    ) throws IOException {
-        List<Path> roots = OBJECT_MAPPER.readValue(sourceRootsParam, new TypeReference<List<Path>>() {});
-        return new ListFilesTasklet(roots, backupJobContext);
-    }
-
-
-    /** Provides a {@link ItemReader} that supplies {@link LocalFileInfo} items from the current job's
-     * {@link BackupJobContext#allFiles} */
-    @Bean
-    @JobScope
-    protected IteratorItemReader<LocalFileInfo> allFilesItemReader(
-            BackupJobContext backupJobContext
-    ) {
-        return new IteratorItemReader<>(backupJobContext.getAllFiles().getFiles());
-    }
-
-
-    /** Provides a {@link ItemReader} that supplies {@link LocalFileInfo} items from the current job's
-     * {@link BackupJobContext#changedFiles} */
-    @Bean
-    @JobScope
-    protected IteratorItemReader<LocalFileInfo> changedFilesItemReader(
-            BackupJobContext backupJobContext
-    ) {
-        return new IteratorItemReader<>(backupJobContext.getChangedFiles().getFiles());
-    }
-
-
-    /** Provides an {@link ItemWriter} that stores {@link Path} items in the current job's
-     * {@link BackupJobContext#changedFiles} */
-    @Bean
-    @JobScope
-    protected FileSetItemWriter changedFilesItemWriter(
-            BackupJobContext backupJobContext
-    ) {
-        return new FileSetItemWriter(backupJobContext.getChangedFiles());
-    }
-
-
-    /**
-     * Provides a {@link Step} that implements the first step of a backup job: populate the current job's
-     * {@link BackupJobContext} with the list of all files from the backup source
-     */
-    @Bean
-    @JobScope
-    protected Step listFilesStep(
-            Tasklet listFilesTasklet,
-            CollectingStepExecutionListener stepListener) {
-        return stepBuilderFactory
-                .get("listFilesStep")
-                .tasklet(listFilesTasklet)
-                .listener(stepListener)
-                .build();
-    }
-
     /**
      * Provides a job-scoped context that contains contextual data for the current job, including the list of files
      * to backup.
@@ -101,4 +36,37 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
         return new BackupJobContext(backupSetId);
     }
 
+    @Bean
+    @JobScope
+    protected FilesystemItemReader filesystemItemReader(
+            @Value("#{jobParameters['source.roots']}") String sourceRootsParam
+    ) throws IOException {
+        List<Path> roots = OBJECT_MAPPER.readValue(sourceRootsParam, new TypeReference<List<Path>>() {});
+        return new FilesystemItemReader(roots);
+    }
+
+    /**
+     * Provides a {@link Step} that computes the backup batch and stores it into the context
+     */
+    @Bean
+    @JobScope
+    protected Step computeBatchStep(
+            BackupJobContext jobContext,
+            FilesystemItemReader filesystemItemReader,
+            FilteringPathItemProcessor filteringPathItemProcessor,
+            ComputeBatchStepExecutionListener computeBatchStepExecutionListener
+    ) {
+        return stepBuilderFactory
+                .get("computeBatchStep")
+                .<LocalFileInfo, LocalFileInfo> chunk(10)
+                // read files from local filesystem
+                .reader(filesystemItemReader)
+                // filter out files that don't need backup
+                .processor(filteringPathItemProcessor)
+                // store them in the context
+                .writer(new FileSetItemWriter(jobContext.getBackupBatch()))
+                // update BackupSet with stats
+                .listener(computeBatchStepExecutionListener)
+                .build();
+    }
 }

@@ -1,10 +1,8 @@
 package org.ogerardin.b2b.batch.jobs;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import org.ogerardin.b2b.domain.FilesystemSource;
 import org.ogerardin.b2b.domain.LocalTarget;
 import org.ogerardin.b2b.domain.StoredFileVersionInfoProvider;
-import org.ogerardin.b2b.files.md5.MD5Calculator;
 import org.ogerardin.b2b.files.md5.StreamingMd5Calculator;
 import org.ogerardin.b2b.storage.StorageService;
 import org.ogerardin.b2b.storage.StorageServiceFactory;
@@ -13,15 +11,15 @@ import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.ItemWriter;
+import org.springframework.batch.item.support.IteratorItemReader;
+import org.springframework.batch.item.support.PassThroughItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.io.IOException;
 import java.nio.file.Path;
-import java.util.List;
 
 /**
  * Job configuration for a backup job that processes a source of type {@link FilesystemSource}
@@ -43,25 +41,39 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
      */
     @Bean
     protected Job filesystemToInternalBackupJob(
+            Step computeBatchStep,
             Step backupToInternalStorageStep,
-            BackupJobExecutionListener jobListener) {
+            BackupJobExecutionListener jobListener
+    ) {
         return jobBuilderFactory
                 .get("filesystemToInternalBackupJob")
                 .validator(getValidator())
                 .incrementer(new RunIdIncrementer())
                 .listener(jobListener)
-                .start(backupToInternalStorageStep)
+                .start(computeBatchStep)            // step 1: compute files that need to be backed up
+                .next(backupToInternalStorageStep)  // step 2: perform backup
                 .build();
     }
 
+    /**
+     * Provides a {@link Step} that writes items from the current batch by storing them to the internal storage
+     */
     @Bean
     @JobScope
-    protected FilesystemItemReader filesystemItemReader(
-            @Value("#{jobParameters['source.roots']}") String sourceRootsParam,
-            BackupJobContext backupJobContext
-    ) throws IOException {
-        List<Path> roots = OBJECT_MAPPER.readValue(sourceRootsParam, new TypeReference<List<Path>>() {});
-        return new FilesystemItemReader(roots, backupJobContext);
+    protected Step backupToInternalStorageStep(
+            BackupJobContext jobContext,
+            InternalStorageItemWriter internalStorageWriter
+    ) {
+        return stepBuilderFactory
+                .get("backupToInternalStorageStep")
+                .<LocalFileInfo, LocalFileInfo> chunk(1) // handle 1 file at a time
+                // read files from job context
+                .reader(new IteratorItemReader<>(jobContext.getBackupBatch().getFiles()))
+                // no processing
+                .processor(new PassThroughItemProcessor<>())
+                // store them to the internal storage
+                .writer(internalStorageWriter)
+                .build();
     }
 
 
@@ -81,7 +93,6 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
     /**
      * Provides a job-scoped {@link org.springframework.batch.item.ItemProcessor} that filters out {@link Path} items
      * corresponding to a file that isn't different from the latest stored version.
-     * We use a {@link MD5Calculator} for determining if the file's hash has changed.
      */
     @Bean
     @JobScope
@@ -90,31 +101,8 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
             @Qualifier("springMD5Calculator") StreamingMd5Calculator md5Calculator
     ) {
         StorageService storageService = storageServiceFactory.getStorageService(backupSetId);
-        return new FilteringPathItemProcessor(StoredFileVersionInfoProvider.of(storageService), md5Calculator);
+        Md5FilteringStrategy filteringStrategy = new Md5FilteringStrategy(StoredFileVersionInfoProvider.of(storageService), md5Calculator);
+        return new FilteringPathItemProcessor(filteringStrategy);
     }
-
-    /**
-     * Provides a {@link Step} that:
-     * -reads items by walking the filesystem from the configured roots
-     * -processes item by filtering out unchanged files
-     * -writes items by storing them to the internal storage
-     */
-    @Bean
-    @JobScope
-    protected Step backupToInternalStorageStep(
-            FilesystemItemReader filesystemItemReader,
-            FilteringPathItemProcessor filteringPathItemProcessor,
-            InternalStorageItemWriter internalStorageWriter
-    ) {
-        return stepBuilderFactory
-                .get("backupToInternalStorageStep")
-                .<LocalFileInfo, LocalFileInfo> chunk(10)
-                .reader(filesystemItemReader)
-                .processor(filteringPathItemProcessor)
-                .writer(internalStorageWriter)
-                .build();
-    }
-
-
 
 }

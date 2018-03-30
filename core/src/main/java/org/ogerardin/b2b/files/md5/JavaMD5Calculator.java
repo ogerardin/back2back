@@ -13,6 +13,8 @@ import java.security.NoSuchAlgorithmException;
 @Component
 public class JavaMD5Calculator implements MD5Calculator, StreamingMd5Calculator {
 
+    private static final int BUFFER_SIZE = 1024;
+
     @Override
     public byte[] md5Hash(byte[] bytes) {
         try {
@@ -25,15 +27,15 @@ public class JavaMD5Calculator implements MD5Calculator, StreamingMd5Calculator 
     }
 
     @Override
-    public byte[] md5Hash(InputStream is) throws IOException {
-        MessageDigest md = null;
+    public byte[] md5Hash(InputStream inputStream) throws IOException {
+        MessageDigest md;
         try {
             md = MessageDigest.getInstance("MD5");
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
-        byte[] buffer = new byte[1024];
-        for(int read = is.read(buffer, 0, 1024); read > -1; read = is.read(buffer, 0, 1024)) {
+        byte[] buffer = new byte[BUFFER_SIZE];
+        for(int read = inputStream.read(buffer, 0, buffer.length); read > -1; read = inputStream.read(buffer, 0, buffer.length)) {
             md.update(buffer, 0, read);
         }
         return md.digest();

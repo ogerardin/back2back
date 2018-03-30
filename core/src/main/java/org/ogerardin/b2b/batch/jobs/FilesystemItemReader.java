@@ -9,16 +9,17 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * An {@link ItemReader} that provides {@link LocalFileInfo}s by walking the local filesystem from a set of
+ * specified root folders.
+ */
 public class FilesystemItemReader implements ItemReader<LocalFileInfo> {
 
-    private final BackupJobContext context;
     private final Iterator<File> fileIterator;
 
-    public FilesystemItemReader(List<Path> roots, BackupJobContext backupJobContext) {
-        this.context = backupJobContext;
-
+    public FilesystemItemReader(List<Path> roots) {
         List<File> rootsList = roots.stream().map(Path::toFile).collect(Collectors.toList());
-
+        // We use Guava's Files.fileTraverser() to walk the files
         this.fileIterator = Files.fileTraverser().breadthFirst(rootsList).iterator();
     }
 

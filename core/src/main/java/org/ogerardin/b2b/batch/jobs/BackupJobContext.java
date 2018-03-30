@@ -10,20 +10,7 @@ public class BackupJobContext {
 
     private final String backupSetId;
 
-    // populated by the "list files" step of the backup job
-    private final FileSet allFiles = new FileSet();
-
-    // populated by the "filtering" step of the backup job
-    private final FileSet changedFiles = new FileSet();
-
-    public BackupJobContext(String backupSetId) {
-        this.backupSetId = backupSetId;
-    }
-
-    public void reset() {
-        allFiles.reset();
-        changedFiles.reset();
-    }
-
+    /** The set of files that need to be backep up */
+    private final FileSet backupBatch = new FileSet();
 
 }

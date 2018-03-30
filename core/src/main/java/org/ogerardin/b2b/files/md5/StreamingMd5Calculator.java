@@ -8,10 +8,10 @@ import java.io.InputStream;
 @FunctionalInterface
 public interface StreamingMd5Calculator {
 
-    byte[] md5Hash(InputStream is) throws IOException;
+    byte[] md5Hash(InputStream inputStream) throws IOException;
 
-    default String hexMd5Hash(InputStream is) throws IOException {
-        byte[] hashBytes = md5Hash(is);
+    default String hexMd5Hash(InputStream inputStream) throws IOException {
+        byte[] hashBytes = md5Hash(inputStream);
         return FormattingHelper.hex(hashBytes);
     }
 

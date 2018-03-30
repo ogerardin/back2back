@@ -17,6 +17,7 @@ public class FileSetItemWriter implements ItemWriter<LocalFileInfo> {
 
     public FileSetItemWriter(@NonNull FileSet fileSet) {
         this.fileSet = fileSet;
+        this.fileSet.reset();
     }
 
     @Override
