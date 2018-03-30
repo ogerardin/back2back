@@ -5,7 +5,6 @@ import org.springframework.batch.core.configuration.annotation.EnableBatchProces
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.support.SimpleJobLauncher;
 import org.springframework.batch.core.repository.JobRepository;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.stereotype.Component;
@@ -18,7 +17,6 @@ import org.springframework.stereotype.Component;
 @Component
 @Configuration
 @EnableBatchProcessing
-@ConditionalOnProperty(name = "org.ogerardin.b2b.batch.repository", havingValue = "map")
 public class InMemoryBatchConfigurer extends DefaultBatchConfigurer {
 
     private final AsyncTaskExecutor asyncTaskExecutor;

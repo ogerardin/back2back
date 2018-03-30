@@ -105,6 +105,12 @@
             <groupId>com.github.markusbernhardt</groupId>
             <artifactId>proxy-vole</artifactId>
             <version>1.0.4</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
 <!--
@@ -138,10 +144,11 @@
             <artifactId>fast-md5</artifactId>
             <version>2.7.1</version>
         </dependency>
+
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>21.0</version>
+            <version>24.1-jre</version>
         </dependency>
 
     </dependencies>

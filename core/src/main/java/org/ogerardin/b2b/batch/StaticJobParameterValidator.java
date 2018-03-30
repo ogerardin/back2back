@@ -5,6 +5,7 @@ import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersInvalidException;
 import org.springframework.batch.core.JobParametersValidator;
 
+import java.text.MessageFormat;
 import java.util.Objects;
 
 /**
@@ -23,7 +24,9 @@ public class StaticJobParameterValidator implements JobParametersValidator {
     public void validate(JobParameters parameters) throws JobParametersInvalidException {
         String actualValue = parameters.getString(name);
         if (!Objects.equals(expectedValue, actualValue)) {
-            throw new JobParametersInvalidException(String.format("Value for key '%s' must be '%s', but was '%s'", name, expectedValue, actualValue));
+            throw new JobParametersInvalidException(
+                    MessageFormat.format("Value for key ''{0}'' must be ''{1}'', but was ''{2}''",
+                            name, expectedValue, actualValue));
         }
     }
 }

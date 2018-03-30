@@ -1,7 +1,6 @@
 package org.ogerardin.b2b.batch.jobs;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.ogerardin.b2b.batch.FileSetItemWriter;
 import org.ogerardin.b2b.domain.FilesystemSource;
 import org.springframework.batch.core.Step;
@@ -21,9 +20,6 @@ import java.util.List;
  * Abstract superclass for jobs that accept a source of type {@link FilesystemSource}
  */
 public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobConfiguration {
-
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
 
     public FilesystemSourceBackupJobConfiguration() {
         addStaticParameter("source.type", FilesystemSource.class.getName());

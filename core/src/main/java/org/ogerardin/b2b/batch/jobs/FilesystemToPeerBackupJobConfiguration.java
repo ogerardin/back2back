@@ -1,8 +1,7 @@
 package org.ogerardin.b2b.batch.jobs;
 
-import org.ogerardin.b2b.B2BProperties;
-import org.ogerardin.b2b.domain.StoredFileVersionInfo;
 import org.ogerardin.b2b.domain.PeerTarget;
+import org.ogerardin.b2b.domain.StoredFileVersionInfo;
 import org.ogerardin.b2b.domain.mongorepository.PeerFileVersionInfoRepository;
 import org.ogerardin.b2b.files.md5.MD5Calculator;
 import org.ogerardin.b2b.files.md5.StreamingMd5Calculator;
@@ -33,9 +32,6 @@ import java.nio.file.Path;
  */
 @Configuration
 public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBackupJobConfiguration {
-
-    @Autowired
-    B2BProperties properties;
 
     @Autowired
     private MongoOperations mongoOperations;

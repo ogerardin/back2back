@@ -1,5 +1,7 @@
 package org.ogerardin.b2b.batch.jobs;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.ogerardin.b2b.B2BProperties;
 import org.ogerardin.b2b.batch.StaticJobParameterValidator;
 import org.springframework.batch.core.JobParametersValidator;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
@@ -16,11 +18,16 @@ import java.util.List;
  */
 public abstract class BackupJobConfiguration {
 
+    protected static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
     @Autowired
     protected JobBuilderFactory jobBuilderFactory;
 
     @Autowired
     protected StepBuilderFactory stepBuilderFactory;
+
+    @Autowired
+    protected B2BProperties properties;
 
     private List<JobParametersValidator> validators = new ArrayList<>();
 

@@ -1,6 +1,6 @@
 package org.ogerardin.b2b.batch.jobs;
 
-import org.ogerardin.b2b.B2BProperties;
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.ogerardin.b2b.domain.FilesystemSource;
 import org.ogerardin.b2b.domain.LocalTarget;
 import org.ogerardin.b2b.domain.StoredFileVersionInfoProvider;
@@ -12,16 +12,16 @@ import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
-import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
-import org.springframework.batch.item.support.PassThroughItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 
 /**
  * Job configuration for a backup job that processes a source of type {@link FilesystemSource}
@@ -34,9 +34,6 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
     @Qualifier("gridFsStorageServiceFactory")
     protected StorageServiceFactory storageServiceFactory;
 
-    @Autowired
-    private B2BProperties properties;
-
     public FilesystemToInternalBackupJobConfiguration() {
         addStaticParameter("target.type", LocalTarget.class.getName());
     }
@@ -46,8 +43,6 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
      */
     @Bean
     protected Job filesystemToInternalBackupJob(
-            Step listFilesStep,
-            Step filterFilesStep,
             Step backupToInternalStorageStep,
             BackupJobExecutionListener jobListener) {
         return jobBuilderFactory
@@ -55,36 +50,23 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
                 .validator(getValidator())
                 .incrementer(new RunIdIncrementer())
                 .listener(jobListener)
-                .start(listFilesStep)               //step 1: list files and put them in the job context
-                .next(filterFilesStep)              //step 2: filter unchanged files
-                .next(backupToInternalStorageStep)  //step 3: backup changed files
+                .start(backupToInternalStorageStep)
                 .build();
     }
 
-    /**
-     * Provides a {@link Step} that performs backup of the files taken from the current job's
-     * {@link BackupJobContext#changedFiles} into the internal storage.
-     */
     @Bean
     @JobScope
-    protected Step backupToInternalStorageStep(
-            ItemReader<LocalFileInfo> changedFilesItemReader,
-            InternalStorageItemWriter internalStorageWriter,
-            FileBackupListener itemWriteListener
-    ) {
-        return stepBuilderFactory
-                .get("backupToInternalStorageStep")
-                .<LocalFileInfo, LocalFileInfo> chunk(1)  // handle 1 file at a time
-                .reader(changedFilesItemReader)
-                .processor(new PassThroughItemProcessor<>()) // no processing
-                .writer(internalStorageWriter)
-                .listener(itemWriteListener)
-                .build();
+    protected FilesystemItemReader filesystemItemReader(
+            @Value("#{jobParameters['source.roots']}") String sourceRootsParam,
+            BackupJobContext backupJobContext
+    ) throws IOException {
+        List<Path> roots = OBJECT_MAPPER.readValue(sourceRootsParam, new TypeReference<List<Path>>() {});
+        return new FilesystemItemReader(roots, backupJobContext);
     }
 
 
     /**
-     * Provides a job-scoped {@link org.springframework.batch.item.ItemWriter} that stores {@link Path} items into
+     * Provides a job-scoped {@link ItemWriter} that stores {@link Path} items into
      * the internal storage
      */
     @Bean
@@ -112,24 +94,24 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
     }
 
     /**
-     * Provides a {@link Step} that implements the second step of a backup job: populate the current job's
-     * {@link BackupJobContext} with the list of CHANGED files
+     * Provides a {@link Step} that:
+     * -reads items by walking the filesystem from the configured roots
+     * -processes item by filtering out unchanged files
+     * -writes items by storing them to the internal storage
      */
     @Bean
     @JobScope
-    protected Step filterFilesStep(
-            ItemReader<LocalFileInfo> allFilesItemReader,
+    protected Step backupToInternalStorageStep(
+            FilesystemItemReader filesystemItemReader,
             FilteringPathItemProcessor filteringPathItemProcessor,
-            ItemWriter<LocalFileInfo> changedFilesItemWriter,
-            FilteringStepExecutionListener stepListener
+            InternalStorageItemWriter internalStorageWriter
     ) {
         return stepBuilderFactory
-                .get("filterFilesStep")
+                .get("backupToInternalStorageStep")
                 .<LocalFileInfo, LocalFileInfo> chunk(10)
-                .reader(allFilesItemReader)
+                .reader(filesystemItemReader)
                 .processor(filteringPathItemProcessor)
-                .writer(changedFilesItemWriter)
-                .listener(stepListener)
+                .writer(internalStorageWriter)
                 .build();
     }
 
