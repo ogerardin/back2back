@@ -26,7 +26,7 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
      * Provides a job-scoped context that contains contextual data for the current job, including the list of files
      * to backup.
      * We do not use {@link org.springframework.batch.core.scope.context.JobContext} because it has limitations on
-     * size (and we don't need to persist it anyway)
+     * size (and we don't want to persist it anyway)
      */
     @Bean
     @JobScope

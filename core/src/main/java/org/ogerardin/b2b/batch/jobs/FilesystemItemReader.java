@@ -26,12 +26,15 @@ public class FilesystemItemReader implements ItemReader<LocalFileInfo> {
     @Override
     public LocalFileInfo read() throws Exception {
         while (fileIterator.hasNext()) {
-            LocalFileInfo localFileInfo = new LocalFileInfo(fileIterator.next());
+            File file = fileIterator.next();
+            LocalFileInfo localFileInfo = new LocalFileInfo(file);
+            //ignore files other than regular files
             if (!localFileInfo.getFileAttributes().isRegularFile()) {
                 continue;
             }
             return localFileInfo;
         }
+        // no more files
         return null;
     }
 }

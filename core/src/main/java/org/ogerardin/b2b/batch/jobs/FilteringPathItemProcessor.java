@@ -20,6 +20,10 @@ class FilteringPathItemProcessor implements ItemProcessor<LocalFileInfo, LocalFi
 
     private final Predicate<Path> filter;
 
+    /**
+     *
+     * @param filter a {@link Predicate} that filters out files that don't need backup
+     */
     public FilteringPathItemProcessor(Predicate<Path> filter) {
         this.filter = filter;
     }
@@ -27,15 +31,17 @@ class FilteringPathItemProcessor implements ItemProcessor<LocalFileInfo, LocalFi
     @Override
     public LocalFileInfo process(LocalFileInfo item) throws Exception {
 
+        // update "all files" stats
         processedFilesStats.addFile(item.getFileAttributes().size());
 
         Path path = item.getPath();
         if (filter.test(path)) {
+            // update "backup batch" stats
             filteredFilesStats.addFile(item.getFileAttributes().size());
             return item; // item will be passed to step's writer
         }
 
-        // returning null instructs Spring Batch to pass this item to the step's writer
+        // returning null instructs Spring Batch to NOT pass this item to the step's writer
         return null;
     }
 
