@@ -45,6 +45,7 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
 
     @Bean
     protected Job filesystemToPeerBackupJob(
+            Step initBatchRemoteStep,
             Step computeBatchStep,
             Step backupToPeerStep,
             BackupJobExecutionListener jobListener
@@ -54,10 +55,22 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
                 .validator(getValidator())
                 .incrementer(new RunIdIncrementer())
                 .listener(jobListener)
-                .start(computeBatchStep)            // step 1: compute files that need to be backed up
-                .start(backupToPeerStep)
+                .start(initBatchRemoteStep)        // step 0: init batch
+                .next(computeBatchStep)            // step 1: compute files that need to be backed up
+                .next(backupToPeerStep)            // step 2: perform backup
                 .build();
     }
+
+    @Bean
+    @JobScope
+    protected Step initBatchRemoteStep(
+            RemoteFileVersionInfoRepository peerFileVersionRepository
+    ) {
+        return stepBuilderFactory.get("initBatchRemoteStep")
+                .tasklet(new InitBatchTasklet(peerFileVersionRepository))
+                .build();
+    }
+
 
     /**
      * Provides a {@link Step} that writes items from the current batch by storing them to the remote peer
