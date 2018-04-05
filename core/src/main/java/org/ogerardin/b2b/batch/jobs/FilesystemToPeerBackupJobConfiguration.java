@@ -1,13 +1,15 @@
 package org.ogerardin.b2b.batch.jobs;
 
+import org.ogerardin.b2b.domain.FilesystemSource;
 import org.ogerardin.b2b.domain.PeerTarget;
 import org.ogerardin.b2b.domain.StoredFileVersionInfo;
-import org.ogerardin.b2b.domain.mongorepository.PeerFileVersionInfoRepository;
+import org.ogerardin.b2b.domain.mongorepository.RemoteFileVersionInfoRepository;
 import org.ogerardin.b2b.files.md5.StreamingMd5Calculator;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
+import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.support.IteratorItemReader;
 import org.springframework.batch.item.support.PassThroughItemProcessor;
@@ -26,7 +28,7 @@ import java.net.MalformedURLException;
 import java.nio.file.Path;
 
 /**
- * Job configuration for a backup job that processes a source of type {@link org.ogerardin.b2b.domain.FilesystemSource}
+ * Job configuration for a backup job that processes a source of type {@link FilesystemSource}
  * and backs up to a network peer.
  */
 @Configuration
@@ -89,7 +91,7 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
     protected PeerItemWriter peerItemWriter(
             @Value("#{jobParameters['target.hostname']}") String targetHostname,
             @Value("#{jobParameters['target.port']}") Integer targetPort,
-            PeerFileVersionInfoRepository peerFileVersionInfoRepository) throws MalformedURLException {
+            @Qualifier("peerFileVersionRepository") RemoteFileVersionInfoRepository peerFileVersionInfoRepository) throws MalformedURLException {
         if (targetPort == null) {
             targetPort = properties.getDefaultPeerPort();
         }
@@ -97,26 +99,26 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
     }
 
     /**
-     * Provides a job-scoped {@link org.springframework.batch.item.ItemProcessor} that filters out {@link Path} items
+     * Provides a job-scoped {@link ItemProcessor} that filters out {@link Path} items
      * corresponding to a file that isn't different from the latest stored version.
      */
     @Bean
     @JobScope
     protected FilteringPathItemProcessor peerFilteringPathItemProcessor(
             @Qualifier("springMD5Calculator") StreamingMd5Calculator md5Calculator,
-            PeerFileVersionInfoRepository peerFileVersionRepository
+            RemoteFileVersionInfoRepository peerFileVersionRepository
     ) {
         Md5FilteringStrategy filteringStrategy = new Md5FilteringStrategy(peerFileVersionRepository, md5Calculator);
-        return new FilteringPathItemProcessor(filteringStrategy);
+        return new FilteringPathItemProcessor(peerFileVersionRepository, filteringStrategy);
     }
 
     @Bean
     @JobScope
-    protected PeerFileVersionInfoRepository peerFileVersionRepository(
+    protected RemoteFileVersionInfoRepository peerFileVersionRepository(
             @Value("#{jobParameters['backupset.id']}"
             ) String backupSetId) {
 
-        // The PeerFileVersionInfoRepository used by the PeerItemWriter needs to be specific to this BackupSet,
+        // The RemoteFileVersionInfoRepository used by the PeerItemWriter needs to be specific to this BackupSet,
         // so we need to instantiate one with a BackupSet-specific collection name
         String collectionName = backupSetId + ".peer";
 
@@ -124,10 +126,11 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
                 mongoOperations.getConverter().getMappingContext();
 
         MongoPersistentEntity<?> entity = mappingContext.getPersistentEntity(StoredFileVersionInfo.class);
+        //noinspection unchecked
         MappingMongoEntityInformation<StoredFileVersionInfo, String> entityInformation = new MappingMongoEntityInformation<>(
                 (MongoPersistentEntity<StoredFileVersionInfo>) entity, collectionName);
 
-        return new PeerFileVersionInfoRepository(entityInformation, mongoOperations);
+        return new RemoteFileVersionInfoRepository(entityInformation, mongoOperations);
     }
 
 

@@ -36,15 +36,6 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
         return new BackupJobContext(backupSetId);
     }
 
-    @Bean
-    @JobScope
-    protected FilesystemItemReader filesystemItemReader(
-            @Value("#{jobParameters['source.roots']}") String sourceRootsParam
-    ) throws IOException {
-        List<Path> roots = OBJECT_MAPPER.readValue(sourceRootsParam, new TypeReference<List<Path>>() {});
-        return new FilesystemItemReader(roots);
-    }
-
     /**
      * Provides a {@link Step} that computes the backup batch and stores it into the context
      */
@@ -68,5 +59,14 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
                 // update BackupSet with stats
                 .listener(computeBatchStepExecutionListener)
                 .build();
+    }
+
+    @Bean
+    @JobScope
+    protected FilesystemItemReader filesystemItemReader(
+            @Value("#{jobParameters['source.roots']}") String sourceRootsParam
+    ) throws IOException {
+        List<Path> roots = OBJECT_MAPPER.readValue(sourceRootsParam, new TypeReference<List<Path>>() {});
+        return new FilesystemItemReader(roots);
     }
 }

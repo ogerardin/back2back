@@ -38,6 +38,8 @@ public class JavaMD5Calculator implements MD5Calculator, StreamingMd5Calculator 
         for(int read = inputStream.read(buffer, 0, buffer.length); read > -1; read = inputStream.read(buffer, 0, buffer.length)) {
             md.update(buffer, 0, read);
         }
-        return md.digest();
+        byte[] hash = md.digest();
+        inputStream.close();
+        return hash;
     }
 }

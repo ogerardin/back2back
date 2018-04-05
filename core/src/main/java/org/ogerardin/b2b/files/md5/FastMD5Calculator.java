@@ -29,6 +29,8 @@ public class FastMD5Calculator implements MD5Calculator, StreamingMd5Calculator 
         for(int read = inputStream.read(buffer, 0, buffer.length); read > -1; read = inputStream.read(buffer, 0, buffer.length)) {
             md5.Update(buffer, 0, read);
         }
-        return md5.Final();
+        byte[] hash = md5.Final();
+        inputStream.close();
+        return hash;
     }
 }

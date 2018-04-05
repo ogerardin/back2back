@@ -41,6 +41,7 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
      */
     @Bean
     protected Job filesystemToInternalBackupJob(
+            Step initBatchStep,
             Step computeBatchStep,
             Step backupToInternalStorageStep,
             BackupJobExecutionListener jobListener
@@ -50,8 +51,21 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
                 .validator(getValidator())
                 .incrementer(new RunIdIncrementer())
                 .listener(jobListener)
-                .start(computeBatchStep)            // step 1: compute files that need to be backed up
+                .start(initBatchStep)               // step 0: init batch
+                .next(computeBatchStep)             // step 1: compute files that need to be backed up
                 .next(backupToInternalStorageStep)  // step 2: perform backup
+                .build();
+    }
+
+    @Bean
+    @JobScope
+    protected Step initBatchStep(
+            BackupJobContext jobContext
+    ) {
+        StorageService storageService = storageServiceFactory.getStorageService(jobContext.getBackupSetId());
+        StoredFileVersionInfoProvider storedFileVersionInfoProvider = StoredFileVersionInfoProvider.of(storageService);
+        return stepBuilderFactory.get("initBatchStep")
+                .tasklet(new InitBatchTasklet(storedFileVersionInfoProvider))
                 .build();
     }
 
@@ -89,7 +103,6 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
         StorageService storageService = storageServiceFactory.getStorageService(backupSetId);
         return new InternalStorageItemWriter(storageService, properties.getFileThrottleDelay());
     }
-
     /**
      * Provides a job-scoped {@link org.springframework.batch.item.ItemProcessor} that filters out {@link Path} items
      * corresponding to a file that isn't different from the latest stored version.
@@ -101,8 +114,10 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
             @Qualifier("springMD5Calculator") StreamingMd5Calculator md5Calculator
     ) {
         StorageService storageService = storageServiceFactory.getStorageService(backupSetId);
-        Md5FilteringStrategy filteringStrategy = new Md5FilteringStrategy(StoredFileVersionInfoProvider.of(storageService), md5Calculator);
-        return new FilteringPathItemProcessor(filteringStrategy);
+        StoredFileVersionInfoProvider storedFileVersionInfoProvider = StoredFileVersionInfoProvider.of(storageService);
+        Md5FilteringStrategy filteringStrategy = new Md5FilteringStrategy(storedFileVersionInfoProvider, md5Calculator);
+        return new FilteringPathItemProcessor(storedFileVersionInfoProvider, filteringStrategy);
     }
+
 
 }

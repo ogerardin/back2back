@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.ogerardin.b2b.config.ConfigManager;
 import org.ogerardin.b2b.domain.StoredFileVersionInfo;
-import org.ogerardin.b2b.domain.mongorepository.PeerFileVersionInfoRepository;
+import org.ogerardin.b2b.domain.mongorepository.RemoteFileVersionInfoRepository;
 import org.ogerardin.b2b.files.md5.StreamingMd5Calculator;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +34,7 @@ import java.util.List;
 @Slf4j
 class PeerItemWriter implements ItemWriter<LocalFileInfo> {
 
-    private PeerFileVersionInfoRepository peerFileVersionInfoRepository;
+    private RemoteFileVersionInfoRepository peerFileVersionInfoRepository;
 
     @Autowired
     @Qualifier("springMD5Calculator")
@@ -44,7 +44,7 @@ class PeerItemWriter implements ItemWriter<LocalFileInfo> {
     ConfigManager configManager;
     private final URL url;
 
-    PeerItemWriter(@NonNull PeerFileVersionInfoRepository peerFileVersionInfoRepository,
+    PeerItemWriter(@NonNull RemoteFileVersionInfoRepository peerFileVersionInfoRepository,
                    @NonNull String targetHostname, int targetPort) throws MalformedURLException {
 
         this.peerFileVersionInfoRepository = peerFileVersionInfoRepository;
@@ -99,7 +99,7 @@ class PeerItemWriter implements ItemWriter<LocalFileInfo> {
         //if the upload was successful, store the file's MD5 in the local repository
         if (result.getStatusCode() == HttpStatus.OK) {
             String md5hash = md5Calculator.hexMd5Hash(new FileInputStream(path.toFile()));
-            val peerFileVersion = new StoredFileVersionInfo(path.toString(), md5hash);
+            val peerFileVersion = new StoredFileVersionInfo(path.toString(), md5hash, false);
             peerFileVersionInfoRepository.save(peerFileVersion);
         }
     }

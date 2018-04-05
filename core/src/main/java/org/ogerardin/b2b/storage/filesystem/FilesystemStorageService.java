@@ -246,4 +246,14 @@ public class FilesystemStorageService implements StorageService {
     private FileVersion _getFileVersion(Path localPath) throws StorageFileNotFoundException {
         return _getFileVersion(localToRemote(localPath), localPath);
     }
+
+    @Override
+    public void untouchAll() {
+        throw new RuntimeException("not implemented");
+    }
+
+    @Override
+    public boolean touch(Path path) {
+        throw new RuntimeException("not implemented");
+    }
 }

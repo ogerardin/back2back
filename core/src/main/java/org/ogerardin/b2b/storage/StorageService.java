@@ -17,19 +17,18 @@ public interface StorageService {
 
     void init();
 
-    void store(MultipartFile file);
-
     Stream<FileInfo> getAllFiles(boolean includeDeleted);
-    Stream<FileVersion> getAllFileVersions();
 
+    Stream<FileVersion> getAllFileVersions();
     InputStream getAsInputStream(String filename) throws StorageFileNotFoundException;
     Resource getAsResource(String filename) throws StorageFileNotFoundException;
 
-    void deleteAll();
-
+    void store(MultipartFile file);
     void store(File file);
     void store(Path path);
     void store(InputStream inputStream, String filename);
+
+    void deleteAll();
 
     FileVersion[] getFileVersions(String filename);
     FileVersion[] getFileVersions(Path path);
@@ -40,4 +39,7 @@ public interface StorageService {
     FileVersion getFileVersion(String versionId) throws StorageFileVersionNotFoundException;
     InputStream getFileVersionAsInputStream(String versionId) throws StorageFileVersionNotFoundException;
     Resource getFileVersionAsResource(String versionId) throws StorageFileVersionNotFoundException;
+
+    void untouchAll();
+    boolean touch(Path path);
 }

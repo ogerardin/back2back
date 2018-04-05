@@ -30,6 +30,8 @@ public class GuavaMD5Calculator implements MD5Calculator, StreamingMd5Calculator
         for(int read = inputStream.read(buffer, 0, buffer.length); read > -1; read = inputStream.read(buffer, 0, buffer.length)) {
             hasher.putBytes(buffer, 0, read);
         }
-        return hasher.hash().asBytes();
+        byte[] hash = hasher.hash().asBytes();
+        inputStream.close();
+        return hash;
     }
 }

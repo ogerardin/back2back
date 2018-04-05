@@ -1,6 +1,7 @@
 package org.ogerardin.b2b.storage.gridfs;
 
 import com.mongodb.BasicDBObject;
+import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import com.mongodb.gridfs.GridFSDBFile;
 import com.mongodb.gridfs.GridFSFile;
@@ -9,6 +10,7 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.convert.MongoConverter;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -45,7 +47,7 @@ public class GridFsStorageService implements StorageService {
     private final MongoConverter mongoConverter;
     private final String bucket;
 
-    public GridFsStorageService(MongoDbFactory mongoDbFactory, MongoConverter mongoConverter, MongoTemplate mongoTemplate) {
+    public GridFsStorageService(MongoDbFactory mongoDbFactory, MongoConverter mongoConverter, MongoTemplate mongoTemplate, MongoOperations mongoOperations) {
         this(mongoDbFactory, mongoConverter, mongoTemplate, DEFAULT_BUCKET);
     }
 
@@ -77,6 +79,7 @@ public class GridFsStorageService implements StorageService {
         try {
             InputStream is = new BufferedInputStream(file.getInputStream());
             gridFsTemplate.store(is, filename);
+            is.close();
         }
         catch (Exception e) {
             throw new StorageException("Failed to store file " + filename, e);
@@ -172,27 +175,32 @@ public class GridFsStorageService implements StorageService {
     @Override
     public void store(File file) {
         try {
-            store(new FileInputStream(file), file.getCanonicalPath());
+            FileInputStream inputStream = new FileInputStream(file);
+            store(inputStream, file.getCanonicalPath());
         } catch (IOException e) {
-            throw new StorageException("Exception while trying to get InputStream for " + file, e);
+            throw new StorageException("Exception while trying to store " + file, e);
         }
     }
 
     @Override
     public void store(Path path) {
         String canonicalPath = canonicalPath(path);
-        InputStream inputStream;
         try {
-            inputStream = Files.newInputStream(path, StandardOpenOption.READ);
+            InputStream inputStream = Files.newInputStream(path, StandardOpenOption.READ);
+            store(inputStream, canonicalPath);
         } catch (IOException e) {
-            throw new StorageException("Exception while trying to get InputStream for " + path, e);
+            throw new StorageException("Exception while trying to store " + path, e);
         }
-        store(inputStream, canonicalPath);
     }
 
     @Override
-    public void store(InputStream inputStream, String filename) {
-        gridFsTemplate.store(inputStream, filename, new Metadata());
+    public void store(InputStream inputStream, String filename)  {
+        try {
+            gridFsTemplate.store(inputStream, filename, new Metadata());
+            inputStream.close();
+        } catch (IOException e) {
+            throw new StorageException("Exception while trying to store InputStream as " + filename, e);
+        }
     }
 
     @Override
@@ -276,6 +284,33 @@ public class GridFsStorageService implements StorageService {
             throw new StorageFileVersionNotFoundException(versionId);
         }
         return fsdbFile;
+    }
+
+    @Override
+    public void untouchAll() {
+        getFilesCollection()
+                .updateMulti(new BasicDBObject(), BasicDBObject.parse("{ \"$set\": {\"metadata.deleted\": \"true\"}}"));
+    }
+
+    @Override
+    public boolean touch(Path path) {
+        String canonicalPath = canonicalPath(path);
+        GridFSDBFile fsdbFile = null;
+        try {
+            fsdbFile = getLatestGridFSDBFile(canonicalPath);
+            getFilesCollection()
+                    .update(new BasicDBObject("_id", fsdbFile.getId()),
+                            BasicDBObject.parse("{ \"$set\": {\"metadata.deleted\": \"false\"}}"));
+
+            return true;
+        } catch (StorageFileNotFoundException e) {
+            return false;
+        }
+    }
+
+    // this should be exposed by GridFsTemplate
+    private DBCollection getFilesCollection() {
+        return mongoTemplate.getCollection(this.bucket + ".files");
     }
 }
 

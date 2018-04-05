@@ -7,6 +7,9 @@ import org.ogerardin.b2b.storage.StorageService;
 import java.nio.file.Path;
 import java.util.Optional;
 
+/**
+ * Interface of a service that provides meta-information about backed up files and some interaction with it.
+ */
 public interface StoredFileVersionInfoProvider {
 
     /**
@@ -20,16 +23,41 @@ public interface StoredFileVersionInfoProvider {
     }
 
     /**
+     * Marks all known files as "deleted"
+     */
+    void untouchAll();
+
+    /**
+     * If the specified file is known, mark it as "not deleted"; otherwise do nothing.
+     * @return true if the file was known, false otherwise
+     */
+    boolean touch(Path path);
+
+
+    /**
      * @return an adapter for the specified {@link StorageService}
      */
     static StoredFileVersionInfoProvider of(StorageService storageService) {
-        return path -> {
-            try {
-                FileVersion latestFileVersion = storageService.getLatestFileVersion(path);
-                StoredFileVersionInfo storedFileVersionInfo = StoredFileVersionInfo.of(latestFileVersion);
-                return Optional.of(storedFileVersionInfo);
-            } catch (StorageFileNotFoundException e) {
-                return Optional.empty();
+        return new StoredFileVersionInfoProvider() {
+            @Override
+            public Optional<StoredFileVersionInfo> getStoredFileVersionInfo(String path) {
+                try {
+                    FileVersion latestFileVersion = storageService.getLatestFileVersion(path);
+                    StoredFileVersionInfo storedFileVersionInfo = StoredFileVersionInfo.of(latestFileVersion);
+                    return Optional.of(storedFileVersionInfo);
+                } catch (StorageFileNotFoundException e) {
+                    return Optional.empty();
+                }
+            }
+
+            @Override
+            public void untouchAll() {
+                storageService.untouchAll();
+            }
+
+            @Override
+            public boolean touch(Path path) {
+                return storageService.touch(path);
             }
         };
     }
