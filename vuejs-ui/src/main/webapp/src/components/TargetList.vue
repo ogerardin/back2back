@@ -14,9 +14,14 @@
             {{p}}<br/>
           </template>
         </template>
+<!--
         <template slot="enabled" slot-scope="data">
           <div v-if="data.item.enabled"><img src="../assets/green.png" height="24"></div>
           <img v-else src="../assets/red.png" height="24">
+        </template>
+-->
+        <template slot="enabled" slot-scope="x">
+          <app-switch classes="is-warning" :checked="x.item.enabled"></app-switch>
         </template>
         <template slot="actions" slot-scope="data">
           <b-button size="sm" variant="primary" :to="{name: 'target-edit', params: {id: data.item.id}}">
@@ -35,8 +40,14 @@
 </template>
 
 <script>
+
+  import AppSwitch from './AppSwitch.vue'
+
   export default {
     name: 'TargetList',
+    components: {
+      AppSwitch
+    },
     data() {
       return {
         targets: [],
