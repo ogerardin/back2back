@@ -18,13 +18,14 @@ public class GuavaMD5Calculator implements MD5Calculator, StreamingMd5Calculator
 
     @Override
     public byte[] md5Hash(byte[] bytes) {
-        //noinspection deprecation
-        return Hashing.md5().hashBytes(bytes).asBytes();
+        @SuppressWarnings("deprecation")
+        byte[] hash = Hashing.md5().hashBytes(bytes).asBytes();
+        return hash;
     }
 
     @Override
     public byte[] md5Hash(InputStream inputStream) throws IOException {
-        //noinspection deprecation
+        @SuppressWarnings("deprecation")
         Hasher hasher = Hashing.md5().newHasher();
         byte[] buffer = new byte[BUFFER_SIZE];
         for(int read = inputStream.read(buffer, 0, buffer.length); read > -1; read = inputStream.read(buffer, 0, buffer.length)) {

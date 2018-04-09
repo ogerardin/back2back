@@ -1,6 +1,5 @@
 package org.ogerardin.b2b.api;
 
-import org.apache.tomcat.util.http.fileupload.FileUploadBase;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -19,10 +18,9 @@ public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
         Throwable cause = ex.getCause();
         if (cause instanceof IllegalStateException) {
             Throwable cause2 = cause.getCause();
-            //FIXME this is Tomcat-dependent
-            if (cause2 instanceof FileUploadBase.SizeLimitExceededException) {
-                ResponseEntity<String> responseEntity = new ResponseEntity<>(cause2.toString(), HttpStatus.PAYLOAD_TOO_LARGE);
-                return responseEntity;
+            //Tomcat-specific exception
+            if (cause2.getClass().getName().equals("org.apache.tomcat.util.http.fileupload.FileUploadBase.SizeLimitExceededException")) {
+                throw new FileTooLargeException(cause2.toString());
             }
         }
         throw ex;

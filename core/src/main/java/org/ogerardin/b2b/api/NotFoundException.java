@@ -5,6 +5,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.text.MessageFormat;
 
+/**
+ * Custom exception designed to map to a HTTP 404
+ */
 @ResponseStatus(code = HttpStatus.NOT_FOUND)
 public class NotFoundException extends Exception {
 
