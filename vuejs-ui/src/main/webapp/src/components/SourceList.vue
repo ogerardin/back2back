@@ -26,16 +26,9 @@
         </template>
       </template>
       <template slot="enabled" slot-scope="data">
-        <div v-if="data.item.enabled"><img src="../assets/green.png" height="24"></div>
-        <img v-else src="../assets/red.png" height="24">
+        <app-switch classes="is-warning" :checked="data.item.enabled" v-on:input="setEnabled(data.item, $event)"></app-switch>
       </template>
       <template slot="actions" slot-scope="data">
-        <b-button v-if="data.item.enabled" size="sm" variant="outline-success"  v-on:click="setEnabled(data.item, false)">
-          Disable
-        </b-button>
-        <b-button v-else size="sm" variant="success" v-on:click="setEnabled(data.item, true)">
-          Enable
-        </b-button>
         <b-button size="sm" variant="primary" :to="{name: 'source-edit', params: {id: data.item.id}}">
           Edit
         </b-button>
@@ -49,10 +42,14 @@
 
 <script>
   import SourceEdit from "./SourceEdit";
+  import AppSwitch from "./AppSwitch.vue";
 
   export default {
-    components: {SourceEdit},
     name: 'SourceList',
+    components: {
+      SourceEdit,
+      AppSwitch
+    },
     props: [
       'id', /*This prop is */
     ],
@@ -112,6 +109,11 @@
         });
       },
       setEnabled(source, enabled) {
+        // console.log(target.id, target.enabled, enabled)
+        if (source.enabled == enabled) {
+          // no change: nothing to do
+          return;
+        }
         source.enabled = enabled;
         this.$http.put('http://localhost:8080/api/sources/' + source.id, source).then(response => {
         }, error => {
