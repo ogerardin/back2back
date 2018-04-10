@@ -14,8 +14,7 @@
     <packaging>jar</packaging>
 
     <description>
-        This module merges the core engine and the web UI into a single self-contained executable
-        Spring Boot jar.
+        This module merges the core engine and the web UI into a single self-contained executable jar.
     </description>
 
     <dependencies>

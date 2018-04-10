@@ -5,7 +5,6 @@
     <router-view></router-view>
     </b-card>
 
-
   </b-container>
 </template>
 

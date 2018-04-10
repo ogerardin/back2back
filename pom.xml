@@ -26,6 +26,7 @@
         <module>core</module>
         <module>vuejs-ui</module>
         <module>bundle</module>
+        <module>dist</module>
     </modules>
 
    <build>
