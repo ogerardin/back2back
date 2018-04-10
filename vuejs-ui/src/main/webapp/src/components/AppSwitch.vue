@@ -1,3 +1,7 @@
+<!--
+  Switch component from https://github.com/rafaelpimpa/vue-checkbox-switch
+-->
+
 <template>
     <label class="switch">
         <input :class="classes" type="checkbox" :checked="checked" :name="name" :disabled="disabled" v-model="value">
