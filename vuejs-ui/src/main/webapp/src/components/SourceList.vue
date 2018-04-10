@@ -82,7 +82,7 @@
     },
     watch: {
         '$route' (to, from) {
-          // show the model edit dialog if the matched route is 'source-edit'
+          // show the modal edit dialog if the matched route is 'source-edit'
           this.showEditModal = (this.$route.name === 'source-edit');
       }
     },
