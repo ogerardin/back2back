@@ -1,0 +1,12 @@
+<izpack:shortcuts version="5.0"
+                  xmlns:izpack="http://izpack.org/schema/shortcuts"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://izpack.org/schema/shortcuts http://izpack.org/schema/5.0/izpack-shortcuts-5.0.xsd">
+
+    <skipIfNotSupported/>
+    <programGroup defaultName="back2back" />
+    <lateShortcutInstall/>
+
+    <shortcut name="Start back2back engine" target="$INSTALL_PATH/back2back-bundle-repackaged.jar"/>
+
+</izpack:shortcuts>

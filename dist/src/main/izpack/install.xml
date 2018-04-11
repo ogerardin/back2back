@@ -26,8 +26,10 @@
         <panel classname="TargetPanel"/>
         <panel classname="LicencePanel"/>
         <panel classname="PacksPanel"/>
+        <panel classname="ShortcutPanel" condition="!izpack.macinstall"/>
+        <panel classname="SummaryPanel"/>
         <panel classname="InstallPanel"/>
-        <panel classname="FinishPanel"/>
+        <panel classname="SimpleFinishPanel"/>
     </panels>
 
     <packs>
@@ -36,20 +38,28 @@
             <fileset dir="lib" targetdir="${INSTALL_PATH}" override="true"/>
         </pack>
         <pack name="Windows service" required="no">
+            <os family="windows"/>
             <description>Install the backup engine as a Windows service</description>
         </pack>
         <pack name="Windows tray icon" required="no">
-            <description>ALlow easy access to the user interface through an icon in the Windows tray</description>
+            <os family="windows"/>
+            <description>Allow easy access to the user interface through an icon in the Windows tray</description>
+        </pack>
+        <pack name="Mac menu bar icon" required="no">
+            <os family="mac"/>
+            <description>Allow easy access to the user interface through an icon in the Mac menu bar</description>
         </pack>
     </packs>
 
     <resources>
         <res src="@{izpack.staging}/install-sidebar.png" id="Installer.image"/>
         <res src="@{izpack.staging}/LICENSE.txt" id="LicencePanel.licence"/>
-<!--
-        <res src="hello.html" id="HTMLHelloPanel.info"/>
-        <res src="license.html" id="HTMLLicencePanel.licence"/>
--->
+        <res src="@{izpack.staging}/shortcutSpec.xml" id="shortcutSpec.xml"/>
     </resources>
+
+    <natives>
+        <native type="izpack" name="ShellLink.dll"/>
+        <native type="izpack" name="ShellLink_x64.dll"/>
+    </natives>
 
 </izpack:installation>
