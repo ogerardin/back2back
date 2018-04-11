@@ -6,6 +6,10 @@
     <info>
         <appname>back2back</appname>
         <appversion>@{version}</appversion>
+        <url>https://github.com/ogerardin/back2back</url>
+        <authors>
+            <author name="Olivier Gérardin" email="ogerardin@yahoo.com"/>
+        </authors>
         <javaversion>1.8</javaversion>
         <requiresjdk>no</requiresjdk>
     </info>
@@ -14,41 +18,38 @@
         <langpack iso3="eng"/>
     </locale>
 
-    <guiprefs resizable="yes">
-        <splash>images/peas_load.gif</splash>
-        <laf name="substance">
-            <os family="windows" />
-            <os family="unix" />
-            <param name="variant" value="mist-silver" />
-        </laf>
-        <laf name="substance">
-            <os family="mac" />
-            <param name="variant" value="mist-aqua" />
-        </laf>
+    <guiprefs width="800" height="600" resizable="yes">
         <modifier key="useHeadingPanel" value="yes" />
     </guiprefs>
 
     <panels>
         <panel classname="TargetPanel"/>
+        <panel classname="LicencePanel"/>
         <panel classname="PacksPanel"/>
         <panel classname="InstallPanel"/>
         <panel classname="FinishPanel"/>
     </panels>
 
     <packs>
-        <pack name="Core" required="yes">
-            <description>The core files needed for the application</description>
+        <pack name="back2back engine" required="yes">
+            <description>The core backup engine</description>
             <fileset dir="lib" targetdir="${INSTALL_PATH}" override="true"/>
-            <!--<parsable targetfile="${INSTALL_PATH}/test.properties"/>-->
+        </pack>
+        <pack name="Windows service" required="no">
+            <description>Install the backup engine as a Windows service</description>
+        </pack>
+        <pack name="Windows tray icon" required="no">
+            <description>ALlow easy access to the user interface through an icon in the Windows tray</description>
         </pack>
     </packs>
 
-<!--
     <resources>
-        <res src="@{izpack.staging}/common_resources/img/install-sidebar.png" id="Installer.image"/>
+        <res src="@{izpack.staging}/install-sidebar.png" id="Installer.image"/>
+        <res src="@{izpack.staging}/LICENSE.txt" id="LicencePanel.licence"/>
+<!--
         <res src="hello.html" id="HTMLHelloPanel.info"/>
         <res src="license.html" id="HTMLLicencePanel.licence"/>
-    </resources>
 -->
+    </resources>
 
 </izpack:installation>

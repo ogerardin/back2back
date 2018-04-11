@@ -41,6 +41,9 @@
                             <tasks>
                                 <copy todir="${izpack.staging}">
                                     <fileset dir="${basedir}/src/main/izpack"/>
+                                    <fileset dir="${basedir}/src/main/resources"/>
+                                    <!-- Pull the license from the projet root -->
+                                    <file file="${basedir}/../LICENSE.txt"/>
                                 </copy>
                             </tasks>
                         </configuration>
