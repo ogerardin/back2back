@@ -27,7 +27,7 @@
         <module>vuejs-ui</module>
         <module>bundle</module>
         <module>dist</module>
-        <module>windows-tray</module>
+        <module>system-tray</module>
     </modules>
 
    <build>

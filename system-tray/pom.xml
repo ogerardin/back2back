@@ -10,7 +10,7 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>back2back-windows-tray</artifactId>
+    <artifactId>back2back-system-tray</artifactId>
     <packaging>jar</packaging>
 
     <properties>

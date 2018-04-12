@@ -28,7 +28,8 @@ public class B2BTrayIcon {
 
         final SystemTray tray = SystemTray.getSystemTray();
 
-        final TrayIcon trayIcon = new TrayIcon(createImage("/images/bulb.gif", "tray icon"));
+        Image icon = createImage("/images/bulb.gif", "tray icon");
+        final TrayIcon trayIcon = new TrayIcon(icon);
         trayIcon.setImageAutoSize(true);
         trayIcon.setToolTip("back2back");
 
