@@ -11,10 +11,12 @@
     </parent>
 
     <artifactId>back2back-dist</artifactId>
+    <description>
+        Universal installer for back2back.
+    </description>
 
     <properties>
         <izpack.version>5.1.2</izpack.version>
-        <izpack.staging>${project.build.directory}/staging</izpack.staging>
     </properties>
 
     <dependencies>
@@ -38,30 +40,23 @@
     </dependencies>
 
     <build>
-        <plugins>
-            <plugin>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>create-staging-area</id>
-                        <phase>process-resources</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <tasks>
-                                <copy todir="${izpack.staging}">
-                                    <fileset dir="${basedir}/src/main/izpack"/>
-                                    <fileset dir="${basedir}/src/main/resources"/>
-                                    <!-- Pull the license from the projet root -->
-                                    <file file="${basedir}/../LICENSE.txt"/>
-                                </copy>
-                            </tasks>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
 
+        <!-- Project resources (other than dependencies). They will go into target/classes -->
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <resource>
+                <directory>..</directory>
+                <includes>
+                    <include>LICENSE.txt</include>
+                </includes>
+            </resource>
+        </resources>
+
+        <plugins>
+
+            <!-- Fetch declared dependencies -->
             <plugin>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <configuration>
@@ -72,34 +67,35 @@
                     <overWriteIfNewer>true</overWriteIfNewer>
                 </configuration>
                 <executions>
+                    <!-- copy *application* jars to izpack staging lib -->
                     <execution>
-                        <!-- copy *application* jars to izpack staging lib -->
                         <id>copy-product-dependencies</id>
                         <phase>prepare-package</phase>
                         <goals>
                             <goal>copy-dependencies</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${izpack.staging}/lib</outputDirectory>
-                            <excludeScope>system</excludeScope>
+                            <!-- By default the dependencies are extratcted to target/dependency -->
+                            <!--<outputDirectory>${izpack.staging}/lib</outputDirectory>-->
                             <!-- this excludes tools.jar, e.g. -->
-                            <excludeArtifactIds>mycustompanels</excludeArtifactIds>
+                            <excludeScope>system</excludeScope>
                             <!-- IMPORTANT: don't copy custom panels where our application jars live -->
-                            <excludeGroupIds>org.codehaus.izpack</excludeGroupIds>
+                            <excludeArtifactIds>mycustompanels</excludeArtifactIds>
                             <!-- IMPORTANT: we don't want to copy the IzPack dependency where our application jars live -->
+                            <excludeGroupIds>org.codehaus.izpack</excludeGroupIds>
                         </configuration>
                     </execution>
+                    <!-- copy izpack custom (custom panels, etc.) jars to izpack staging custom -->
                     <execution>
-                        <!-- copy izpack custom (custom panels, etc.) jars to izpack staging custom -->
                         <id>copy-izpack-dependencies</id>
                         <phase>prepare-package</phase>
                         <goals>
                             <goal>copy-dependencies</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${izpack.staging}/custom</outputDirectory>
-                            <includeArtifactIds>mycustompanels</includeArtifactIds>
+                            <outputDirectory>${project.build.directory}/custom</outputDirectory>
                             <!-- IMPORTANT: this causes *only* our custom panels to be copied -->
+                            <includeArtifactIds>mycustompanels</includeArtifactIds>
                         </configuration>
                     </execution>
                 </executions>
@@ -115,8 +111,8 @@
                         <goals><goal>izpack</goal></goals>
                         <configuration>
                             <!-- base for relative paths in izpack descriptor -->
-                            <baseDir>${izpack.staging}</baseDir>
-                            <installFile>${basedir}/src/main/izpack/install.xml</installFile>
+                            <baseDir>${project.build.directory}</baseDir>
+                            <installFile>${project.basedir}/src/main/izpack/install.xml</installFile>
                         </configuration>
                     </execution>
                 </executions>

@@ -5,7 +5,7 @@
 
     <info>
         <appname>back2back</appname>
-        <appversion>@{version}</appversion>
+        <appversion>@{project.version}</appversion>
         <url>https://github.com/ogerardin/back2back</url>
         <authors>
             <author name="Olivier Gérardin" email="ogerardin@yahoo.com"/>
@@ -35,7 +35,8 @@
     <packs>
         <pack name="back2back engine" required="yes">
             <description>The core backup engine</description>
-            <file src="lib/back2back-bundle-repackaged.jar" targetdir="${INSTALL_PATH}" override="true"/>
+            <file src="dependency/back2back-bundle-repackaged.jar" targetdir="${INSTALL_PATH}" override="true"/>
+            <file src="classes/b2b.ico" targetdir="${INSTALL_PATH}" override="true"/>
         </pack>
         <pack name="Windows service" required="no">
             <os family="windows"/>
@@ -44,19 +45,27 @@
         <pack name="Windows tray icon" required="no">
             <os family="windows"/>
             <description>Allow easy access through an icon in the Windows tray</description>
-            <file src="lib/back2back-system-tray.jar" targetdir="${INSTALL_PATH}" override="true"/>
+            <file src="dependency/back2back-system-tray.jar" targetdir="${INSTALL_PATH}" override="true"/>
+            <file src="classes/startTrayIcon.bat" targetdir="${INSTALL_PATH}" override="true"/>
+            <parsable targetfile="${INSTALL_PATH}/startTrayIcon.bat" type="plain"/>
+            <executable type="bin" targetfile="${INSTALL_PATH}/startTrayIcon.bat"
+                        stage="postinstall" keep="true"/>
         </pack>
         <pack name="Mac menu bar icon" required="no">
             <os family="mac"/>
             <description>Allow easy access through an icon in the Mac menu bar</description>
-            <file src="lib/back2back-system-tray.jar" targetdir="${INSTALL_PATH}" override="true"/>
+            <file src="dependency/back2back-system-tray.jar" targetdir="${INSTALL_PATH}" override="true"/>
+            <file src="classes/startTrayIcon.sh" targetdir="${INSTALL_PATH}" override="true"/>
+            <parsable targetfile="${INSTALL_PATH}/startTrayIcon.sh" type="plain"/>
+            <executable type="bin" targetfile="${INSTALL_PATH}/startTrayIcon.sh"
+                        stage="postinstall" keep="true"/>
         </pack>
     </packs>
 
     <resources>
-        <res src="@{izpack.staging}/install-sidebar.png" id="Installer.image"/>
-        <res src="@{izpack.staging}/LICENSE.txt" id="LicencePanel.licence"/>
-        <res src="@{izpack.staging}/shortcutSpec.xml" id="shortcutSpec.xml"/>
+        <res src="classes/install-sidebar.png" id="Installer.image"/>
+        <res src="classes/LICENSE.txt" id="LicencePanel.licence"/>
+        <res src="classes/shortcutSpec.xml" id="shortcutSpec.xml"/>
     </resources>
 
     <natives>
