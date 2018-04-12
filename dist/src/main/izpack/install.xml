@@ -35,7 +35,7 @@
     <packs>
         <pack name="back2back engine" required="yes">
             <description>The core backup engine</description>
-            <fileset dir="lib" targetdir="${INSTALL_PATH}" override="true"/>
+            <file src="lib/back2back-bundle-repackaged.jar" targetdir="${INSTALL_PATH}" override="true"/>
         </pack>
         <pack name="Windows service" required="no">
             <os family="windows"/>
@@ -43,11 +43,13 @@
         </pack>
         <pack name="Windows tray icon" required="no">
             <os family="windows"/>
-            <description>Allow easy access to the user interface through an icon in the Windows tray</description>
+            <description>Allow easy access through an icon in the Windows tray</description>
+            <file src="lib/back2back-system-tray.jar" targetdir="${INSTALL_PATH}" override="true"/>
         </pack>
         <pack name="Mac menu bar icon" required="no">
             <os family="mac"/>
-            <description>Allow easy access to the user interface through an icon in the Mac menu bar</description>
+            <description>Allow easy access through an icon in the Mac menu bar</description>
+            <file src="lib/back2back-system-tray.jar" targetdir="${INSTALL_PATH}" override="true"/>
         </pack>
     </packs>
 

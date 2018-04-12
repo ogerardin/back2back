@@ -1,4 +1,4 @@
-package org.ogerardin.b2b.windows_tray;
+package org.ogerardin.b2b.system_tray;
 
 import javax.swing.*;
 import java.awt.*;

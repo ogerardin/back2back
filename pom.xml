@@ -14,7 +14,7 @@
     <packaging>pom</packaging>
 
     <name>back2back-parent</name>
-    <description>Backup tool with the ability to remotely backup through the internet</description>
+    <description>Backup tool with peer-to-peer backup</description>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -26,8 +26,8 @@
         <module>core</module>
         <module>vuejs-ui</module>
         <module>bundle</module>
-        <module>dist</module>
         <module>system-tray</module>
+        <module>dist</module>
     </modules>
 
    <build>
