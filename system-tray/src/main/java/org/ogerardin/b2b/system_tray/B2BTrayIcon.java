@@ -9,8 +9,9 @@ public class B2BTrayIcon {
 
     public static void main(String[] args) {
         try {
-            UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
-            //UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+//            UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+//            UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
         } catch (UnsupportedLookAndFeelException | IllegalAccessException | InstantiationException | ClassNotFoundException ex) {
             ex.printStackTrace();
         }
@@ -28,7 +29,7 @@ public class B2BTrayIcon {
 
         final SystemTray tray = SystemTray.getSystemTray();
 
-        Image icon = createImage("/images/bulb.gif", "tray icon");
+        Image icon = createImage("/images/b2b.gif", "tray icon");
         final TrayIcon trayIcon = new TrayIcon(icon);
         trayIcon.setImageAutoSize(true);
         trayIcon.setToolTip("back2back");
@@ -45,8 +46,8 @@ public class B2BTrayIcon {
             CheckboxMenuItem item = new CheckboxMenuItem("Start with Windows");
             popup.add(item);
             item.addItemListener(e -> {
-                int cb1Id = e.getStateChange();
-                setAutoStart(cb1Id == ItemEvent.SELECTED);
+                int newState = e.getStateChange();
+                setAutoStart(newState == ItemEvent.SELECTED);
             });
         }
         popup.addSeparator();
