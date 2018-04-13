@@ -1,9 +1,14 @@
 package org.ogerardin.b2b.system_tray;
 
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
+
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.net.URL;
+import java.text.MessageFormat;
 
 public class B2BTrayIcon {
 
@@ -38,8 +43,7 @@ public class B2BTrayIcon {
         {
             MenuItem item = new MenuItem("About");
             popup.add(item);
-            item.addActionListener(e -> JOptionPane.showMessageDialog(null,
-                    "back2back: peer to peer backup"));
+            item.addActionListener(B2BTrayIcon::about);
         }
         popup.addSeparator();
         {
@@ -96,5 +100,18 @@ public class B2BTrayIcon {
             throw new RuntimeException("Resource not found: " + path);
         }
         return new ImageIcon(imageURL, description).getImage();
+    }
+
+    private static void about(ActionEvent e) {
+        RestTemplate restTemplate = new RestTemplate();
+        try {
+            String version = restTemplate.getForObject("http://localhost:8080/api/app/version", String.class);
+            JOptionPane.showMessageDialog(null,
+                    MessageFormat.format("back2back: peer to peer backup\nEngine version {0} up and running", version));
+        } catch (RestClientException e1) {
+            JOptionPane.showMessageDialog(null,
+                    MessageFormat.format("back2back: peer to peer backup\nEngine is not running\n{0}", e1.toString()));
+        }
+
     }
 }

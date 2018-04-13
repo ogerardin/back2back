@@ -12,6 +12,7 @@
         </authors>
         <javaversion>1.8</javaversion>
         <requiresjdk>no</requiresjdk>
+        <!--<pack-compression-format>lzma</pack-compression-format>-->
     </info>
 
     <locale>
@@ -45,7 +46,7 @@
         <pack name="Windows tray icon" required="no">
             <os family="windows"/>
             <description>Allow easy access through an icon in the Windows tray</description>
-            <file src="dependency/back2back-system-tray.jar" targetdir="${INSTALL_PATH}" override="true"/>
+            <file src="dependency/back2back-system-tray-onejar.jar" targetdir="${INSTALL_PATH}" override="true"/>
             <file src="classes/startTrayIcon.bat" targetdir="${INSTALL_PATH}" override="true"/>
             <parsable targetfile="${INSTALL_PATH}/startTrayIcon.bat" type="plain"/>
             <executable type="bin" targetfile="${INSTALL_PATH}/startTrayIcon.bat"
@@ -54,7 +55,7 @@
         <pack name="Mac menu bar icon" required="no">
             <os family="mac"/>
             <description>Allow easy access through an icon in the Mac menu bar</description>
-            <file src="dependency/back2back-system-tray.jar" targetdir="${INSTALL_PATH}" override="true"/>
+            <file src="dependency/back2back-system-tray-onejar.jar" targetdir="${INSTALL_PATH}" override="true"/>
             <file src="classes/startTrayIcon.sh" targetdir="${INSTALL_PATH}" override="true"/>
             <parsable targetfile="${INSTALL_PATH}/startTrayIcon.sh" type="plain"/>
             <executable type="bin" targetfile="${INSTALL_PATH}/startTrayIcon.sh"

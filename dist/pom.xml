@@ -36,6 +36,7 @@
             <groupId>org.ogerardin</groupId>
             <artifactId>back2back-system-tray</artifactId>
             <version>1.0-SNAPSHOT</version>
+            <classifier>onejar</classifier>
         </dependency>
     </dependencies>
 
