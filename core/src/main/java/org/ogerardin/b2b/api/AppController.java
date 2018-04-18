@@ -16,6 +16,11 @@ public class AppController {
     @Autowired
     private ApplicationContext appContext;
 
+    @GetMapping("/status")
+    String status() {
+        return "OK";
+    }
+
     @GetMapping("/version")
     String version() {
         // retrieve version information from MANIFEST.MF

@@ -33,7 +33,7 @@ class FilteringPathItemProcessor implements ItemProcessor<LocalFileInfo, LocalFi
     }
 
     @Override
-    public LocalFileInfo process(LocalFileInfo item) throws Exception {
+    public LocalFileInfo process(LocalFileInfo item) {
 
         // update "all files" stats
         processedFilesStats.addFile(item.getFileAttributes().size());

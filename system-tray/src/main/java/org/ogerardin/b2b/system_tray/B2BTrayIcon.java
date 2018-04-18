@@ -1,18 +1,33 @@
 package org.ogerardin.b2b.system_tray;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
+import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.text.MessageFormat;
 
+@Slf4j
 public class B2BTrayIcon {
 
-    public static void main(String[] args) {
+    private static MenuItem startMenuItem;
+    private static MenuItem stopMenuItem;
+
+    private static EnginePilot enginePilot;
+
+    public static void main(String[] args) throws IOException {
+
+        String installDir = System.getProperty("installDir");
+        if (installDir == null) {
+            installDir = ".";
+        }
+        enginePilot = new EnginePilot(Paths.get(installDir));
+
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 //            UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
@@ -47,7 +62,7 @@ public class B2BTrayIcon {
         }
         popup.addSeparator();
         {
-            CheckboxMenuItem item = new CheckboxMenuItem("Start with Windows");
+            CheckboxMenuItem item = new CheckboxMenuItem("Start automatically with system");
             popup.add(item);
             item.addItemListener(e -> {
                 int newState = e.getStateChange();
@@ -56,12 +71,14 @@ public class B2BTrayIcon {
         }
         popup.addSeparator();
         {
-            MenuItem item = new MenuItem("Start back2back engine");
-            popup.add(item);
+            startMenuItem = new MenuItem("Start back2back engine");
+            startMenuItem.setEnabled(false);
+            popup.add(startMenuItem);
         }
         {
-            MenuItem item = new MenuItem("Stop back2back engine");
-            popup.add(item);
+            stopMenuItem = new MenuItem("Stop back2back engine");
+            stopMenuItem.setEnabled(false);
+            popup.add(stopMenuItem);
         }
         popup.addSeparator();
         {
@@ -84,9 +101,26 @@ public class B2BTrayIcon {
             throw new RuntimeException("TrayIcon could not be added.");
         }
 
-
         trayIcon.displayMessage("back2back", "Tray icon ready", TrayIcon.MessageType.INFO);
 
+        // update status on background thread
+        Thread thread = new Thread(B2BTrayIcon::getEngineStatus);
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    private static void getEngineStatus() {
+        try {
+            String engineStatus = enginePilot.getEngineStatus();
+            engineAvailable(true);
+        } catch (RestClientException e1) {
+            engineAvailable(false);
+        }
+    }
+
+    private static void engineAvailable(boolean available) {
+        startMenuItem.setEnabled(!available);
+        stopMenuItem.setEnabled(available);
     }
 
     private static void setAutoStart(boolean autoStart) {
@@ -94,7 +128,7 @@ public class B2BTrayIcon {
     }
 
     //Obtain the image URL
-    protected static Image createImage(String path, String description) {
+    private static Image createImage(String path, String description) {
         URL imageURL = B2BTrayIcon.class.getResource(path);
         if (imageURL == null) {
             throw new RuntimeException("Resource not found: " + path);
@@ -103,9 +137,8 @@ public class B2BTrayIcon {
     }
 
     private static void about(ActionEvent e) {
-        RestTemplate restTemplate = new RestTemplate();
         try {
-            String version = restTemplate.getForObject("http://localhost:8080/api/app/version", String.class);
+            String version = enginePilot.version();
             JOptionPane.showMessageDialog(null,
                     MessageFormat.format("back2back: peer to peer backup\nEngine version {0} up and running", version));
         } catch (RestClientException e1) {
