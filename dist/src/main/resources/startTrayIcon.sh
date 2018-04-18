@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 cd "${INSTALL_PATH}"
-java -jar ./back2back-system-tray.jar &
+java -jar ./back2back-system-tray-onejar.jar &
