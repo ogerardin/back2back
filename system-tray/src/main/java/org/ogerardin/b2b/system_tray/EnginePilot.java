@@ -14,6 +14,7 @@ import java.util.Properties;
 public class EnginePilot {
 
     private static final int DEFAULT_SERVER_PORT = 8080;
+    private static final String ENGINE_PROPERTIES_FILE = "application.propeties";
 
     private final int serverPort;
 
@@ -21,7 +22,7 @@ public class EnginePilot {
 
     public EnginePilot(Path installDir) throws IOException {
 
-        Path propertiesFile = installDir.resolve("application.propeties").toAbsolutePath().normalize();
+        Path propertiesFile = installDir.resolve(ENGINE_PROPERTIES_FILE).toAbsolutePath().normalize();
         Properties coreProperties = new Properties();
         try {
             coreProperties.load(new FileInputStream(propertiesFile.toFile()));
@@ -37,10 +38,9 @@ public class EnginePilot {
             serverPort = Integer.parseInt(serverPortProperty);
         }
         log.info("server port = " + serverPort);
-
     }
 
-    public String getEngineStatus() throws RestClientException {
+    public String engineStatus()  {
         return apiCall("app/status");
     }
 
@@ -48,8 +48,14 @@ public class EnginePilot {
         return apiCall("app/version");
     }
 
+    public String restart() {
+        return apiCall("app/restart");
+    }
 
-    private String apiCall(String subUrl) {
+    public String shitdown() {
+        return apiCall("app/shutdown");
+    }
+    private String apiCall(String subUrl) throws RestClientException {
         String url = String.format("http://localhost:%d/api/%s", serverPort, subUrl);
         return restTemplate.getForObject(url, String.class);
     }
