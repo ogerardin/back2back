@@ -15,12 +15,17 @@ import java.text.MessageFormat;
 @Slf4j
 public class B2BTrayIcon {
 
+    private static final int POLL_PERIOD_MILLIS = 10000;
+
     private static MenuItem startMenuItem;
     private static MenuItem stopMenuItem;
 
     private static EnginePilot enginePilot;
 
     public static void main(String[] args) throws IOException {
+
+        // Hide the dock icon on Mac OS
+        System.setProperty("apple.awt.UIElement", "true");
 
         String installDir = System.getProperty("installDir");
         if (installDir == null) {
@@ -95,26 +100,37 @@ public class B2BTrayIcon {
         trayIcon.addActionListener(e -> JOptionPane.showMessageDialog(null,
                 "Double-click"));
 
+
         try {
             tray.add(trayIcon);
         } catch (AWTException e) {
             throw new RuntimeException("TrayIcon could not be added.");
         }
 
-        trayIcon.displayMessage("back2back", "Tray icon ready", TrayIcon.MessageType.INFO);
+        //trayIcon.displayMessage("back2back", "Tray icon ready", TrayIcon.MessageType.INFO);
 
-        // update status on background thread
-        Thread thread = new Thread(B2BTrayIcon::getEngineStatus);
+        // start status update on background thread
+        Thread thread = new Thread(B2BTrayIcon::pollEngineStatus);
         thread.setDaemon(true);
         thread.start();
     }
 
-    private static void getEngineStatus() {
-        try {
-            String engineStatus = enginePilot.getEngineStatus();
-            engineAvailable(true);
-        } catch (RestClientException e1) {
-            engineAvailable(false);
+    private static void pollEngineStatus() {
+        //noinspection InfiniteLoopStatement
+        while (true) {
+            try {
+                String engineStatus = enginePilot.engineStatus();
+                log.debug("Engine status: {}", engineStatus);
+                engineAvailable(true);
+            } catch (RestClientException e) {
+                log.debug("Engine not available: {}", e.toString());
+                engineAvailable(false);
+            }
+            try {
+                Thread.sleep(POLL_PERIOD_MILLIS);
+            } catch (InterruptedException e) {
+                log.info("Interrupted");
+            }
         }
     }
 
