@@ -41,8 +41,7 @@ public class Md5FilteringStrategy implements Predicate<Path> {
         String storedMd5hash = info.get().getMd5hash();
 
         // compute current file's MD5 and compare with stored file MD5
-        try {
-            FileInputStream fileInputStream = new FileInputStream(path.toFile());
+        try (FileInputStream fileInputStream = new FileInputStream(path.toFile())){
             String computedMd5Hash = md5Calculator.hexMd5Hash(fileInputStream);
             if (computedMd5Hash.equalsIgnoreCase(storedMd5hash)) {
                 // same MD5, file can be skipped

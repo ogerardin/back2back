@@ -98,9 +98,11 @@ class PeerItemWriter implements ItemWriter<LocalFileInfo> {
 
         //if the upload was successful, store the file's MD5 in the local repository
         if (result.getStatusCode() == HttpStatus.OK) {
-            String md5hash = md5Calculator.hexMd5Hash(new FileInputStream(path.toFile()));
-            val peerFileVersion = new StoredFileVersionInfo(path.toString(), md5hash, false);
-            peerFileVersionInfoRepository.save(peerFileVersion);
+            try (FileInputStream fileInputStream = new FileInputStream(path.toFile())) {
+                String md5hash = md5Calculator.hexMd5Hash(fileInputStream);
+                val peerFileVersion = new StoredFileVersionInfo(path.toString(), md5hash, false);
+                peerFileVersionInfoRepository.save(peerFileVersion);
+            }
         }
     }
 

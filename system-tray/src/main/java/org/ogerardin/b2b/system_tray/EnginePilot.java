@@ -23,8 +23,8 @@ public class EnginePilot {
 
         Path propertiesFile = installDir.resolve("application.propeties").toAbsolutePath().normalize();
         Properties coreProperties = new Properties();
-        try {
-            coreProperties.load(new FileInputStream(propertiesFile.toFile()));
+        try (FileInputStream fileInputStream = new FileInputStream(propertiesFile.toFile())) {
+            coreProperties.load(fileInputStream);
         } catch (FileNotFoundException fnfe) {
             log.warn("engine configuration not found: " + propertiesFile);
         }
