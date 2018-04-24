@@ -1,6 +1,10 @@
 package org.ogerardin.b2b.storage;
 
+/**
+ * Indicates that the requested version of a file was not found in the {@link StorageService}
+ */
 public class StorageFileVersionNotFoundException extends Exception {
+
     public StorageFileVersionNotFoundException(String s) {
         super(s);
     }

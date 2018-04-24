@@ -103,6 +103,7 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
         StorageService storageService = storageServiceFactory.getStorageService(backupSetId);
         return new InternalStorageItemWriter(storageService, properties.getFileThrottleDelay());
     }
+
     /**
      * Provides a job-scoped {@link org.springframework.batch.item.ItemProcessor} that filters out {@link Path} items
      * corresponding to a file that isn't different from the latest stored version.

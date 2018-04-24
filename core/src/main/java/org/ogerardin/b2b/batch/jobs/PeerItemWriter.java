@@ -74,7 +74,7 @@ class PeerItemWriter implements ItemWriter<LocalFileInfo> {
         map.add("computer-id", configManager.getMachineInfo().getComputerId());
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(map, headers);
+        val requestEntity = new HttpEntity<>(map, headers);
 
         // perform HTTP request
         log.debug("Trying to upload " + path);

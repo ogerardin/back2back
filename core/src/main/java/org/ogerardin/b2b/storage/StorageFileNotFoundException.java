@@ -1,5 +1,8 @@
 package org.ogerardin.b2b.storage;
 
+/**
+ * Indicates that a requested file is unknown to the {@link StorageService}
+ */
 public class StorageFileNotFoundException extends Exception {
 
     public StorageFileNotFoundException(String message) {

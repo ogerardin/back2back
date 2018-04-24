@@ -14,13 +14,14 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 /**
- * A filter that selects a {@link Path} for backup based on its MD5 hash
+ * A {@link Predicate} that decides if a local file should be backep up based on its MD5 hash, compared to a stored
+ * MD5 hash provided by a {@link StoredFileVersionInfoProvider}
  */
 @Slf4j
 @Data
 public class Md5FilteringStrategy implements Predicate<Path> {
 
-    /**Provides a way to query information (specifically MD5) abouth the stored file */
+    /** Provides a way to query information (specifically MD5) abouth the stored file */
     private final StoredFileVersionInfoProvider storedFileVersionInfoProvider;
 
     /** The hash engine to use. See implementations of {@link MD5Calculator} */

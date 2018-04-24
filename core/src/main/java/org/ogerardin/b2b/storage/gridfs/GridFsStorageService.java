@@ -133,7 +133,7 @@ public class GridFsStorageService implements StorageService {
 
 
     /**
-     * An attempt to implement getGridFSDBFile using Mongo sorting, by querying the GrdiFS collection directly.
+     * An attempt to implement getGridFSDBFile using Mongo sorting, by querying the GridFS collection directly.
      * !!! UNRELIABLE !!!
      */
     private GridFSDBFile getGridFSDBFile_(String filename) throws StorageFileNotFoundException {
