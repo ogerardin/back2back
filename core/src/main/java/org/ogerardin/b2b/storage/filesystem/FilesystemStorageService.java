@@ -14,6 +14,7 @@ import java.io.InputStream;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.security.Key;
 import java.util.Comparator;
 import java.util.stream.Stream;
 
@@ -254,6 +255,16 @@ public class FilesystemStorageService implements StorageService {
 
     @Override
     public boolean touch(Path path) {
+        throw new RuntimeException("not implemented");
+    }
+
+    @Override
+    public void store(InputStream inputStream, String filename, Key key) {
+        throw new RuntimeException("not implemented");
+    }
+
+    @Override
+    public InputStream getFileVersionAsInputStream(String versionId, Key key) {
         throw new RuntimeException("not implemented");
     }
 }

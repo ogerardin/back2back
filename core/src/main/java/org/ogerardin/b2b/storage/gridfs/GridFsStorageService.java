@@ -20,11 +20,17 @@ import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.crypto.Cipher;
+import javax.crypto.CipherInputStream;
+import javax.crypto.NoSuchPaddingException;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.security.InvalidKeyException;
+import java.security.Key;
+import java.security.NoSuchAlgorithmException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -204,6 +210,33 @@ public class GridFsStorageService implements StorageService {
     }
 
     @Override
+    public void store(InputStream inputStream, String filename, Key key) throws EncryptionException {
+        Cipher aes = getCipher(key, Cipher.ENCRYPT_MODE);
+
+        try {
+            CipherInputStream cipherInputStream = new CipherInputStream(inputStream, aes);
+            Metadata metadata = new Metadata();
+            metadata.setEncrypted(true);
+            gridFsTemplate.store(cipherInputStream, filename, metadata);
+            cipherInputStream.close();
+        } catch (IOException e) {
+            throw new StorageException("Exception while trying to store CipherInputStream as " + filename, e);
+        }
+
+    }
+
+    private static Cipher getCipher(Key key, int encryptMode) throws EncryptionException {
+        Cipher cipher;
+        try {
+            cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+            cipher.init(encryptMode, key);
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException e) {
+            throw new EncryptionException("Exception while initializing Cipher", e);
+        }
+        return cipher;
+    }
+
+    @Override
     public FileVersion[] getFileVersions(String filename) {
         List<GridFSDBFile> fsdbFiles = getGridFSDBFiles(filename);
         return fsdbFiles.stream()
@@ -268,13 +301,31 @@ public class GridFsStorageService implements StorageService {
     }
 
     @Override
-    public InputStream getFileVersionAsInputStream(String versionId) throws StorageFileVersionNotFoundException {
+    public InputStream getFileVersionAsInputStream(String versionId) throws StorageFileVersionNotFoundException, EncryptionException {
         GridFSDBFile fsdbFile = getGridFSDBFileById(versionId);
+        Metadata metadata = getMetadata(fsdbFile);
+        if (metadata.isEncrypted()) {
+            throw new EncryptionException("File is encrypted");
+        }
         return fsdbFile.getInputStream();
     }
 
     @Override
-    public Resource getFileVersionAsResource(String versionId) throws StorageFileVersionNotFoundException {
+    public InputStream getFileVersionAsInputStream(String versionId, Key key) throws StorageFileVersionNotFoundException, EncryptionException {
+        GridFSDBFile fsdbFile = getGridFSDBFileById(versionId);
+        Metadata metadata = getMetadata(fsdbFile);
+        if (! metadata.isEncrypted()) {
+            throw new EncryptionException("File is not encrypted");
+        }
+
+        Cipher cipher = getCipher(key, Cipher.DECRYPT_MODE);
+        InputStream inputStream = fsdbFile.getInputStream();
+        CipherInputStream cipherInputStream = new CipherInputStream(inputStream, cipher);
+        return cipherInputStream;
+    }
+
+    @Override
+    public Resource getFileVersionAsResource(String versionId) throws StorageFileVersionNotFoundException, EncryptionException {
         return new InputStreamResource(getFileVersionAsInputStream(versionId));
     }
 

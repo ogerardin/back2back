@@ -6,6 +6,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.security.Key;
 import java.util.stream.Stream;
 
 /**
@@ -27,6 +28,7 @@ public interface StorageService {
     void store(File file);
     void store(Path path);
     void store(InputStream inputStream, String filename);
+    void store(InputStream inputStream, String filename, Key key) throws EncryptionException;
 
     void deleteAll();
 
@@ -37,8 +39,9 @@ public interface StorageService {
     FileVersion getLatestFileVersion(String filename) throws StorageFileNotFoundException;
 
     FileVersion getFileVersion(String versionId) throws StorageFileVersionNotFoundException;
-    InputStream getFileVersionAsInputStream(String versionId) throws StorageFileVersionNotFoundException;
-    Resource getFileVersionAsResource(String versionId) throws StorageFileVersionNotFoundException;
+    InputStream getFileVersionAsInputStream(String versionId) throws StorageFileVersionNotFoundException, EncryptionException;
+    InputStream getFileVersionAsInputStream(String versionId, Key key) throws StorageFileVersionNotFoundException, EncryptionException;
+    Resource getFileVersionAsResource(String versionId) throws StorageFileVersionNotFoundException, EncryptionException;
 
     void untouchAll();
     boolean touch(Path path);
