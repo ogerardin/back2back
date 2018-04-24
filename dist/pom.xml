@@ -12,7 +12,7 @@
 
     <artifactId>back2back-dist</artifactId>
     <description>
-        Universal installer for back2back.
+        This module is responsible for generating the final distributable package (installer and such).
     </description>
 
     <properties>
