@@ -12,11 +12,13 @@ public class FileSystemStorageProviderTest extends StorageProviderTest<Filesyste
 
     public FileSystemStorageProviderTest() {
         FilesystemStorageService storageService = new FilesystemStorageService(BASE_DIRECTORY);
+        storageService.init();
+        storageService.deleteAll();
         setStorageService(storageService);
     }
 
     @Test
-    public void testLoadAll() throws Exception {
-        super.testLoadAll(storageService);
+    public void testStoreAndRetrieve() throws Exception {
+        super.testStoreAndRetrieve();
     }
 }

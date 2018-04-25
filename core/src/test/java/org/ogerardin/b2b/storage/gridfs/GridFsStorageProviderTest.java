@@ -42,11 +42,16 @@ public class GridFsStorageProviderTest extends StorageProviderTest<GridFsStorage
     public void tearDown() {
     }
 
+    @Test
+    public void testStoreAndRetrieve() throws Exception {
+        super.testStoreAndRetrieve();
+    }
 
     @Test
-    public void loadAll() throws Exception {
-        super.testLoadAll(storageService);
+    public void testStoreFilesEncrypted() throws Exception {
+        super.testStoreAndRetrieveEncrypted();
     }
+
 
 
 }
