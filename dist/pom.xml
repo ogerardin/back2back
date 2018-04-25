@@ -127,6 +127,43 @@
                 </dependencies>
             </plugin>
 
+            <!-- Use javapackager to generate Mac app bundle -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.6.0</version>
+                <executions>
+                    <execution>
+                        <id>javapackager</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <!-- This will only work with Java 1.8- if we're running with a JRE
+                                that is inside a JDK !!! -->
+                            <executable>${java.home}/../bin/javapackager</executable>
+                            <!--<workingDirectory>${project.build.directory}</workingDirectory>-->
+                            <arguments>
+                                <argument>-deploy</argument>
+                                <argument>-Bruntime=${java.home}</argument>
+                                <argument>-native</argument><argument>image</argument>
+                                <argument>-srcdir</argument><argument>${project.build.directory}</argument>
+                                <argument>-srcfiles</argument><argument>dependency/back2back-system-tray-onejar.jar</argument>
+                                <argument>-outdir</argument><argument>${project.build.directory}</argument>
+                                <argument>-outfile</argument><argument>MenuIcon.app</argument>
+                                <argument>-appclass</argument><argument>com.simontuffs.onejar.Boot</argument>
+                                <argument>-name</argument><argument>back2back Menu Icon</argument>
+                                <argument>-title</argument><argument>back2back icon</argument>
+                                <argument>-nosign</argument>
+                                <argument>-v</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+
         </plugins>
     </build>
 
