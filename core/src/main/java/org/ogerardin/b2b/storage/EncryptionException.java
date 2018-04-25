@@ -1,6 +1,6 @@
 package org.ogerardin.b2b.storage;
 
-public class EncryptionException extends Throwable {
+public class EncryptionException extends Exception {
     public EncryptionException() {
     }
 

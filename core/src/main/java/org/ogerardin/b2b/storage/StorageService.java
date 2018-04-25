@@ -22,26 +22,28 @@ public interface StorageService {
 
     Stream<FileVersion> getAllFileVersions();
     InputStream getAsInputStream(String filename) throws StorageFileNotFoundException;
+    InputStream getAsInputStream(String filename, Key key) throws StorageFileNotFoundException, EncryptionException;
     Resource getAsResource(String filename) throws StorageFileNotFoundException;
 
     void store(MultipartFile file);
-    void store(File file);
-    void store(Path path);
-    void store(InputStream inputStream, String filename);
-    void store(InputStream inputStream, String filename, Key key) throws EncryptionException;
+    String store(File file);
+    String store(Path path);
+    String store(Path path, Key key) throws EncryptionException;
+    String store(InputStream inputStream, String filename);
+    String store(InputStream inputStream, String filename, Key key) throws EncryptionException;
 
     void deleteAll();
-
     FileVersion[] getFileVersions(String filename);
+
     FileVersion[] getFileVersions(Path path);
-
     FileVersion getLatestFileVersion(Path path) throws StorageFileNotFoundException;
-    FileVersion getLatestFileVersion(String filename) throws StorageFileNotFoundException;
 
+    FileVersion getLatestFileVersion(String filename) throws StorageFileNotFoundException;
     FileVersion getFileVersion(String versionId) throws StorageFileVersionNotFoundException;
-    InputStream getFileVersionAsInputStream(String versionId) throws StorageFileVersionNotFoundException, EncryptionException;
+    InputStream getFileVersionAsInputStream(String versionId) throws StorageFileVersionNotFoundException;
     InputStream getFileVersionAsInputStream(String versionId, Key key) throws StorageFileVersionNotFoundException, EncryptionException;
-    Resource getFileVersionAsResource(String versionId) throws StorageFileVersionNotFoundException, EncryptionException;
+
+    Resource getFileVersionAsResource(String versionId) throws StorageFileVersionNotFoundException;
 
     void untouchAll();
     boolean touch(Path path);

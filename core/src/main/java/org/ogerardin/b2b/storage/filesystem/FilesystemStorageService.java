@@ -139,13 +139,14 @@ public class FilesystemStorageService implements StorageService {
     }
 
     @Override
-    public void store(File file) {
+    public String store(File file) {
         Path path = Paths.get(file.toURI());
         store(path);
+        return null;
     }
 
     @Override
-    public void store(Path remotePath) {
+    public String store(Path remotePath) {
         Path localPath = remoteToLocal(remotePath);
         try {
             Files.createDirectories(localPath.getParent());
@@ -153,10 +154,11 @@ public class FilesystemStorageService implements StorageService {
         } catch (IOException e) {
             throw new StorageException("Exception while trying to copy file " + remotePath + " to " + localPath, e);
         }
+        return null;
     }
 
     @Override
-    public void store(InputStream inputStream, String filename) {
+    public String store(InputStream inputStream, String filename) {
         Path remotePath = Paths.get(filename);
         Path localPath = remoteToLocal(remotePath);
         try {
@@ -165,7 +167,7 @@ public class FilesystemStorageService implements StorageService {
         } catch (IOException e) {
             throw new StorageException("Exception while copying input stream to local file " + localPath, e);
         }
-
+        return null;
     }
 
     @Override
@@ -259,12 +261,22 @@ public class FilesystemStorageService implements StorageService {
     }
 
     @Override
-    public void store(InputStream inputStream, String filename, Key key) {
+    public String store(InputStream inputStream, String filename, Key key) {
         throw new RuntimeException("not implemented");
     }
 
     @Override
     public InputStream getFileVersionAsInputStream(String versionId, Key key) {
+        throw new RuntimeException("not implemented");
+    }
+
+    @Override
+    public String store(Path path, Key key) throws EncryptionException {
+        throw new RuntimeException("not implemented");
+    }
+
+    @Override
+    public InputStream getAsInputStream(String filename, Key key) throws StorageFileNotFoundException, EncryptionException {
         throw new RuntimeException("not implemented");
     }
 }

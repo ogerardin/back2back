@@ -134,9 +134,13 @@ public class GridFsStorageService implements StorageService {
     public InputStream getAsInputStream(String filename) throws StorageFileNotFoundException {
         GridFSDBFile fsdbFile = getLatestGridFSDBFile(filename);
         return fsdbFile.getInputStream();
-
     }
 
+    @Override
+    public InputStream getAsInputStream(String filename, Key key) throws StorageFileNotFoundException, EncryptionException {
+        GridFSDBFile fsdbFile = getLatestGridFSDBFile(filename);
+        return getDecryptedInputStream(fsdbFile, key);
+    }
 
     /**
      * An attempt to implement getGridFSDBFile using Mongo sorting, by querying the GridFS collection directly.
@@ -179,46 +183,51 @@ public class GridFsStorageService implements StorageService {
     }
 
     @Override
-    public void store(File file) {
-        try {
-            FileInputStream inputStream = new FileInputStream(file);
-            store(inputStream, file.getCanonicalPath());
+    public String store(File file) {
+        try (FileInputStream inputStream = new FileInputStream(file)) {
+            return store(inputStream, file.getCanonicalPath());
         } catch (IOException e) {
             throw new StorageException("Exception while trying to store " + file, e);
         }
     }
 
     @Override
-    public void store(Path path) {
+    public String store(Path path) {
         String canonicalPath = canonicalPath(path);
-        try {
-            InputStream inputStream = Files.newInputStream(path, StandardOpenOption.READ);
-            store(inputStream, canonicalPath);
+        try (InputStream inputStream = Files.newInputStream(path, StandardOpenOption.READ)) {
+            return store(inputStream, canonicalPath);
         } catch (IOException e) {
             throw new StorageException("Exception while trying to store " + path, e);
         }
     }
 
     @Override
-    public void store(InputStream inputStream, String filename)  {
-        try {
-            gridFsTemplate.store(inputStream, filename, new Metadata());
-            inputStream.close();
+    public String store(Path path, Key key) throws EncryptionException {
+        String canonicalPath = canonicalPath(path);
+        try (InputStream inputStream = Files.newInputStream(path, StandardOpenOption.READ)) {
+            return store(inputStream, canonicalPath, key);
         } catch (IOException e) {
-            throw new StorageException("Exception while trying to store InputStream as " + filename, e);
+            throw new StorageException("Exception while trying to store " + path, e);
         }
     }
 
     @Override
-    public void store(InputStream inputStream, String filename, Key key) throws EncryptionException {
+    public String store(InputStream inputStream, String filename)  {
+        GridFSFile gridFSFile = gridFsTemplate.store(inputStream, filename, new Metadata());
+        return gridFSFile.getId().toString();
+    }
+
+    @Override
+    public String store(InputStream inputStream, String filename, Key key) throws EncryptionException {
         Cipher aes = getCipher(key, Cipher.ENCRYPT_MODE);
 
         try {
             CipherInputStream cipherInputStream = new CipherInputStream(inputStream, aes);
             Metadata metadata = new Metadata();
             metadata.setEncrypted(true);
-            gridFsTemplate.store(cipherInputStream, filename, metadata);
+            GridFSFile gridFSFile = gridFsTemplate.store(cipherInputStream, filename, metadata);
             cipherInputStream.close();
+            return gridFSFile.getId().toString();
         } catch (IOException e) {
             throw new StorageException("Exception while trying to store CipherInputStream as " + filename, e);
         }
@@ -301,18 +310,18 @@ public class GridFsStorageService implements StorageService {
     }
 
     @Override
-    public InputStream getFileVersionAsInputStream(String versionId) throws StorageFileVersionNotFoundException, EncryptionException {
+    public InputStream getFileVersionAsInputStream(String versionId) throws StorageFileVersionNotFoundException {
         GridFSDBFile fsdbFile = getGridFSDBFileById(versionId);
-        Metadata metadata = getMetadata(fsdbFile);
-        if (metadata.isEncrypted()) {
-            throw new EncryptionException("File is encrypted");
-        }
         return fsdbFile.getInputStream();
     }
 
     @Override
     public InputStream getFileVersionAsInputStream(String versionId, Key key) throws StorageFileVersionNotFoundException, EncryptionException {
         GridFSDBFile fsdbFile = getGridFSDBFileById(versionId);
+        return getDecryptedInputStream(fsdbFile, key);
+    }
+
+    private InputStream getDecryptedInputStream(GridFSDBFile fsdbFile, Key key) throws EncryptionException {
         Metadata metadata = getMetadata(fsdbFile);
         if (! metadata.isEncrypted()) {
             throw new EncryptionException("File is not encrypted");
@@ -325,7 +334,7 @@ public class GridFsStorageService implements StorageService {
     }
 
     @Override
-    public Resource getFileVersionAsResource(String versionId) throws StorageFileVersionNotFoundException, EncryptionException {
+    public Resource getFileVersionAsResource(String versionId) throws StorageFileVersionNotFoundException {
         return new InputStreamResource(getFileVersionAsInputStream(versionId));
     }
 
@@ -346,9 +355,8 @@ public class GridFsStorageService implements StorageService {
     @Override
     public boolean touch(Path path) {
         String canonicalPath = canonicalPath(path);
-        GridFSDBFile fsdbFile = null;
         try {
-            fsdbFile = getLatestGridFSDBFile(canonicalPath);
+            GridFSDBFile fsdbFile = getLatestGridFSDBFile(canonicalPath);
             getFilesCollection()
                     .update(new BasicDBObject("_id", fsdbFile.getId()),
                             BasicDBObject.parse("{ \"$set\": {\"metadata.deleted\": \"false\"}}"));
