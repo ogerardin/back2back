@@ -108,7 +108,7 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
         if (targetPort == null) {
             targetPort = properties.getDefaultPeerPort();
         }
-        return new PeerItemWriter(peerFileVersionInfoRepository, targetHostname, targetPort, encrypt);
+        return new PeerItemWriter(peerFileVersionInfoRepository, targetHostname, targetPort);
     }
 
     /**

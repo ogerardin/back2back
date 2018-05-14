@@ -13,13 +13,12 @@ public enum CipherHelper {
 
 
     public static Cipher getAesCipher(Key key, int encryptMode) throws EncryptionException {
-        Cipher cipher;
         try {
-            cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
             cipher.init(encryptMode, key);
+            return cipher;
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException e) {
             throw new EncryptionException("Exception while initializing Cipher", e);
         }
-        return cipher;
     }
 }

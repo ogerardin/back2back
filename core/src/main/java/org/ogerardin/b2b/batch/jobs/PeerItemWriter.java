@@ -7,12 +7,13 @@ import org.ogerardin.b2b.config.ConfigManager;
 import org.ogerardin.b2b.domain.StoredFileVersionInfo;
 import org.ogerardin.b2b.domain.mongorepository.RemoteFileVersionInfoRepository;
 import org.ogerardin.b2b.files.md5.StreamingMd5Calculator;
+import org.ogerardin.b2b.storage.EncryptionException;
 import org.ogerardin.b2b.util.CipherHelper;
+import org.ogerardin.b2b.util.FormattingHelper;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.PathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
@@ -22,7 +23,6 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -77,27 +77,34 @@ class PeerItemWriter implements ItemWriter<LocalFileInfo> {
         log.debug("Writing " + Arrays.toString(items.toArray()));
 
         for (LocalFileInfo item : items) {
-            if (key != null) {
-                MessageDigest md = MessageDigest.getInstance("MD5");
-                Cipher cipher = CipherHelper.getAesCipher(key, Cipher.ENCRYPT_MODE);
-                try (
-                        InputStream is = Files.newInputStream(item.getPath());
-                        DigestInputStream dis = new DigestInputStream(is, md);
-                        CipherInputStream cis = new CipherInputStream(dis, cipher);
-
-
-                ) {
-                    InputStreamResource isr = new InputStreamResource(cis);
-                    uploadFile(item.getPath(), isr);
-                }
-                byte[] md5 = md.digest();
+            Path path = item.getPath();
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            try (
+                    InputStream is = Files.newInputStream(path);
+                    DigestInputStream dis = new DigestInputStream(is, md);
+                    InputStream uploadInputStream = (key != null) ? getCipherInputStream(dis, key) : dis;
+            ) {
+                Resource resource = new InputStreamResource(uploadInputStream);
+                uploadFile(path, resource);
             }
-            else {
-                PathResource resource = new PathResource(item.getPath());
-                uploadFile(item.getPath(), resource);
-            }
+
+            // upload successful: update local MD5 database
+            byte[] md5Hash = md.digest();
+            String hexMd5Hash = FormattingHelper.hex(md5Hash);
+            val peerFileVersion = new StoredFileVersionInfo(path.toString(), hexMd5Hash, false);
+            peerFileVersionInfoRepository.save(peerFileVersion);
         }
 
+    }
+
+    private static InputStream getCipherInputStream(DigestInputStream dis, Key key) throws EncryptionException, IOException {
+        InputStream uploadInputStream;Cipher cipher = CipherHelper.getAesCipher(key, Cipher.ENCRYPT_MODE);
+        try (
+                CipherInputStream cis = new CipherInputStream(dis, cipher);
+        ) {
+            uploadInputStream = cis;
+        }
+        return uploadInputStream;
     }
 
     private void uploadFile(@NonNull Path path, Resource resource) throws IOException, URISyntaxException {
@@ -132,16 +139,6 @@ class PeerItemWriter implements ItemWriter<LocalFileInfo> {
             return;
         }
         log.debug("Result of upload: " + result);
-
-        //if the upload was successful, store the file's MD5 in the local repository
-        if (result.getStatusCode() == HttpStatus.OK) {
-            try (FileInputStream fileInputStream = new FileInputStream(path.toFile())) {
-                String md5hash = md5Calculator.hexMd5Hash(fileInputStream);
-                val peerFileVersion = new StoredFileVersionInfo(path.toString(), md5hash, false);
-                peerFileVersionInfoRepository.save(peerFileVersion);
-            }
-        }
     }
-
 
 }

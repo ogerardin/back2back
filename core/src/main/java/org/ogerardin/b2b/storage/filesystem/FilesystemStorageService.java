@@ -66,7 +66,7 @@ public class FilesystemStorageService implements StorageService {
 
     @Override
     public Stream<FileInfo> getAllFiles(boolean includeDeleted) {
-        //FIXME consider includeDeleted
+        //FIXME includeDeleted is ignored
         try {
             return Files.walk(baseDirectory)
                     .filter(p -> !Files.isDirectory(p))

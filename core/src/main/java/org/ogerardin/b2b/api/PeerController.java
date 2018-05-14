@@ -76,7 +76,7 @@ public class PeerController {
         StorageService storageService = storageServiceFactory.getStorageService(backupSet.getId());
         storageService.store(file.getInputStream(), originalPath);
 
-        return new ResponseEntity<>("Successfully uploaded '" + file.getOriginalFilename() +"'",
+        return new ResponseEntity<>(String.format("Successfully uploaded '%s'", file.getOriginalFilename()),
                 new HttpHeaders(), HttpStatus.OK);
 
     }
@@ -96,7 +96,7 @@ public class PeerController {
             return createBackupSet(computerId);
         }
         if (backupSets.size() > 1) {
-            throw new B2BException("More than 1 BackupSet found for remote computer " + computerId);
+            throw new B2BException(String.format("More than 1 BackupSet found for remote computer %s", computerId));
         }
         return backupSets.get(0);
     }
