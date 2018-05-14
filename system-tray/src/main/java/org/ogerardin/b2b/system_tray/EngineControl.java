@@ -11,7 +11,7 @@ import java.nio.file.Path;
 import java.util.Properties;
 
 @Slf4j
-public class EnginePilot {
+public class EngineControl {
 
     private static final int DEFAULT_SERVER_PORT = 8080;
     private static final String ENGINE_PROPERTIES_FILE = "application.propeties";
@@ -20,7 +20,7 @@ public class EnginePilot {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    public EnginePilot(Path installDir) throws IOException {
+    public EngineControl(Path installDir) throws IOException {
 
         Path propertiesFile = installDir.resolve(ENGINE_PROPERTIES_FILE).toAbsolutePath().normalize();
         Properties coreProperties = new Properties();
@@ -52,7 +52,7 @@ public class EnginePilot {
         return apiCall("app/restart");
     }
 
-    public String shitdown() {
+    public String shutdown() {
         return apiCall("app/shutdown");
     }
     private String apiCall(String subUrl) throws RestClientException {

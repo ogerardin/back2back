@@ -20,9 +20,11 @@ public class B2BTrayIcon {
     private static MenuItem startMenuItem;
     private static MenuItem stopMenuItem;
 
-    private static EnginePilot enginePilot;
+    private static EngineControl engineControl;
 
     public static void main(String[] args) throws IOException {
+
+        log.info("Starting tray icon...");
 
         // Hide the dock icon on Mac OS
         System.setProperty("apple.awt.UIElement", "true");
@@ -31,25 +33,31 @@ public class B2BTrayIcon {
         if (installDir == null) {
             installDir = ".";
         }
-        enginePilot = new EnginePilot(Paths.get(installDir));
+        engineControl = new EngineControl(Paths.get(installDir));
 
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 //            UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
 //            UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
         } catch (UnsupportedLookAndFeelException | IllegalAccessException | InstantiationException | ClassNotFoundException ex) {
-            ex.printStackTrace();
+            log.error("Failed to set look-and-feel", ex);
         }
         // Turn off metal's use of bold fonts
         UIManager.put("swing.boldMetal", Boolean.FALSE);
         // Schedule a job for the event-dispatching thread: adding TrayIcon.
         SwingUtilities.invokeLater(B2BTrayIcon::createAndShowGUI);
+
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException ignored) {
+        }
     }
 
     private static void createAndShowGUI() {
         // Check the SystemTray support
         if (!SystemTray.isSupported()) {
-            throw new RuntimeException("SystemTray is not supported");
+            log.error("SystemTray is not supported");
+            return;
         }
 
         final SystemTray tray = SystemTray.getSystemTray();
@@ -104,7 +112,8 @@ public class B2BTrayIcon {
         try {
             tray.add(trayIcon);
         } catch (AWTException e) {
-            throw new RuntimeException("TrayIcon could not be added.");
+            log.error("TrayIcon could not be added.", e);
+            return;
         }
 
         //trayIcon.displayMessage("back2back", "Tray icon ready", TrayIcon.MessageType.INFO);
@@ -113,13 +122,15 @@ public class B2BTrayIcon {
         Thread thread = new Thread(B2BTrayIcon::pollEngineStatus);
         thread.setDaemon(true);
         thread.start();
+
+        log.info("Tray icon ready.");
     }
 
     private static void pollEngineStatus() {
         //noinspection InfiniteLoopStatement
         while (true) {
             try {
-                String engineStatus = enginePilot.engineStatus();
+                String engineStatus = engineControl.engineStatus();
                 log.debug("Engine status: {}", engineStatus);
                 engineAvailable(true);
             } catch (RestClientException e) {
@@ -154,7 +165,7 @@ public class B2BTrayIcon {
 
     private static void about(ActionEvent e) {
         try {
-            String version = enginePilot.version();
+            String version = engineControl.version();
             JOptionPane.showMessageDialog(null,
                     MessageFormat.format("back2back: peer to peer backup\nEngine version {0} up and running", version));
         } catch (RestClientException e1) {
