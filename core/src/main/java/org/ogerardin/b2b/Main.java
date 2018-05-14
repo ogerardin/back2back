@@ -43,7 +43,8 @@ public class Main {
 
     public static void restart() {
         // close previous context and start a new one
-        context.close();
+        //FIXME this only works once! NPE if called a second time...
+        Main.context.close();
         Main.context = SpringApplication.run(Main.class, args);
     }
 
