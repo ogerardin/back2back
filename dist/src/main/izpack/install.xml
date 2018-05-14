@@ -30,6 +30,7 @@
         <panel classname="ShortcutPanel" condition="!izpack.macinstall"/>
         <panel classname="SummaryPanel"/>
         <panel classname="InstallPanel"/>
+        <panel classname="ProcessPanel"/>
         <panel classname="SimpleFinishPanel"/>
     </panels>
 
@@ -42,6 +43,15 @@
         <pack name="Windows service" required="no">
             <os family="windows"/>
             <description>Install the backup engine as a Windows service</description>
+            <file src="nssm-@{nssm.version}/win32/nssm.exe" targetdir="${INSTALL_PATH}/nssm/win32"/>
+            <file src="nssm-@{nssm.version}/win64/nssm.exe" targetdir="${INSTALL_PATH}/nssm/win64"/>
+            <file src="nssm-@{nssm.version}/README.txt" targetdir="${INSTALL_PATH}/nssm"/>
+            <file src="classes/installService.bat" targetdir="${INSTALL_PATH}" override="true"/>
+            <file src="classes/removeService.bat" targetdir="${INSTALL_PATH}" override="true"/>
+            <parsable targetfile="${INSTALL_PATH}/installService.bat" type="plain"/>
+            <parsable targetfile="${INSTALL_PATH}/removeService.bat" type="plain"/>
+            <executable type="bin" targetfile="${INSTALL_PATH}/installService.bat"
+                        stage="postinstall" keep="true"/>
         </pack>
         <pack name="Windows tray icon" required="no">
             <os family="windows"/>
@@ -49,8 +59,10 @@
             <file src="dependency/back2back-system-tray-onejar.jar" targetdir="${INSTALL_PATH}" override="true"/>
             <file src="classes/startTrayIcon.bat" targetdir="${INSTALL_PATH}" override="true"/>
             <parsable targetfile="${INSTALL_PATH}/startTrayIcon.bat" type="plain"/>
+<!--
             <executable type="bin" targetfile="${INSTALL_PATH}/startTrayIcon.bat"
                         stage="postinstall" keep="true"/>
+-->
         </pack>
         <pack name="Mac menu bar icon" required="no">
             <os family="mac"/>
@@ -73,5 +85,11 @@
         <native type="izpack" name="ShellLink.dll"/>
         <native type="izpack" name="ShellLink_x64.dll"/>
     </natives>
+
+    <conditions>
+        <condition type="packselection" id="windowsSystemTraySelected">
+            <name>Windows tray icon</name>
+        </condition>
+    </conditions>
 
 </izpack:installation>

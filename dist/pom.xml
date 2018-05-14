@@ -17,6 +17,7 @@
 
     <properties>
         <izpack.version>5.1.2</izpack.version>
+        <nssm.version>2.24</nssm.version>
     </properties>
 
     <dependencies>
@@ -38,6 +39,14 @@
             <version>1.0-SNAPSHOT</version>
             <classifier>onejar</classifier>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/com.googlecode.maven-download-plugin/download-maven-plugin -->
+        <dependency>
+            <groupId>com.googlecode.maven-download-plugin</groupId>
+            <artifactId>download-maven-plugin</artifactId>
+            <version>1.4.0</version>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -47,6 +56,7 @@
             <resource>
                 <directory>src/main/resources</directory>
             </resource>
+            <!-- Include LICENSE.txt file from root module -->
             <resource>
                 <directory>..</directory>
                 <includes>
@@ -86,6 +96,7 @@
                             <excludeGroupIds>org.codehaus.izpack</excludeGroupIds>
                         </configuration>
                     </execution>
+
                     <!-- copy izpack custom (custom panels, etc.) jars to izpack staging custom -->
                     <execution>
                         <id>copy-izpack-dependencies</id>
@@ -103,13 +114,40 @@
             </plugin>
 
             <plugin>
+                <groupId>com.googlecode.maven-download-plugin</groupId>
+                <artifactId>download-maven-plugin</artifactId>
+                <version>1.4.0</version>
+                <executions>
+                    <!-- Download NSSM from https://nssm.cc and unzip it.
+                        If you are behind a proxy you may need to pass the corresponding options to maven:
+                            -Dhttp.proxyHost=... -Dhttp.proxyPort=...
+                    -->
+                    <execution>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>wget</goal>
+                        </goals>
+                        <configuration>
+                            <url>http://nssm.cc/release/nssm-${nssm.version}.zip</url>
+                            <!--<md5>be7b3577c6e3a280e5106a9e9db5b3775931cefc</md5>-->
+                            <outputDirectory>${project.build.directory}</outputDirectory>
+                            <unpack>true</unpack>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
                 <groupId>org.codehaus.izpack</groupId>
                 <artifactId>izpack-maven-plugin</artifactId>
                 <version>${izpack.version}</version>
                 <executions>
+                    <!-- Generate izpack installer -->
                     <execution>
                         <phase>package</phase>
-                        <goals><goal>izpack</goal></goals>
+                        <goals>
+                            <goal>izpack</goal>
+                        </goals>
                         <configuration>
                             <!-- base for relative paths in izpack descriptor -->
                             <baseDir>${project.build.directory}</baseDir>
@@ -127,12 +165,12 @@
                 </dependencies>
             </plugin>
 
-            <!-- Use javapackager to generate Mac app bundle -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>1.6.0</version>
                 <executions>
+                    <!-- Use javapackager to generate Mac app bundle -->
                     <execution>
                         <id>javapackager</id>
                         <phase>package</phase>
