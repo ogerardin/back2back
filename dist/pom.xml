@@ -40,13 +40,6 @@
             <classifier>onejar</classifier>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/com.googlecode.maven-download-plugin/download-maven-plugin -->
-        <dependency>
-            <groupId>com.googlecode.maven-download-plugin</groupId>
-            <artifactId>download-maven-plugin</artifactId>
-            <version>1.4.0</version>
-        </dependency>
-
     </dependencies>
 
     <build>
@@ -89,7 +82,7 @@
                             <!-- By default the dependencies are extratcted to target/dependency -->
                             <!--<outputDirectory>${izpack.staging}/lib</outputDirectory>-->
                             <!-- this excludes tools.jar, e.g. -->
-                            <excludeScope>system</excludeScope>
+                            <includeScope>runtime</includeScope>
                             <!-- IMPORTANT: don't copy custom panels where our application jars live -->
                             <excludeArtifactIds>mycustompanels</excludeArtifactIds>
                             <!-- IMPORTANT: we don't want to copy the IzPack dependency where our application jars live -->

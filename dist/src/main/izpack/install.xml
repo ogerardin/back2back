@@ -12,7 +12,6 @@
         </authors>
         <javaversion>1.8</javaversion>
         <requiresjdk>no</requiresjdk>
-        <!--<pack-compression-format>lzma</pack-compression-format>-->
     </info>
 
     <locale>
@@ -40,6 +39,7 @@
             <file src="dependency/back2back-bundle-repackaged.jar" targetdir="${INSTALL_PATH}" override="true"/>
             <file src="classes/b2b.ico" targetdir="${INSTALL_PATH}" override="true"/>
         </pack>
+
         <pack name="Windows service" required="no">
             <os family="windows"/>
             <description>Install the backup engine as a Windows service</description>
@@ -53,25 +53,23 @@
             <executable type="bin" targetfile="${INSTALL_PATH}/installService.bat"
                         stage="postinstall" keep="true"/>
         </pack>
+
         <pack name="Windows tray icon" required="no">
             <os family="windows"/>
             <description>Allow easy access through an icon in the Windows tray</description>
             <file src="dependency/back2back-system-tray-onejar.jar" targetdir="${INSTALL_PATH}" override="true"/>
             <file src="classes/startTrayIcon.bat" targetdir="${INSTALL_PATH}" override="true"/>
             <parsable targetfile="${INSTALL_PATH}/startTrayIcon.bat" type="plain"/>
-<!--
-            <executable type="bin" targetfile="${INSTALL_PATH}/startTrayIcon.bat"
-                        stage="postinstall" keep="true"/>
--->
+            <executable type="bin" targetfile="${INSTALL_PATH}/startTrayIcon.bat" keep="true"/>
         </pack>
+
         <pack name="Mac menu bar icon" required="no">
             <os family="mac"/>
             <description>Allow easy access through an icon in the Mac menu bar</description>
             <file src="dependency/back2back-system-tray-onejar.jar" targetdir="${INSTALL_PATH}" override="true"/>
             <file src="classes/startTrayIcon.sh" targetdir="${INSTALL_PATH}" override="true"/>
             <parsable targetfile="${INSTALL_PATH}/startTrayIcon.sh" type="plain"/>
-            <executable type="bin" targetfile="${INSTALL_PATH}/startTrayIcon.sh"
-                        stage="postinstall" keep="true"/>
+            <executable type="bin" targetfile="${INSTALL_PATH}/startTrayIcon.sh" keep="true"/>
         </pack>
     </packs>
 
@@ -79,6 +77,7 @@
         <res src="classes/install-sidebar.png" id="Installer.image"/>
         <res src="classes/LICENSE.txt" id="LicencePanel.licence"/>
         <res src="classes/shortcutSpec.xml" id="shortcutSpec.xml"/>
+        <res src="classes/ProcessPanel.Spec.xml" id="ProcessPanel.Spec.xml" />
     </resources>
 
     <natives>
@@ -87,8 +86,11 @@
     </natives>
 
     <conditions>
-        <condition type="packselection" id="windowsSystemTraySelected">
+        <condition type="packselection" id="winTraySelected">
             <name>Windows tray icon</name>
+        </condition>
+        <condition type="packselection" id="macTraySelected">
+            <name>Mac menu bar icon</name>
         </condition>
     </conditions>
 
