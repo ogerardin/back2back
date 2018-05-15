@@ -1,3 +1,7 @@
 cd ${INSTALL_PATH}
-.\nssm\win32\nssm.exe install back2back "java -jar ${INSTALL_PATH}\back2back-core-repackaged.jar"
-exit
+
+reg Query "HKLM\Hardware\Description\System\CentralProcessor\0" | find /i "x86" > NUL && set BITNESS=32 || set BITNESS=64
+set PATH=.\nssm\win%BITNESS%;%PATH%
+
+nssm.exe install ${serviceName} "java -jar ${INSTALL_PATH}\${engineJar}"
+nssm.exe start ${serviceName}

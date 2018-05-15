@@ -3,14 +3,19 @@
                    xmlns:izpack="http://izpack.org/schema/processing" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://izpack.org/schema/processing http://izpack.org/schema/5.0/izpack-processing-5.0.xsd">
 
+    <job name="windowsInstallService" condition="winServiceSelected">
+        <os family="windows" />
+        <executefile name="$INSTALL_PATH/installService.bat"/>
+    </job>
+
     <job name="windowsStartTrayIcon" condition="winTraySelected">
         <os family="windows" />
-        <executefile name="$INSTALL_PATH/startTrayIcon.bat" workingDir="$INSTALL_PATH"/>
+        <executefile name="$INSTALL_PATH/startTrayIcon.bat"/>
     </job>
 
     <job name="macStartTrayIcon" condition="macTraySelected">
         <os family="mac" />
-        <executefile name="$INSTALL_PATH/startTrayIcon.sh" workingDir="$INSTALL_PATH"/>
+        <executefile name="$INSTALL_PATH/startTrayIcon.sh"/>
     </job>
 
 </izpack:processing>

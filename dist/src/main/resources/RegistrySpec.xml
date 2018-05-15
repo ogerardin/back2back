@@ -1,0 +1,14 @@
+<izpack:registry xmlns:izpack="http://izpack.org/schema/registry"
+                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="5.0"
+                 xsi:schemaLocation="http://izpack.org/schema/registry http://izpack.org/schema/5.0/izpack-registry-5.0.xsd">
+
+    <pack name="Windows service">
+        <value name="AppStdout" keypath="SYSTEM\CurrentControlSet\Services\${serviceName}\Parameters" root="HKLM"
+            string="${INSTALL_DIR}\logs\${serviceName}.log">
+        </value>
+        <value name="AppStderr" keypath="SYSTEM\CurrentControlSet\Services\${serviceName}\Parameters" root="HKLM"
+            string="${INSTALL_DIR}\logs\${serviceName}.log">
+        </value>
+    </pack>
+
+</izpack:registry>
