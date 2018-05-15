@@ -26,7 +26,7 @@ public class EmbeddedMongoRunner {
 
         IMongodConfig mongodConfig = new MongodConfigBuilder()
                 .version(Version.Main.PRODUCTION)
-                .net(new Net(27017, Network.localhostIsIPv6()))
+                .net(new Net("localhost",27017, Network.localhostIsIPv6()))
                 .replication(replication)
                 .build();
 
