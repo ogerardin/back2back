@@ -13,6 +13,12 @@
     <artifactId>back2back-system-tray</artifactId>
     <packaging>jar</packaging>
 
+    <description>
+        A "system tray" app to control the back2back core.
+        On Windows this generates a "system tray icon".
+        On macOS this generates a "menu icon"
+    </description>
+
     <properties>
         <java.version>1.8</java.version>
     </properties>

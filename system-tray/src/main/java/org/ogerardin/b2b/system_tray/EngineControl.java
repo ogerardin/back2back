@@ -14,7 +14,7 @@ import java.util.Properties;
 public class EngineControl {
 
     private static final int DEFAULT_SERVER_PORT = 8080;
-    private static final String ENGINE_PROPERTIES_FILE = "application.propeties";
+    private static final String ENGINE_PROPERTIES_FILE = "application.properties";
 
     private final int serverPort;
 
