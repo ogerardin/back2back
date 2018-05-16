@@ -200,7 +200,7 @@
                                 <argument>-Bruntime=${java.home}</argument>
                                 <argument>-native</argument><argument>image</argument>
                                 <argument>-srcdir</argument><argument>${project.build.directory}</argument>
-                                <argument>-srcfiles</argument><argument>dependency/@{trayJar}</argument>
+                                <argument>-srcfiles</argument><argument>dependency/back2back-system-tray-onejar.jar</argument>
                                 <argument>-outdir</argument><argument>${project.build.directory}</argument>
                                 <argument>-outfile</argument><argument>MenuIcon.app</argument>
                                 <argument>-appclass</argument><argument>com.simontuffs.onejar.Boot</argument>
