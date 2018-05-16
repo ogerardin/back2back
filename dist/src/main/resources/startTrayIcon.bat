@@ -1,3 +1,4 @@
-cd ${INSTALL_PATH}
+@echo off
 
-start /b javaw -jar .\${trayJar}
+cd ${INSTALL_PATH}
+start /b javaw -jar .\lib\${trayJar}

@@ -5,17 +5,17 @@
 
     <job name="windowsInstallService" condition="winServiceSelected">
         <os family="windows" />
-        <executefile name="$INSTALL_PATH/installService.bat"/>
+        <executefile name="$INSTALL_PATH/bin/installService.bat"/>
     </job>
 
     <job name="windowsStartTrayIcon" condition="winTraySelected">
         <os family="windows" />
-        <executefile name="$INSTALL_PATH/startTrayIcon.bat"/>
+        <executefile name="$INSTALL_PATH/bin/startTrayIcon.bat"/>
     </job>
 
     <job name="macStartTrayIcon" condition="macTraySelected">
         <os family="mac" />
-        <executefile name="$INSTALL_PATH/startTrayIcon.sh"/>
+        <executefile name="$INSTALL_PATH/bin/startTrayIcon.sh"/>
     </job>
 
 </izpack:processing>

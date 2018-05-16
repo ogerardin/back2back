@@ -8,7 +8,7 @@
     <programGroup defaultName="back2back" />
     <lateShortcutInstall/>
 
-    <shortcut name="Start back2back engine" target="$INSTALL_PATH/@{engineJar}" iconFile="b2b.ico"/>
-    <shortcut name="Show Tray icon" target="$INSTALL_PATH/startTrayIcon.bat" iconFile="b2b.ico" condition="winTraySelected"/>
+    <shortcut name="Start back2back engine" target="$INSTALL_PATH/bin/startEngine.bat" iconFile="b2b.ico"/>
+    <shortcut name="Show Tray icon" target="$INSTALL_PATH/bin/startTrayIcon.bat" iconFile="b2b.ico" condition="winTraySelected"/>
 
 </izpack:shortcuts>

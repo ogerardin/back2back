@@ -135,6 +135,7 @@
                             -Dhttp.proxyHost=... -Dhttp.proxyPort=...
                     -->
                     <execution>
+                        <id>download-nssm</id>
                         <phase>generate-resources</phase>
                         <goals>
                             <goal>wget</goal>
@@ -161,6 +162,8 @@
                             <goal>izpack</goal>
                         </goals>
                         <configuration>
+                            <!--<autoIncludeDevelopers>true</autoIncludeDevelopers>-->
+                            <!--<autoIncludeUrl>true</autoIncludeUrl>-->
                             <!-- base for relative paths in izpack descriptor -->
                             <baseDir>${project.build.directory}</baseDir>
                             <installFile>${project.basedir}/src/main/izpack/install.xml</installFile>
@@ -183,7 +186,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>1.6.0</version>
                 <executions>
-                    <!-- Use javapackager to generate Mac app bundle -->
+                    <!-- Use javapackager to generate bundle -->
                     <execution>
                         <id>javapackager</id>
                         <phase>package</phase>
