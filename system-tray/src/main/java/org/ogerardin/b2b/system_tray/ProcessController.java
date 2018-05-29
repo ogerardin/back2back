@@ -4,11 +4,11 @@ import java.io.IOException;
 
 public interface ProcessController {
 
-    boolean isRunning();
+    boolean isRunning() throws IOException;
 
     void stop();
 
     void start() throws IOException;
 
-    void restart();
+    void restart() throws IOException;
 }
