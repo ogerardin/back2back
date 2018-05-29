@@ -5,20 +5,17 @@
         <key>Label</key>
         <string>org.ogerardin.back2back</string>
 
-        <key>Program</key>
-        <string>java</string>
-
         <key>ProgramArguments</key>
         <array>
             <string>java</string>
             <string>-jar</string>
-            <string>${INSTALL_PATH}/${engineJar}</string>
+            <string>${INSTALL_PATH}/lib/${engineJar}</string>
         </array>
 
         <key>WorkingDirectory</key>
         <string>${INSTALL_PATH}</string>
 
-        <key>RunAtLoad </key>
+        <key>RunAtLoad</key>
         <true/>
 
         <key>KeepAlive</key>

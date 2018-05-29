@@ -8,6 +8,11 @@
         <executefile name="$INSTALL_PATH/bin/installService.bat"/>
     </job>
 
+    <job name="macInstallDaemon" condition="macDaemonSelected">
+        <os family="mac" />
+        <executefile name="$INSTALL_PATH/bin/installDaemon.sh"/>
+    </job>
+
     <job name="windowsStartTrayIcon" condition="winTraySelected">
         <os family="windows" />
         <executefile name="$INSTALL_PATH/bin/startTrayIcon.bat"/>

@@ -44,10 +44,12 @@
             <description>The core backup engine</description>
             <file src="dependency/@{engineJar}" targetdir="${INSTALL_PATH}/lib" override="true"/>
             <file src="classes/b2b.ico" targetdir="${INSTALL_PATH}" override="true"/>
-            <file src="classes/startEngine.bat" targetdir="${INSTALL_PATH}/bin" override="true" condition="izpack.windowsinstall"/>
-            <file src="classes/startEngine.sh" targetdir="${INSTALL_PATH}/bin" override="true" condition="!izpack.windowsinstall"/>
+            <file src="classes/bin/startEngine.bat" targetdir="${INSTALL_PATH}/bin" override="true" condition="izpack.windowsinstall"/>
+            <file src="classes/bin/startEngine.sh" targetdir="${INSTALL_PATH}/bin" override="true" condition="!izpack.windowsinstall"/>
             <parsable targetfile="${INSTALL_PATH}/bin/startEngine.bat" type="plain" condition="izpack.windowsinstall"/>
             <parsable targetfile="${INSTALL_PATH}/bin/startEngine.sh" type="plain" condition="!izpack.windowsinstall"/>
+            <executable type="bin" targetfile="${INSTALL_PATH}/bin/startEngine.bat" keep="true" condition="izpack.windowsinstall"/>
+            <executable type="bin" targetfile="${INSTALL_PATH}/bin/startEngine.sh" keep="true" condition="!izpack.windowsinstall"/>
         </pack>
 
         <pack name="Windows service" required="no">
@@ -56,11 +58,12 @@
             <file src="nssm-@{nssm.version}/win32/nssm.exe" targetdir="${INSTALL_PATH}/nssm/win32"/>
             <file src="nssm-@{nssm.version}/win64/nssm.exe" targetdir="${INSTALL_PATH}/nssm/win64"/>
             <file src="nssm-@{nssm.version}/README.txt" targetdir="${INSTALL_PATH}/nssm"/>
-            <file src="classes/installService.bat" targetdir="${INSTALL_PATH}/bin" override="true"/>
-            <file src="classes/removeService.bat" targetdir="${INSTALL_PATH}/bin" override="true"/>
-            <parsable targetfile="${INSTALL_PATH}/installService.bat" type="plain"/>
-            <parsable targetfile="${INSTALL_PATH}/removeService.bat" type="plain"/>
-            <executable type="bin" targetfile="${INSTALL_PATH}/installService.bat" keep="true"/>
+            <file src="classes/winsrv/installService.bat" targetdir="${INSTALL_PATH}/bin" override="true"/>
+            <file src="classes/winsrv/removeService.bat" targetdir="${INSTALL_PATH}/bin" override="true"/>
+            <parsable targetfile="${INSTALL_PATH}/bin/installService.bat" type="plain"/>
+            <parsable targetfile="${INSTALL_PATH}/bin/removeService.bat" type="plain"/>
+            <executable type="bin" targetfile="${INSTALL_PATH}/bin/installService.bat" keep="true"/>
+            <executable type="bin" targetfile="${INSTALL_PATH}/bin/removeService.bat" keep="true"/>
         </pack>
 
         <pack name="Mac Daemon" required="no">
@@ -80,7 +83,7 @@
             <os family="windows"/>
             <description>Allow easy access through an icon in the Windows tray</description>
             <file src="dependency/@{trayJar}" targetdir="${INSTALL_PATH}/lib" override="true"/>
-            <file src="classes/startTrayIcon.bat" targetdir="${INSTALL_PATH}/bin" override="true"/>
+            <file src="classes/bin/startTrayIcon.bat" targetdir="${INSTALL_PATH}/bin" override="true"/>
             <parsable targetfile="${INSTALL_PATH}/bin/startTrayIcon.bat" type="plain"/>
             <executable type="bin" targetfile="${INSTALL_PATH}/bin/startTrayIcon.bat" keep="true"/>
         </pack>
@@ -89,8 +92,8 @@
             <os family="mac"/>
             <description>Allow easy access through an icon in the Mac menu bar</description>
             <file src="dependency/@{trayJar}" targetdir="${INSTALL_PATH}/lib" override="true"/>
-            <file src="classes/startTrayIcon.sh" targetdir="${INSTALL_PATH}/bin" override="true"/>
-            <parsable targetfile="${INSTALL_PATH}/startTrayIcon.sh" type="plain"/>
+            <file src="classes/bin/startTrayIcon.sh" targetdir="${INSTALL_PATH}/bin" override="true"/>
+            <parsable targetfile="${INSTALL_PATH}/bin/startTrayIcon.sh" type="plain"/>
             <executable type="bin" targetfile="${INSTALL_PATH}/bin/startTrayIcon.sh" keep="true"/>
         </pack>
     </packs>
@@ -130,6 +133,9 @@
     <conditions>
         <condition type="packselection" id="winServiceSelected">
             <name>Windows service</name>
+        </condition>
+        <condition type="packselection" id="macDaemonSelected">
+            <name>Mac Daemon</name>
         </condition>
         <condition type="packselection" id="winTraySelected">
             <name>Windows tray icon</name>
