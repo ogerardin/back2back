@@ -46,7 +46,7 @@ public class WindowsNssmServiceController implements ProcessController {
 
     private void performNetCommand(String command) throws ControlException {
         try {
-            String cmd = String.format("%s %s \"%s\"", NET, command, escapeSpace(serviceDisplayName));
+            String cmd = String.format("%s %s \"%s\"", NET, command, serviceDisplayName);
             Process p = Runtime.getRuntime().exec(cmd);
             p.waitFor();
         } catch (IOException | InterruptedException e) {
