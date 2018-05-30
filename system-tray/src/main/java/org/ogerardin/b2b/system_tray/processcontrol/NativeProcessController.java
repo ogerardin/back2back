@@ -12,15 +12,26 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+/**
+ * Controls the execution lifecycle of a process instance. A single instance of the process is allowed.
+ * The existence of the process is materialized by the existence of a file containing the PID number of the process.
+ */
 @Data
 @Builder
 public class NativeProcessController implements ProcessController {
 
     private static final String OSNAME = System.getProperty("os.name").toLowerCase();
 
+    /** Name of the file containing the PID */
     @Builder.Default private String pidfile = "pidfile.pid";
+
+    /** Initial working directory of the process. */
     @Builder.Default private Path homeDirectory = Paths.get(".");
+
+    /** Command to run and its arguments */
     private String[] commandLine;
+
+    /** Optional path of a file to use for redirecting process output */
     private Path logFile;
 
     @Override
@@ -165,7 +176,7 @@ public class NativeProcessController implements ProcessController {
     }
 
     /**
-     * @return the OS specific number identiying the specified {@link Process}
+     * @return the OS specific PID number identiying the specified {@link Process}
      */
     private long getPid(Process process) throws NoSuchFieldException, IllegalAccessException {
         // try "pid" field (works on Unixes)
