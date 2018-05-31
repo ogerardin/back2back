@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<installer-gui-script minSpecVersion="1">
+    <title>@name@</title>
+    <organization>ord.ogerardin</organization>
+    <domains enable_localSystem="true"/>
+    <options customize="never" require-scripts="true" rootVolumeOnly="true" />
+
+    <!-- Define documents displayed at various steps -->
+    <!--<welcome    file="welcome.html"    mime-type="text/html" />-->
+    <license    file="classes/LICENSE.txt"    mime-type="text/plain" />
+    <!--<conclusion file="conclusion.html" mime-type="text/html" />-->
+
+    <!-- List all component packages -->
+    <pkg-ref id="ord.ogerardin.b2b.daemon"
+             version="${project.version}"
+             auth="root">@build.directory@/osx-pkg/daemon/output.pkg</pkg-ref>
+    <!-- List them again here. They can now be organized as a hierarchy if you want. -->
+    <choices-outline>
+        <line choice="ord.ogerardin.b2b.daemon"/>
+    </choices-outline>
+    <!-- Define each choice above -->
+    <choice
+            id="ord.ogerardin.b2b.daemon"
+            visible="false"
+            title="back2back daemon"
+            description="back2back daemon"
+            start_selected="true">
+        <pkg-ref id="ord.ogerardin.b2b.daemon"/>
+    </choice>
+</installer-gui-script>

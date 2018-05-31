@@ -1,0 +1,6 @@
+#!/bin/sh
+
+set -e
+if /bin/launchctl list "org.ogerardin.back2back" &> /dev/null; then
+    /bin/launchctl unload "/Library/LaunchDaemons/org.ogerardin.back2back.plist"
+fi

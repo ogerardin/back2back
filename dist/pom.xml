@@ -12,7 +12,7 @@
 
     <artifactId>back2back-dist</artifactId>
     <description>
-        This module is responsible for generating the final distributable package (installer and such).
+        This module is responsible for generating the final distributable packages (installer and such).
     </description>
 
     <properties>
@@ -56,6 +56,7 @@
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
+                <filtering>true</filtering>
             </resource>
             <!-- Include LICENSE.txt file from root module -->
             <resource>
@@ -220,6 +221,66 @@
 
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>mac</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                </os>
+            </activation>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>1.6.0</version>
+                        <executions>
+                            <execution>
+                                <id>pkgbuild-daemon</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>pkgbuild</executable>
+                                    <workingDirectory>${project.build.directory}</workingDirectory>
+                                    <arguments>
+                                        <argument>--root</argument>         <argument>classes/launchd</argument>
+                                        <argument>--scripts</argument>      <argument>classes/launchd/scripts</argument>
+                                        <argument>--identifier</argument>   <argument>org.ogerardin.b2b.daemon</argument>
+                                        <argument>--version</argument>      <argument>${project.version}</argument>
+                                        <argument>--ownership</argument>    <argument>recommended</argument>
+                                        <argument>osx-pkg/daemon/output.pkg</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>productbuild</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>productbuild</executable>
+                                    <workingDirectory>${project.build.directory}</workingDirectory>
+                                    <arguments>
+                                        <argument>--distribution</argument> <argument>classes/productbuild/product.xml</argument>
+                                        <argument>--resources</argument>    <argument>.</argument>
+                                        <argument>--package-path</argument> <argument>osx-pkg/daemon</argument>
+                                        <argument>--version</argument>      <argument>${project.version}</argument>
+                                        <argument>osx-pkg/final.pkg</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 
 </project>
