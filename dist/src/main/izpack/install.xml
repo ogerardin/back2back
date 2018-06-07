@@ -15,8 +15,6 @@
     </info>
     
     <properties>
-        <property name="engineJar" value="back2back-bundle-repackaged.jar"/>
-        <property name="trayJar" value="back2back-system-tray-onejar.jar"/>
         <property name="serviceName" value="back2back"/>
     </properties>
 
