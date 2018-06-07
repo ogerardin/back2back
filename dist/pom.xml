@@ -233,6 +233,30 @@
 
             <build>
                 <plugins>
+
+                    <plugin>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>1.8</version>
+                        <!-- Dirty hack due to resource plugin not preserving file permissions...
+                            See https://issues.apache.org/jira/browse/MRESOURCES-132 -->
+                        <executions>
+                            <execution>
+                                <id>fix-script-permissions</id>
+                                <phase>prepare-package</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <configuration>
+                                    <target>
+                                        <chmod file="${project.build.directory}/classes/productbuild/makepackage.sh" perm="755"/>
+                                        <chmod file="${project.build.directory}/classes/launchd-pkg/scripts/postinstall" perm="755"/>
+                                        <chmod file="${project.build.directory}/classes/launchd-pkg/scripts/preinstall" perm="755"/>
+                                    </target>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>exec-maven-plugin</artifactId>
@@ -245,7 +269,6 @@
                                     <goal>exec</goal>
                                 </goals>
                                 <configuration>
-                                    <!--FIXME filtred script does not get execute permission-->
                                     <executable>classes/productbuild/makepackage.sh</executable>
                                     <workingDirectory>${project.build.directory}</workingDirectory>
                                 </configuration>
