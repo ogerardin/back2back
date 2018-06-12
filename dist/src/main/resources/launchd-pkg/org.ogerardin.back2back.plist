@@ -9,7 +9,7 @@
         <array>
             <string>java</string>
             <string>-jar</string>
-            <string>/usr/local/libexec/@engineJar@</string>
+            <string>/usr/local/libexec/@back2back.core.jar@</string>
         </array>
 
         <key>RunAtLoad</key>

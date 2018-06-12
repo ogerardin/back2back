@@ -18,8 +18,9 @@
     <properties>
         <izpack.version>5.1.2</izpack.version>
         <nssm.version>2.24</nssm.version>
-        <engineJar>back2back-bundle-repackaged.jar</engineJar>
-        <trayJar>back2back-system-tray-onejar.jar</trayJar>
+        <back2back.core.jar>back2back-bundle-repackaged.jar</back2back.core.jar>
+        <back2back.tray-icon.jar>back2back-system-tray-onejar.jar</back2back.tray-icon.jar>
+        <back2back.tray-icon.mainClass>com.simontuffs.onejar.Boot</back2back.tray-icon.mainClass>
     </properties>
 
     <dependencies>
@@ -57,8 +58,23 @@
         <!-- Project resources (other than dependencies). They will go into target/classes -->
         <resources>
             <resource>
-                <directory>src/main/resources</directory>
+                <directory>${basedir}/src/main/resources</directory>
                 <filtering>true</filtering>
+                <includes>
+                    <include>**/*.txt</include>
+                    <include>**/*.sh</include>
+                    <include>**/*.bat</include>
+                    <include>**/*.plist</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>${basedir}/src/main/resources</directory>
+                <excludes>
+                    <exclude>**/*.txt</exclude>
+                    <exclude>**/*.sh</exclude>
+                    <exclude>**/*.bat</exclude>
+                    <exclude>**/*.plist</exclude>
+                </excludes>
             </resource>
             <!-- Include LICENSE.txt file from root module -->
             <resource>
@@ -184,10 +200,10 @@
                                 <argument>-Bruntime=${java.home}</argument>
                                 <argument>-native</argument><argument>image</argument>
                                 <argument>-srcdir</argument><argument>${project.build.directory}</argument>
-                                <argument>-srcfiles</argument><argument>dependency/back2back-system-tray-onejar.jar</argument>
+                                <argument>-srcfiles</argument><argument>dependency/${back2back.tray-icon.jar}</argument>
                                 <argument>-outdir</argument><argument>${project.build.directory}</argument>
                                 <argument>-outfile</argument><argument>MenuIcon.app</argument>
-                                <argument>-appclass</argument><argument>com.simontuffs.onejar.Boot</argument>
+                                <argument>-appclass</argument><argument>${back2back.tray-icon.mainClass}</argument>
                                 <argument>-name</argument><argument>back2back Menu Icon</argument>
                                 <argument>-title</argument><argument>back2back icon</argument>
                                 <argument>-nosign</argument>
@@ -269,7 +285,6 @@
                         <artifactId>izpack-maven-plugin</artifactId>
                         <version>${izpack.version}</version>
                         <executions>
-                            <!-- Generate izpack installer -->
                             <execution>
                                 <phase>package</phase>
                                 <goals>
@@ -281,7 +296,7 @@
                                     <!-- base for relative paths in izpack descriptor -->
                                     <baseDir>${project.build.directory}</baseDir>
                                     <installFile>${project.basedir}/src/main/izpack/install.xml</installFile>
-                                    <finalName>install</finalName>
+                                    <finalName>${parent.artifactId}-install</finalName>
                                 </configuration>
                             </execution>
                         </executions>

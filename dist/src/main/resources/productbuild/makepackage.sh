@@ -3,7 +3,7 @@
 cd @project.build.directory@
 
 
-cp dependency/@engineJar@ classes/launchd-pkg
+cp dependency/@back2back.core.jar@ classes/launchd-pkg
 pkgbuild \
     --root classes/launchd-pkg \
     --scripts      classes/launchd-pkg/scripts \

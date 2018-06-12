@@ -9,7 +9,7 @@
         <array>
             <string>java</string>
             <string>-jar</string>
-            <string>${INSTALL_PATH}/lib/${engineJar}</string>
+            <string>${INSTALL_PATH}/lib/${back2back.core.jar}</string>
         </array>
 
         <key>WorkingDirectory</key>
