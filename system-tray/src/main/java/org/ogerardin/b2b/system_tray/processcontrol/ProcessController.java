@@ -8,5 +8,8 @@ public interface ProcessController {
 
     void start() throws ControlException;
 
-    void restart() throws ControlException;
+    default void restart() throws ControlException {
+        stop();
+        start();
+    }
 }

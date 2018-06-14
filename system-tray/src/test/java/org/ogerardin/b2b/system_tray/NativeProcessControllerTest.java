@@ -15,7 +15,7 @@ import java.nio.file.Paths;
 
 public class NativeProcessControllerTest {
 
-    public static final String PIDFILE = "test.pid";
+    private static final String PIDFILE = "test.pid";
 
     @Test
     public void startStop() throws URISyntaxException, ControlException, FileNotFoundException {
@@ -79,7 +79,7 @@ public class NativeProcessControllerTest {
     }
 
     private NativeProcessController getController() throws URISyntaxException {
-        // get the path of the class file (as  a URL)
+        // get the path of the class file (as a URL)
         URL url = Nop.class.getResource("Nop.class");
         // get the path of the classpath root for this class
         Path path = Paths.get(url.toURI())

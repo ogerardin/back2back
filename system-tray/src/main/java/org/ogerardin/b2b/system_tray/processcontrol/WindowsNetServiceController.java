@@ -1,24 +1,26 @@
 package org.ogerardin.b2b.system_tray.processcontrol;
 
+import lombok.Builder;
 import lombok.Data;
 
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
+/**
+ * Controller using Windows native "NET" command to control a Windows service.
+ */
+@Builder
 @Data
-public class WindowsNetServiceController implements ProcessController {
+public class WindowsNetServiceController extends ExternalServiceController implements ProcessController {
 
-    private static final String NSSM = "nssm";
-
-    private final String serviceName;
-    private final String nssmDir;
+    public WindowsNetServiceController(String controller, String serviceDisplayName) {
+        super("net", serviceDisplayName);
+    }
 
     @Override
     public boolean isRunning() throws ControlException {
         try {
             //findstr exit code 0 if found, 1 if it doesn't
-            String cmd = "cmd /c \"nssm status " + serviceName + "\" | findstr SERVICE_RUNNING\"";
+            String cmd = String.format("cmd /c %s start | findstr \"%s\"", controller, escapeSpace(serviceName));
             Process p = Runtime.getRuntime().exec(cmd);
             p.waitFor();
             return p.exitValue() == 0;
@@ -27,29 +29,18 @@ public class WindowsNetServiceController implements ProcessController {
         }
     }
 
+    private static String escapeSpace(String str) {
+        return str.replaceAll(" ", "^ ");
+    }
+
     @Override
     public void stop() throws ControlException {
-        performNssmCommand("stop");
+        performControllerCommand("stop");
     }
 
     @Override
     public void start() throws ControlException {
-        performNssmCommand("start");
+        performControllerCommand("start");
     }
 
-    @Override
-    public void restart() throws ControlException {
-        performNssmCommand("restart");
-    }
-
-    private void performNssmCommand(String command) throws ControlException {
-        try {
-            String cmd = String.format("%s %s %s", NSSM, command, serviceName);
-            Path nssmDirPath = Paths.get(nssmDir);
-            Process p = Runtime.getRuntime().exec(cmd, null, nssmDirPath.toFile());
-            p.waitFor();
-        } catch (IOException | InterruptedException e) {
-            throw new ControlException("nssm command failed: " + command, e);
-        }
-    }
 }

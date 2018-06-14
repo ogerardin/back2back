@@ -26,7 +26,7 @@ public class NativeProcessController implements ProcessController {
     @Builder.Default private String pidfile = "pidfile.pid";
 
     /** Initial working directory of the process. */
-    @Builder.Default private Path homeDirectory = Paths.get(".");
+    @Builder.Default private Path workDirectory = Paths.get(".");
 
     /** Command to run and its arguments */
     private String[] commandLine;
@@ -136,7 +136,7 @@ public class NativeProcessController implements ProcessController {
         }
 
         ProcessBuilder processBuilder = new ProcessBuilder(commandLine);
-        processBuilder.directory(homeDirectory.toFile());
+        processBuilder.directory(workDirectory.toFile());
 
         if (logFile != null) {
             processBuilder.redirectErrorStream(true);
@@ -172,7 +172,7 @@ public class NativeProcessController implements ProcessController {
     }
 
     public Path getPidFile() {
-        return homeDirectory.resolve(pidfile);
+        return workDirectory.resolve(pidfile);
     }
 
     /**
@@ -212,9 +212,4 @@ public class NativeProcessController implements ProcessController {
         return value;
     }
 
-    @Override
-    public void restart() throws ControlException {
-        stop();
-        start();
-    }
 }
