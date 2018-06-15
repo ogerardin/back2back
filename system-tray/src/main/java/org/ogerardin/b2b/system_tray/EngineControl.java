@@ -40,7 +40,7 @@ public class EngineControl {
         log.info("server port = " + serverPort);
     }
 
-    public String engineStatus()  {
+    public String apiStatus()  {
         return apiCall("app/status");
     }
 

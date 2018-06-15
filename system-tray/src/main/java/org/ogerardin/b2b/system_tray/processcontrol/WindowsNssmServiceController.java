@@ -1,19 +1,31 @@
 package org.ogerardin.b2b.system_tray.processcontrol;
 
-import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.io.IOException;
 
 /**
  * Controller using "nssm" (https://nssm.cc/) to control a Windows service.
  */
-@Builder
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 @Data
-public class WindowsNssmServiceController extends ExternalServiceController implements ProcessController {
+public class WindowsNssmServiceController extends ExternalServiceController implements ServiceController {
 
     public WindowsNssmServiceController(String serviceName) {
-        super("nssm", serviceName);
+        this("nssm", serviceName);
+    }
+
+    public WindowsNssmServiceController(String controller, String serviceName) {
+        super(controller, serviceName);
+    }
+
+    @Override
+    public String getControllerInfo() throws ControlException {
+        ExecResults r = performControllerCommand("help");
+        return r.getOutputLines().get(1);
     }
 
     @Override
@@ -31,19 +43,50 @@ public class WindowsNssmServiceController extends ExternalServiceController impl
 
     @Override
     public void stop() throws ControlException {
-        performControllerCommand("stop");
+        ExecResults r = performControllerServiceCommand("stop");
+        failIfNonZeroExitCode(r);
     }
 
     @Override
     public void start() throws ControlException {
-        performControllerCommand("start");
+        ExecResults r = performControllerServiceCommand("start");
+        failIfNonZeroExitCode(r);
     }
 
     @Override
     public void restart() throws ControlException {
-        performControllerCommand("restart");
+        ExecResults r = performControllerServiceCommand("restart");
+        failIfNonZeroExitCode(r);
     }
 
+    @Override
+    public Long getPid() throws ControlException {
+        return null;
+    }
+
+    public void installService(String[] commandLine) throws ControlException {
+        ExecResults r = performControllerServiceCommand("install", "\"" + String.join(" ", commandLine) + "\"");
+        failIfNonZeroExitCode(r);
+    }
+
+    public void uninstallService() throws ControlException {
+        ExecResults r = performControllerServiceCommand("remove", "confirm");
+        failIfNonZeroExitCode(r);
+    }
+
+    @Override
+    public boolean isAutostart() throws ControlException {
+        ExecResults r = performControllerServiceCommand("get", "start");
+        failIfNonZeroExitCode(r);
+        return r.getOutputLines().contains("SERVICE_AUTO_START");
+    }
+
+    @Override
+    public void setAutostart(boolean autoStart) throws ControlException {
+        String startType = autoStart ? "SERVICE_AUTO_START" : "SERVICE_DEMAND_START";
+        ExecResults r = performControllerServiceCommand("set", "start", startType);
+        failIfNonZeroExitCode(r);
+    }
 }
 
 

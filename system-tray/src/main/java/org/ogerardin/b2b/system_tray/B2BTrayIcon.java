@@ -1,6 +1,11 @@
 package org.ogerardin.b2b.system_tray;
 
+import com.sun.jna.Platform;
 import lombok.extern.slf4j.Slf4j;
+import org.ogerardin.b2b.system_tray.processcontrol.ControlException;
+import org.ogerardin.b2b.system_tray.processcontrol.MacLaunchctlDaemonController;
+import org.ogerardin.b2b.system_tray.processcontrol.ServiceController;
+import org.ogerardin.b2b.system_tray.processcontrol.WindowsNssmServiceController;
 import org.springframework.web.client.RestClientException;
 
 import javax.swing.*;
@@ -17,10 +22,15 @@ public class B2BTrayIcon {
 
     private static final int POLL_PERIOD_MILLIS = 10000;
 
+    private static final String WINDOWS_SERVICE_NAME = "back2back";
+    private static final String MAC_JOB_NAME = "back2back";
+
     private static MenuItem startMenuItem;
     private static MenuItem stopMenuItem;
 
     private static EngineControl engineControl;
+
+    private static ServiceController serviceController;
 
     public static void main(String[] args) throws IOException {
 
@@ -34,6 +44,22 @@ public class B2BTrayIcon {
             installDir = ".";
         }
         engineControl = new EngineControl(Paths.get(installDir));
+
+        serviceController = getPlatformServiceController();
+        if (serviceController != null) {
+            log.info("Using service controller: {}", serviceController);
+            try {
+                // check access
+                String controllerInfo = serviceController.getControllerInfo();
+                log.info("Service controller information: {}", controllerInfo);
+            } catch (ControlException e) {
+                log.error("Exception accessing service controller", e);
+                serviceController = null;
+            }
+        }
+        if (serviceController == null) {
+            log.warn("No service controller available");
+        }
 
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -51,6 +77,17 @@ public class B2BTrayIcon {
             Thread.sleep(3000);
         } catch (InterruptedException ignored) {
         }
+    }
+
+    private static ServiceController getPlatformServiceController() {
+        switch (Platform.getOSType()) {
+            case Platform.WINDOWS:
+                return new WindowsNssmServiceController(WINDOWS_SERVICE_NAME);
+            case Platform.MAC:
+                return new MacLaunchctlDaemonController(MAC_JOB_NAME);
+        }
+        log.warn("No service controller available for platform");
+        return null;
     }
 
     private static void createAndShowGUI() {
@@ -81,6 +118,7 @@ public class B2BTrayIcon {
                 int newState = e.getStateChange();
                 setAutoStart(newState == ItemEvent.SELECTED);
             });
+            item.setEnabled(serviceController != null);
         }
         popup.addSeparator();
         {
@@ -108,7 +146,6 @@ public class B2BTrayIcon {
         trayIcon.addActionListener(e -> JOptionPane.showMessageDialog(null,
                 "Double-click"));
 
-
         try {
             tray.add(trayIcon);
         } catch (AWTException e) {
@@ -119,24 +156,25 @@ public class B2BTrayIcon {
         //trayIcon.displayMessage("back2back", "Tray icon ready", TrayIcon.MessageType.INFO);
 
         // start status update on background thread
-        Thread thread = new Thread(B2BTrayIcon::pollEngineStatus);
+        Thread thread = new Thread(B2BTrayIcon::pollEngineApiStatus);
         thread.setDaemon(true);
         thread.start();
 
         log.info("Tray icon ready.");
     }
 
-    private static void pollEngineStatus() {
+    private static void pollEngineApiStatus() {
         //noinspection InfiniteLoopStatement
         while (true) {
             try {
-                String engineStatus = engineControl.engineStatus();
-                log.debug("Engine status: {}", engineStatus);
+                String engineStatus = engineControl.apiStatus();
+                log.debug("Engine API status: {}", engineStatus);
                 engineAvailable(true);
             } catch (RestClientException e) {
-                log.debug("Engine not available: {}", e.toString());
+                log.debug("Engine API not available: {}", e.toString());
                 engineAvailable(false);
             }
+
             try {
                 Thread.sleep(POLL_PERIOD_MILLIS);
             } catch (InterruptedException e) {
@@ -151,7 +189,11 @@ public class B2BTrayIcon {
     }
 
     private static void setAutoStart(boolean autoStart) {
-        //TODO
+        try {
+            serviceController.setAutostart(autoStart);
+        } catch (ControlException e) {
+            e.printStackTrace();
+        }
     }
 
     //Obtain the image URL

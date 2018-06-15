@@ -1,18 +1,20 @@
 package org.ogerardin.b2b.system_tray.processcontrol;
 
-import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.io.IOException;
 
 /**
  * Controller using Windows native "NET" command to control a Windows service.
  */
-@Builder
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 @Data
 public class WindowsNetServiceController extends ExternalServiceController implements ProcessController {
 
-    public WindowsNetServiceController(String controller, String serviceDisplayName) {
+    public WindowsNetServiceController(String serviceDisplayName) {
         super("net", serviceDisplayName);
     }
 
@@ -35,12 +37,17 @@ public class WindowsNetServiceController extends ExternalServiceController imple
 
     @Override
     public void stop() throws ControlException {
-        performControllerCommand("stop");
+        failIfNonZeroExitCode(performControllerServiceCommand("stop"));
     }
 
     @Override
     public void start() throws ControlException {
-        performControllerCommand("start");
+        failIfNonZeroExitCode(performControllerServiceCommand("start"));
+    }
+
+    @Override
+    public Long getPid() throws ControlException {
+        return null;
     }
 
 }

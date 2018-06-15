@@ -1,7 +1,8 @@
 package org.ogerardin.b2b.system_tray.processcontrol;
 
-import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -10,12 +11,13 @@ import java.io.InputStreamReader;
 /**
  * Controller using Mac native "launchctl" command to control a macOS Daemon
  */
-@Builder
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 @Data
-public class MacLaunchctlDaemonController extends ExternalServiceController implements ProcessController {
+public class MacLaunchctlDaemonController extends ExternalServiceController implements ServiceController {
 
-    public MacLaunchctlDaemonController(String controller, String serviceName) {
-        super("launchctl", serviceName);
+    public MacLaunchctlDaemonController(String jobName) {
+        super("launchctl", jobName);
     }
 
     @Override
@@ -51,17 +53,52 @@ public class MacLaunchctlDaemonController extends ExternalServiceController impl
     @Override
     public void stop() throws ControlException {
         // assumes the job has been loaded
-        performControllerCommand("stop");
+        ExecResults r = performControllerServiceCommand("stop");
+        failIfNonZeroExitCode(r);
+
     }
 
     @Override
     public void start() throws ControlException {
         // assumes the job has been loaded
-        performControllerCommand("start");
+        ExecResults r = performControllerServiceCommand("start");
+        failIfNonZeroExitCode(r);
     }
 
     @Override
-    protected String buildCommandString(String controller, String command, String serviceName) {
+    public Long getPid() throws ControlException {
+        return null;
+    }
+
+    @Override
+    protected String buildCommandString(String controller, String command, String serviceName, String... args) {
         return String.format("sudo %s", super.buildCommandString(this.controller, command, this.serviceName));
+    }
+
+    @Override
+    public String getControllerInfo() throws ControlException {
+        ExecResults r = performControllerServiceCommand("help");
+        return r.getOutputLines().get(0);
+    }
+
+    @Override
+    public void installService(String[] commandLine) throws ControlException {
+        //TODO
+    }
+
+    @Override
+    public void uninstallService() throws ControlException {
+        //TODO
+    }
+
+    @Override
+    public boolean isAutostart() throws ControlException {
+        //TODO
+        return false;
+    }
+
+    @Override
+    public void setAutostart(boolean autoStart) throws ControlException {
+        //TODO
     }
 }

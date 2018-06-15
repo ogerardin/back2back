@@ -12,4 +12,6 @@ public interface ProcessController {
         stop();
         start();
     }
+
+    Long getPid() throws ControlException;
 }

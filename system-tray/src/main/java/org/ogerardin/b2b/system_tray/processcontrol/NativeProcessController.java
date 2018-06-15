@@ -86,6 +86,15 @@ public class NativeProcessController implements ProcessController {
     }
 
     @Override
+    public Long getPid() throws ControlException {
+        try {
+            return readPid();
+        } catch (FileNotFoundException e) {
+            return null;
+        }
+    }
+
+    @Override
     public void stop() throws ControlException {
 
         long pid;

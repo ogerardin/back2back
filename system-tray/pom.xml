@@ -21,6 +21,7 @@
 
     <properties>
         <java.version>1.8</java.version>
+        <nssm.version>2.24</nssm.version>
     </properties>
 
     <dependencies>
@@ -93,6 +94,31 @@
                 </executions>
             </plugin>
 -->
+
+            <plugin>
+                <groupId>com.googlecode.maven-download-plugin</groupId>
+                <artifactId>download-maven-plugin</artifactId>
+                <version>1.4.0</version>
+                <executions>
+                    <!-- Download NSSM from https://nssm.cc and unzip it.
+                        If you are behind a proxy you may need to pass the corresponding options to maven:
+                            -Dhttp.proxyHost=... -Dhttp.proxyPort=...
+                    -->
+                    <execution>
+                        <id>download-nssm</id>
+                        <phase>generate-test-resources</phase>
+                        <goals>
+                            <goal>wget</goal>
+                        </goals>
+                        <configuration>
+                            <url>http://nssm.cc/release/nssm-${nssm.version}.zip</url>
+                            <!--<md5>be7b3577c6e3a280e5106a9e9db5b3775931cefc</md5>-->
+                            <outputDirectory>${project.build.testOutputDirectory}/org/ogerardin/b2b/system_tray/processcontrol</outputDirectory>
+                            <unpack>true</unpack>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
             <plugin>
                 <groupId>com.jolira</groupId>
