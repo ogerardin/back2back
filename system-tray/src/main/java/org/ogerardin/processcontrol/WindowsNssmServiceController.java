@@ -1,4 +1,4 @@
-package org.ogerardin.b2b.system_tray.processcontrol;
+package org.ogerardin.processcontrol;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -23,12 +23,6 @@ public class WindowsNssmServiceController extends ExternalServiceController impl
     }
 
     @Override
-    public String getControllerInfo() throws ControlException {
-        ExecResults r = performControllerCommand("help");
-        return r.getOutputLines().get(1);
-    }
-
-    @Override
     public boolean isRunning() throws ControlException {
         try {
             //findstr exit code 0 if found, 1 if it doesn't
@@ -44,19 +38,19 @@ public class WindowsNssmServiceController extends ExternalServiceController impl
     @Override
     public void stop() throws ControlException {
         ExecResults r = performControllerServiceCommand("stop");
-        failIfNonZeroExitCode(r);
+        mapExitCodeToException(r);
     }
 
     @Override
     public void start() throws ControlException {
         ExecResults r = performControllerServiceCommand("start");
-        failIfNonZeroExitCode(r);
+        mapExitCodeToException(r);
     }
 
     @Override
     public void restart() throws ControlException {
         ExecResults r = performControllerServiceCommand("restart");
-        failIfNonZeroExitCode(r);
+        mapExitCodeToException(r);
     }
 
     @Override
@@ -66,18 +60,18 @@ public class WindowsNssmServiceController extends ExternalServiceController impl
 
     public void installService(String[] commandLine) throws ControlException {
         ExecResults r = performControllerServiceCommand("install", "\"" + String.join(" ", commandLine) + "\"");
-        failIfNonZeroExitCode(r);
+        mapExitCodeToException(r);
     }
 
     public void uninstallService() throws ControlException {
         ExecResults r = performControllerServiceCommand("remove", "confirm");
-        failIfNonZeroExitCode(r);
+        mapExitCodeToException(r);
     }
 
     @Override
     public boolean isAutostart() throws ControlException {
         ExecResults r = performControllerServiceCommand("get", "start");
-        failIfNonZeroExitCode(r);
+        mapExitCodeToException(r);
         return r.getOutputLines().contains("SERVICE_AUTO_START");
     }
 
@@ -85,7 +79,21 @@ public class WindowsNssmServiceController extends ExternalServiceController impl
     public void setAutostart(boolean autoStart) throws ControlException {
         String startType = autoStart ? "SERVICE_AUTO_START" : "SERVICE_DEMAND_START";
         ExecResults r = performControllerServiceCommand("set", "start", startType);
-        failIfNonZeroExitCode(r);
+        mapExitCodeToException(r);
+    }
+
+    @Override
+    public boolean isInstalled() throws ControlException {
+        ExecResults r = performControllerServiceCommand("status");
+        return r.getExitValue() == 0;
+    }
+
+    @Override
+    protected void mapExitCodeToException(ExecResults execResults) throws ControlException {
+        if (execResults.getExitValue() == 3) {
+            throw new ServiceNotFoundException(String.format("No service named '%s' is configured", getServiceName()));
+        }
+        super.mapExitCodeToException(execResults);
     }
 }
 

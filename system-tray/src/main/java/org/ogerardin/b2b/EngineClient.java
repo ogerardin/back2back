@@ -1,4 +1,4 @@
-package org.ogerardin.b2b.system_tray;
+package org.ogerardin.b2b;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.client.RestClientException;
@@ -11,7 +11,7 @@ import java.nio.file.Path;
 import java.util.Properties;
 
 @Slf4j
-public class EngineControl {
+public class EngineClient {
 
     private static final int DEFAULT_SERVER_PORT = 8080;
     private static final String ENGINE_PROPERTIES_FILE = "application.properties";
@@ -20,23 +20,18 @@ public class EngineControl {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    public EngineControl(Path installDir) throws IOException {
+    public EngineClient(Path installDir) throws IOException {
 
         Path propertiesFile = installDir.resolve(ENGINE_PROPERTIES_FILE).toAbsolutePath().normalize();
-        Properties coreProperties = new Properties();
+        Properties engineProperties = new Properties();
         try (FileInputStream fileInputStream = new FileInputStream(propertiesFile.toFile())) {
-            coreProperties.load(fileInputStream);
+            engineProperties.load(fileInputStream);
         } catch (FileNotFoundException fnfe) {
             log.warn("engine configuration not found: " + propertiesFile);
         }
 
-        String serverPortProperty = coreProperties.getProperty("server.port");
-        if (serverPortProperty == null) {
-            serverPort = DEFAULT_SERVER_PORT;
-        }
-        else {
-            serverPort = Integer.parseInt(serverPortProperty);
-        }
+        String serverPortProperty = engineProperties.getProperty("server.port");
+        serverPort = (serverPortProperty == null) ? DEFAULT_SERVER_PORT : Integer.parseInt(serverPortProperty);
         log.info("server port = " + serverPort);
     }
 
@@ -55,12 +50,15 @@ public class EngineControl {
     public String shutdown() {
         return apiCall("app/shutdown");
     }
+
     private String apiCall(String subUrl) throws RestClientException {
-        String url = String.format("http://localhost:%d/api/%s", serverPort, subUrl);
+        String url = String.format("%s/api/%s", getBaseUrl(), subUrl);
         return restTemplate.getForObject(url, String.class);
     }
 
-
+    public String getBaseUrl() {
+        return String.format("http://localhost:%d", serverPort);
+    }
 
 
 }

@@ -1,4 +1,4 @@
-package org.ogerardin.b2b.system_tray.processcontrol;
+package org.ogerardin.processcontrol;
 
 public class ControlException extends Exception {
     public ControlException(String s) {

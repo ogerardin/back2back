@@ -1,10 +1,13 @@
-package org.ogerardin.b2b.system_tray.processcontrol;
+package org.ogerardin.processcontrol;
 
 import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.Kernel32;
 import com.sun.jna.platform.win32.WinNT.HANDLE;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
 import java.lang.reflect.Field;
@@ -16,23 +19,32 @@ import java.nio.file.Paths;
  * Controls the execution lifecycle of a process instance. A single instance of the process is allowed.
  * The existence of the process is materialized by the existence of a file containing the PID number of the process.
  */
+@Slf4j
 @Data
 @Builder
+@AllArgsConstructor
 public class NativeProcessController implements ProcessController {
 
     private static final String OSNAME = System.getProperty("os.name").toLowerCase();
 
-    /** Name of the file containing the PID */
-    @Builder.Default private String pidfile = "pidfile.pid";
+    /** Command to run and its arguments */
+    private String[] command;
 
     /** Initial working directory of the process. */
     @Builder.Default private Path workDirectory = Paths.get(".");
 
-    /** Command to run and its arguments */
-    private String[] commandLine;
+    /** Name of the file containing the PID */
+    @Builder.Default private String pidFileName = "pidfile.pid";
 
     /** Optional path of a file to use for redirecting process output */
-    private Path logFile;
+    @Builder.Default private Path logFile = null;
+
+    @Builder.Default ProcessListenet processListener = null;
+
+
+    public NativeProcessController(String[] command) {
+        this.command = command;
+    }
 
     @Override
     public boolean isRunning() throws ControlException {
@@ -96,7 +108,6 @@ public class NativeProcessController implements ProcessController {
 
     @Override
     public void stop() throws ControlException {
-
         long pid;
         try {
             pid = readPid();
@@ -144,7 +155,7 @@ public class NativeProcessController implements ProcessController {
             throw new ControlException("already running");
         }
 
-        ProcessBuilder processBuilder = new ProcessBuilder(commandLine);
+        ProcessBuilder processBuilder = new ProcessBuilder(command);
         processBuilder.directory(workDirectory.toFile());
 
         if (logFile != null) {
@@ -154,6 +165,7 @@ public class NativeProcessController implements ProcessController {
 
         Process process;
         try {
+            log.debug(processBuilder.toString());
             process = processBuilder.start();
         } catch (IOException e) {
             throw new ControlException("failed to start process", e);
@@ -171,6 +183,22 @@ public class NativeProcessController implements ProcessController {
         } catch (IOException e) {
             throw new ControlException("failed to write pid file", e);
         }
+
+        Thread watcherThread = new Thread(() -> {
+            try {
+                process.waitFor();
+                handleEvent(new ProcessEvent(process));
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        watcherThread.start();
+    }
+
+    private void handleEvent(ProcessEvent processEvent) {
+        if (processListener != null) {
+            processListener.processTerminated(processEvent);
+        }
     }
 
     private void writePid(long pid) throws IOException {
@@ -181,7 +209,7 @@ public class NativeProcessController implements ProcessController {
     }
 
     public Path getPidFile() {
-        return workDirectory.resolve(pidfile);
+        return workDirectory.resolve(pidFileName);
     }
 
     /**
@@ -219,6 +247,15 @@ public class NativeProcessController implements ProcessController {
         long value = field.getLong(target);
         field.setAccessible(false);
         return value;
+    }
+
+    public interface ProcessListenet {
+        void processTerminated(ProcessEvent processEvent);
+    }
+
+    @Data
+    public static class ProcessEvent {
+        private final Process process;
     }
 
 }

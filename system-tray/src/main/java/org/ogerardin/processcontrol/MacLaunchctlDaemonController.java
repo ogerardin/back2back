@@ -1,4 +1,4 @@
-package org.ogerardin.b2b.system_tray.processcontrol;
+package org.ogerardin.processcontrol;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -54,7 +54,7 @@ public class MacLaunchctlDaemonController extends ExternalServiceController impl
     public void stop() throws ControlException {
         // assumes the job has been loaded
         ExecResults r = performControllerServiceCommand("stop");
-        failIfNonZeroExitCode(r);
+        mapExitCodeToException(r);
 
     }
 
@@ -62,7 +62,7 @@ public class MacLaunchctlDaemonController extends ExternalServiceController impl
     public void start() throws ControlException {
         // assumes the job has been loaded
         ExecResults r = performControllerServiceCommand("start");
-        failIfNonZeroExitCode(r);
+        mapExitCodeToException(r);
     }
 
     @Override
@@ -73,12 +73,6 @@ public class MacLaunchctlDaemonController extends ExternalServiceController impl
     @Override
     protected String buildCommandString(String controller, String command, String serviceName, String... args) {
         return String.format("sudo %s", super.buildCommandString(this.controller, command, this.serviceName));
-    }
-
-    @Override
-    public String getControllerInfo() throws ControlException {
-        ExecResults r = performControllerServiceCommand("help");
-        return r.getOutputLines().get(0);
     }
 
     @Override
@@ -100,5 +94,11 @@ public class MacLaunchctlDaemonController extends ExternalServiceController impl
     @Override
     public void setAutostart(boolean autoStart) throws ControlException {
         //TODO
+    }
+
+    @Override
+    public boolean isInstalled() throws ControlException {
+        //TODO
+        return false;
     }
 }

@@ -1,4 +1,4 @@
-package org.ogerardin.b2b.system_tray.processcontrol;
+package org.ogerardin.processcontrol;
 
 import org.junit.Assert;
 import org.junit.Test;

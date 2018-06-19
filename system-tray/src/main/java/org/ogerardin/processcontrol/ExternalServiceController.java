@@ -1,4 +1,4 @@
-package org.ogerardin.b2b.system_tray.processcontrol;
+package org.ogerardin.processcontrol;
 
 import lombok.Data;
 
@@ -59,11 +59,12 @@ public abstract class ExternalServiceController implements ProcessController {
         return new ExecResults(p.exitValue(), outputGobbler.getLines(), errorGobbler.getLines());
     }
 
-    protected void failIfNonZeroExitCode(ExecResults execResults) throws ControlException {
-            if (execResults.getExitValue() != 0) {
-                throw new ControlException(String.format("Command returned non-0 exit code: %d", execResults.getExitValue()));
-            }
+    protected void mapExitCodeToException(ExecResults execResults) throws ControlException {
+        if (execResults.getExitValue() != 0) {
+            throw new ControlException(String.format("Command returned non-0 exit code: %d", execResults.getExitValue()));
+        }
     }
+
 
     protected String buildCommandString(String controller, String command, String serviceName, String... args) {
         String additionalArgs = String.join(" ", args);

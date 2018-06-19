@@ -2,20 +2,21 @@ package org.ogerardin.b2b.system_tray;
 
 import com.sun.jna.Platform;
 import lombok.extern.slf4j.Slf4j;
-import org.ogerardin.b2b.system_tray.processcontrol.ControlException;
-import org.ogerardin.b2b.system_tray.processcontrol.MacLaunchctlDaemonController;
-import org.ogerardin.b2b.system_tray.processcontrol.ServiceController;
-import org.ogerardin.b2b.system_tray.processcontrol.WindowsNssmServiceController;
+import org.ogerardin.b2b.EngineClient;
+import org.ogerardin.processcontrol.*;
 import org.springframework.web.client.RestClientException;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ItemEvent;
+import java.awt.event.*;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
+
+import static org.ogerardin.processcontrol.JavaProcessControllerHelper.buildJarProcessController;
 
 @Slf4j
 public class B2BTrayIcon {
@@ -24,13 +25,21 @@ public class B2BTrayIcon {
 
     private static final String WINDOWS_SERVICE_NAME = "back2back";
     private static final String MAC_JOB_NAME = "back2back";
+    private static final String CORE_JAR = "back2back-bundle-repackaged.jar";
 
+
+    private static EngineClient engineClient;
+    private static ServiceController serviceController;
+    private static NativeProcessController processController;
+
+    private static TrayIcon trayIcon;
+    private static MenuItem openWebUIMenuItem;
     private static MenuItem startMenuItem;
     private static MenuItem stopMenuItem;
+    private static CheckboxMenuItem startAutomaticallyMenuItem;
 
-    private static EngineControl engineControl;
-
-    private static ServiceController serviceController;
+    private static Boolean engineAvailable = null;
+    private static Boolean serviceAvailable = null;
 
     public static void main(String[] args) throws IOException {
 
@@ -43,24 +52,24 @@ public class B2BTrayIcon {
         if (installDir == null) {
             installDir = ".";
         }
-        engineControl = new EngineControl(Paths.get(installDir));
+        log.info("Engine home directory: {}", installDir);
 
+        // initialize engine client. Used to communicate with engine using REST API
+        engineClient = new EngineClient(Paths.get(installDir));
+
+        // initialize service controller. Used to control engine autostart and (if available) for manual start/stop
         serviceController = getPlatformServiceController();
         if (serviceController != null) {
             log.info("Using service controller: {}", serviceController);
-            try {
-                // check access
-                String controllerInfo = serviceController.getControllerInfo();
-                log.info("Service controller information: {}", controllerInfo);
-            } catch (ControlException e) {
-                log.error("Exception accessing service controller", e);
-                serviceController = null;
-            }
         }
-        if (serviceController == null) {
-            log.warn("No service controller available");
+        else {
+            log.warn("No service controller available for platform");
         }
 
+        // initialize process controller. Used for manual start/stop when service controller is not available
+        processController = buildJarProcessController(Paths.get(installDir, CORE_JAR));
+
+        // set UI options
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 //            UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
@@ -70,7 +79,8 @@ public class B2BTrayIcon {
         }
         // Turn off metal's use of bold fonts
         UIManager.put("swing.boldMetal", Boolean.FALSE);
-        // Schedule a job for the event-dispatching thread: adding TrayIcon.
+
+        // Schedule GUI construction for the event-dispatching thread
         SwingUtilities.invokeLater(B2BTrayIcon::createAndShowGUI);
 
         try {
@@ -86,7 +96,6 @@ public class B2BTrayIcon {
             case Platform.MAC:
                 return new MacLaunchctlDaemonController(MAC_JOB_NAME);
         }
-        log.warn("No service controller available for platform");
         return null;
     }
 
@@ -97,54 +106,74 @@ public class B2BTrayIcon {
             return;
         }
 
-        final SystemTray tray = SystemTray.getSystemTray();
+        SystemTray tray = SystemTray.getSystemTray();
 
         Image icon = createImage("/images/b2b.gif", "tray icon");
-        final TrayIcon trayIcon = new TrayIcon(icon);
+        trayIcon = new TrayIcon(icon);
         trayIcon.setImageAutoSize(true);
         trayIcon.setToolTip("back2back");
 
-        final PopupMenu popup = new PopupMenu();
+        PopupMenu popupMenu = new PopupMenu();
         {
-            MenuItem item = new MenuItem("About");
-            popup.add(item);
-            item.addActionListener(B2BTrayIcon::about);
+            openWebUIMenuItem = new MenuItem("Open back2back web interface");
+            openWebUIMenuItem.addActionListener(B2BTrayIcon::openWebUI);
+            popupMenu.add(openWebUIMenuItem);
         }
-        popup.addSeparator();
+        popupMenu.addSeparator();
         {
-            CheckboxMenuItem item = new CheckboxMenuItem("Start automatically with system");
-            popup.add(item);
-            item.addItemListener(e -> {
+            startAutomaticallyMenuItem = new CheckboxMenuItem("Start automatically with system");
+            startAutomaticallyMenuItem.addItemListener(e -> {
                 int newState = e.getStateChange();
                 setAutoStart(newState == ItemEvent.SELECTED);
             });
-            item.setEnabled(serviceController != null);
+            startAutomaticallyMenuItem.setEnabled(serviceController != null);
+            popupMenu.add(startAutomaticallyMenuItem);
         }
-        popup.addSeparator();
+        popupMenu.addSeparator();
         {
             startMenuItem = new MenuItem("Start back2back engine");
             startMenuItem.setEnabled(false);
-            popup.add(startMenuItem);
+            startMenuItem.addActionListener(evt -> {
+                try {
+                    startEngine();
+                } catch (ControlException e) {
+                    log.error("Failed to start engine", e);
+                    trayIcon.displayMessage("back2back", "Failed to start engine: " + e.toString(), TrayIcon.MessageType.ERROR);
+                }
+            });
+            popupMenu.add(startMenuItem);
         }
         {
             stopMenuItem = new MenuItem("Stop back2back engine");
             stopMenuItem.setEnabled(false);
-            popup.add(stopMenuItem);
+            stopMenuItem.addActionListener(evt -> {
+                try {
+                    stopEngine();
+                } catch (ControlException e) {
+                    trayIcon.displayMessage("back2back", "Failed to stop engine: " + e.toString(), TrayIcon.MessageType.ERROR);
+                }
+            });
+            popupMenu.add(stopMenuItem);
         }
-        popup.addSeparator();
+        popupMenu.addSeparator();
         {
-            MenuItem item = new MenuItem("Hide tray icon");
-            popup.add(item);
+            MenuItem item = new MenuItem("About");
+            item.addActionListener(B2BTrayIcon::about);
+            popupMenu.add(item);
+        }
+        {
+            MenuItem item = new MenuItem("Close tray icon");
             item.addActionListener(e -> {
                 tray.remove(trayIcon);
                 System.exit(0);
             });
+            popupMenu.add(item);
         }
 
-        trayIcon.setPopupMenu(popup);
+//        popupMenu.addActionListener(e -> log.debug("POPUP ACTION"));
+        trayIcon.setPopupMenu(popupMenu);
 
-        trayIcon.addActionListener(e -> JOptionPane.showMessageDialog(null,
-                "Double-click"));
+        trayIcon.addActionListener(e -> log.debug("TRAY ACTION"));
 
         try {
             tray.add(trayIcon);
@@ -156,24 +185,88 @@ public class B2BTrayIcon {
         //trayIcon.displayMessage("back2back", "Tray icon ready", TrayIcon.MessageType.INFO);
 
         // start status update on background thread
-        Thread thread = new Thread(B2BTrayIcon::pollEngineApiStatus);
+        Thread thread = new Thread(B2BTrayIcon::pollStatus);
         thread.setDaemon(true);
         thread.start();
+
+        //handle processController events
+        processController.setProcessListener(evt -> {
+            log.error("Process terminated: {}", evt);
+            trayIcon.displayMessage("Engine exited prematurely", evt.toString(), TrayIcon.MessageType.ERROR);
+        });
+
 
         log.info("Tray icon ready.");
     }
 
-    private static void pollEngineApiStatus() {
+    private static void openWebUI(ActionEvent actionEvent) {
+        String baseUrl = engineClient.getBaseUrl();
+        try {
+            Desktop.getDesktop().browse(new URI(baseUrl));
+        } catch (IOException | URISyntaxException e) {
+            log.error(String.format("Failed to open %s", baseUrl), e);
+        }
+    }
+
+    private static void startEngine() throws ControlException {
+        if (serviceController != null && serviceAvailable) {
+            log.debug("Using service controller to start engine");
+            serviceController.start();
+        }
+        else {
+            log.debug("No service controller available, using process controller to start engine");
+            processController.start();
+        }
+    }
+
+    private static void stopEngine() throws ControlException {
+        if (processController.isRunning()) {
+            log.debug("Running under process control, stopping...");
+            processController.stop();
+        }
+
+        if (serviceController != null && serviceAvailable && serviceController.isRunning()) {
+            log.debug("Running under service control, stopping...");
+            serviceController.stop();
+        }
+    }
+
+    private static void pollStatus() {
         //noinspection InfiniteLoopStatement
         while (true) {
+            // check connectivity with engine
             try {
-                String engineStatus = engineControl.apiStatus();
+                String engineStatus = engineClient.apiStatus();
                 log.debug("Engine API status: {}", engineStatus);
-                engineAvailable(true);
+                if (engineAvailable == null || !engineAvailable) {
+                    trayIcon.displayMessage("back2back Engine is available", null, TrayIcon.MessageType.INFO);
+                }
+                engineAvailable = true;
             } catch (RestClientException e) {
-                log.debug("Engine API not available: {}", e.toString());
-                engineAvailable(false);
+                log.error("Engine API not available: {}", e.toString());
+                if (engineAvailable == null || engineAvailable) {
+                    trayIcon.displayMessage("back2back Engine is not available", e.toString(), TrayIcon.MessageType.WARNING);
+                }
+                engineAvailable = false;
             }
+
+            openWebUIMenuItem.setEnabled(engineAvailable);
+            startMenuItem.setEnabled(!engineAvailable);
+            stopMenuItem.setEnabled(engineAvailable);
+
+            // check service status
+            if (serviceController != null) {
+                try {
+                    boolean serviceAutostart = serviceController.isAutostart();
+                    serviceAvailable = true;
+                    startAutomaticallyMenuItem.setState(serviceAutostart);
+                } catch (ControlException e) {
+                    log.error("Failed to get service status: {}", e.toString());
+                    serviceAvailable = false;
+                    startAutomaticallyMenuItem.setState(false);
+                }
+            }
+            startAutomaticallyMenuItem.setEnabled(serviceAvailable);
 
             try {
                 Thread.sleep(POLL_PERIOD_MILLIS);
@@ -183,10 +276,6 @@ public class B2BTrayIcon {
         }
     }
 
-    private static void engineAvailable(boolean available) {
-        startMenuItem.setEnabled(!available);
-        stopMenuItem.setEnabled(available);
-    }
 
     private static void setAutoStart(boolean autoStart) {
         try {
@@ -207,7 +296,7 @@ public class B2BTrayIcon {
 
     private static void about(ActionEvent e) {
         try {
-            String version = engineControl.version();
+            String version = engineClient.version();
             JOptionPane.showMessageDialog(null,
                     MessageFormat.format("back2back: peer to peer backup\nEngine version {0} up and running", version));
         } catch (RestClientException e1) {

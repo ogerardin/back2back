@@ -1,4 +1,4 @@
-package org.ogerardin.b2b.system_tray.processcontrol;
+package org.ogerardin.processcontrol;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -37,12 +37,12 @@ public class WindowsNetServiceController extends ExternalServiceController imple
 
     @Override
     public void stop() throws ControlException {
-        failIfNonZeroExitCode(performControllerServiceCommand("stop"));
+        mapExitCodeToException(performControllerServiceCommand("stop"));
     }
 
     @Override
     public void start() throws ControlException {
-        failIfNonZeroExitCode(performControllerServiceCommand("start"));
+        mapExitCodeToException(performControllerServiceCommand("start"));
     }
 
     @Override

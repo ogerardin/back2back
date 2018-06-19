@@ -1,4 +1,4 @@
-package org.ogerardin.b2b.system_tray.processcontrol;
+package org.ogerardin.processcontrol;
 
 import nop.Nop;
 import org.junit.Before;
@@ -28,13 +28,13 @@ public class NativeProcessControllerTest extends ProcessControllerTest {
 
         return NativeProcessController.builder()
                 .workDirectory(path)
-                .commandLine(new String[]{
+                .command(new String[]{
                         "java",
                         "-cp",
                         ".",
                         "nop.Nop"
                 })
-                .pidfile(PIDFILE)
+                .pidFileName(PIDFILE)
                 .build();
     }
 }

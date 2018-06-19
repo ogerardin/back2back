@@ -197,15 +197,16 @@
                             <!--<workingDirectory>${project.build.directory}</workingDirectory>-->
                             <arguments>
                                 <argument>-deploy</argument>
+                                <argument>-verbose</argument>
                                 <argument>-Bruntime=${java.home}</argument>
-                                <argument>-native</argument><argument>image</argument>
-                                <argument>-srcdir</argument><argument>${project.build.directory}</argument>
-                                <argument>-srcfiles</argument><argument>dependency/${back2back.tray-icon.jar}</argument>
-                                <argument>-outdir</argument><argument>${project.build.directory}</argument>
-                                <argument>-outfile</argument><argument>MenuIcon.app</argument>
-                                <argument>-appclass</argument><argument>${back2back.tray-icon.mainClass}</argument>
-                                <argument>-name</argument><argument>back2back Menu Icon</argument>
-                                <argument>-title</argument><argument>back2back icon</argument>
+                                <argument>-native</argument>    <argument>dmg</argument>
+                                <argument>-srcdir</argument>    <argument>${project.build.directory}</argument>
+                                <argument>-srcfiles</argument>  <argument>dependency/${back2back.tray-icon.jar}</argument>
+                                <argument>-outdir</argument>    <argument>${project.build.directory}</argument>
+                                <argument>-outfile</argument>   <argument>MenuIcon.app</argument>
+                                <argument>-appclass</argument>  <argument>${back2back.tray-icon.mainClass}</argument>
+                                <argument>-name</argument>      <argument>back2back Menu Icon</argument>
+                                <argument>-title</argument>     <argument>back2back icon</argument>
                                 <argument>-nosign</argument>
                                 <argument>-v</argument>
                             </arguments>
@@ -296,7 +297,7 @@
                                     <!-- base for relative paths in izpack descriptor -->
                                     <baseDir>${project.build.directory}</baseDir>
                                     <installFile>${project.basedir}/src/main/izpack/install.xml</installFile>
-                                    <finalName>${parent.artifactId}-install</finalName>
+                                    <finalName>${project.parent.artifactId}-install</finalName>
                                 </configuration>
                             </execution>
                         </executions>
