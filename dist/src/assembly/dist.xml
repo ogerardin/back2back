@@ -16,19 +16,19 @@
         </fileSet>
         <fileSet>
             <directory>${project.build.directory}/dependency</directory>
-            <outputDirectory>lib</outputDirectory>
+            <outputDirectory></outputDirectory>
         </fileSet>
         <fileSet>
             <directory>${project.build.outputDirectory}/bin</directory>
-            <outputDirectory>bin</outputDirectory>
+            <outputDirectory></outputDirectory>
         </fileSet>
         <fileSet>
             <directory>${project.build.outputDirectory}/winsrv</directory>
-            <outputDirectory>bin</outputDirectory>
+            <outputDirectory></outputDirectory>
         </fileSet>
         <fileSet>
             <directory>${project.build.directory}/nssm-${nssm.version}</directory>
-            <outputDirectory>winsrv/nssm</outputDirectory>
+            <outputDirectory>nssm</outputDirectory>
             <includes>
                 <include>README.txt</include>
                 <include>win32/*</include>
