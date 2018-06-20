@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
 
@@ -41,6 +42,10 @@ public class B2BTrayIcon {
     private static Boolean engineAvailable = null;
     private static Boolean serviceAvailable = null;
 
+    private static String installDir;
+    private static String nssmHome;
+    private static String coreJar;
+
     public static void main(String[] args) throws IOException {
 
         log.info("Starting tray icon...");
@@ -48,10 +53,10 @@ public class B2BTrayIcon {
         // Hide the dock icon on Mac OS
         System.setProperty("apple.awt.UIElement", "true");
 
-        String installDir = System.getProperty("installDir");
-        if (installDir == null) {
-            installDir = ".";
-        }
+        installDir = System.getProperty("back2back.home", ".");
+        nssmHome = System.getProperty("nssm.home", "nssm");
+        coreJar = System.getProperty("back2back.core.jar", CORE_JAR);
+
         log.info("Engine home directory: {}", installDir);
 
         // initialize engine client. Used to communicate with engine using REST API
@@ -91,8 +96,10 @@ public class B2BTrayIcon {
 
     private static ServiceController getPlatformServiceController() {
         switch (Platform.getOSType()) {
-            case Platform.WINDOWS:
-                return new WindowsNssmServiceController(WINDOWS_SERVICE_NAME);
+            case Platform.WINDOWS: {
+                Path nssmPath = Paths.get(nssmHome, "nssm");
+                return new WindowsNssmServiceController(nssmPath.toString(), WINDOWS_SERVICE_NAME);
+            }
             case Platform.MAC:
                 return new MacLaunchctlDaemonController(MAC_JOB_NAME);
         }
