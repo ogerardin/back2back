@@ -199,7 +199,7 @@
                                 <argument>-deploy</argument>
                                 <argument>-verbose</argument>
                                 <argument>-Bruntime=${java.home}</argument>
-                                <argument>-native</argument>    <argument>dmg</argument>
+                                <argument>-native</argument>    <argument>image</argument>
                                 <argument>-srcdir</argument>    <argument>${project.build.directory}</argument>
                                 <argument>-srcfiles</argument>  <argument>dependency/${back2back.tray-icon.jar}</argument>
                                 <argument>-outdir</argument>    <argument>${project.build.directory}</argument>

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
 
-cd "${INSTALL_PATH}"
-java -jar ./lib/${back2back.core.jar} &
+B2BHOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+java -jar $B2BHOME/${back2back.core.jar} &
