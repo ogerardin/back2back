@@ -3,6 +3,7 @@ package org.ogerardin.processcontrol;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import org.ogerardin.process.ProcessExecutor.ExecResults;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -23,7 +24,7 @@ public class MacLaunchctlDaemonController extends ExternalServiceController impl
     @Override
     public boolean isRunning() throws ControlException {
         try {
-            String cmd = buildCommandString(controller, "list", serviceName);
+            String cmd = buildCommandString(controllerCommand, "list", serviceName);
             Process p = Runtime.getRuntime().exec(cmd);
             String line;
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
@@ -72,7 +73,7 @@ public class MacLaunchctlDaemonController extends ExternalServiceController impl
 
     @Override
     protected String buildCommandString(String controller, String command, String serviceName, String... args) {
-        return String.format("sudo %s", super.buildCommandString(this.controller, command, this.serviceName));
+        return String.format("sudo %s", super.buildCommandString(this.controllerCommand, command, this.serviceName));
     }
 
     @Override

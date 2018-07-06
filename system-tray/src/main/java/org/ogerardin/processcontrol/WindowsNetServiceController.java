@@ -22,7 +22,7 @@ public class WindowsNetServiceController extends ExternalServiceController imple
     public boolean isRunning() throws ControlException {
         try {
             //findstr exit code 0 if found, 1 if it doesn't
-            String cmd = String.format("cmd /c %s start | findstr \"%s\"", controller, escapeSpace(serviceName));
+            String cmd = String.format("cmd /c %s start | findstr \"%s\"", controllerCommand, escapeSpace(serviceName));
             Process p = Runtime.getRuntime().exec(cmd);
             p.waitFor();
             return p.exitValue() == 0;

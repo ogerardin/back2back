@@ -8,13 +8,13 @@ import org.springframework.web.client.RestClientException;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ItemEvent;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.MessageFormat;
 
 import static org.ogerardin.processcontrol.JavaProcessControllerHelper.buildJarProcessController;
@@ -24,9 +24,6 @@ public class B2BTrayIcon {
 
     private static final int POLL_PERIOD_MILLIS = 10000;
 
-    private static final String WINDOWS_SERVICE_NAME = "back2back";
-    private static final String MAC_JOB_NAME = "back2back";
-    private static final String CORE_JAR = "back2back-bundle-repackaged.jar";
 
 
     private static EngineClient engineClient;
@@ -42,9 +39,8 @@ public class B2BTrayIcon {
     private static Boolean engineAvailable = null;
     private static Boolean serviceAvailable = null;
 
-    private static String installDir;
-    private static String nssmHome;
-    private static String coreJar;
+    private static Config config;
+
 
     public static void main(String[] args) throws IOException {
 
@@ -53,14 +49,12 @@ public class B2BTrayIcon {
         // Hide the dock icon on Mac OS
         System.setProperty("apple.awt.UIElement", "true");
 
-        installDir = System.getProperty("back2back.home", ".");
-        nssmHome = System.getProperty("nssm.home", "nssm");
-        coreJar = System.getProperty("back2back.core.jar", CORE_JAR);
-
-        log.info("Engine home directory: {}", installDir);
+        // initializing config
+        config = Config.read();
 
         // initialize engine client. Used to communicate with engine using REST API
-        engineClient = new EngineClient(Paths.get(installDir));
+        log.info("Engine home directory: {}", config.getInstallDir());
+        engineClient = new EngineClient(config.getInstallDir());
 
         // initialize service controller. Used to control engine autostart and (if available) for manual start/stop
         serviceController = getPlatformServiceController();
@@ -72,7 +66,8 @@ public class B2BTrayIcon {
         }
 
         // initialize process controller. Used for manual start/stop when service controller is not available
-        processController = buildJarProcessController(Paths.get(installDir, CORE_JAR));
+        Path coreJarPath = config.getInstallDir().resolve(config.getCoreJar());
+        processController = buildJarProcessController(coreJarPath);
 
         // set UI options
         try {
@@ -97,11 +92,13 @@ public class B2BTrayIcon {
     private static ServiceController getPlatformServiceController() {
         switch (Platform.getOSType()) {
             case Platform.WINDOWS: {
-                Path nssmPath = Paths.get(nssmHome, "nssm");
-                return new WindowsNssmServiceController(nssmPath.toString(), WINDOWS_SERVICE_NAME);
+                Path nssmExePath = Platform.is64Bit() ?
+                        config.getNssmHome().resolve("win64").resolve("nssm")
+                        : config.getNssmHome().resolve("win32").resolve("nssm");
+                return new WindowsNssmServiceController(nssmExePath, Config.WINDOWS_SERVICE_NAME);
             }
             case Platform.MAC:
-                return new MacLaunchctlDaemonController(MAC_JOB_NAME);
+                return new MacLaunchctlDaemonController(Config.MAC_JOB_NAME);
         }
         return null;
     }
@@ -244,14 +241,14 @@ public class B2BTrayIcon {
             // check connectivity with engine
             try {
                 String engineStatus = engineClient.apiStatus();
-                log.debug("Engine API status: {}", engineStatus);
                 if (engineAvailable == null || !engineAvailable) {
+                    log.debug("Engine available, API status: {}", engineStatus);
                     trayIcon.displayMessage("back2back Engine is available", null, TrayIcon.MessageType.INFO);
                 }
                 engineAvailable = true;
             } catch (RestClientException e) {
-                log.error("Engine API not available: {}", e.toString());
                 if (engineAvailable == null || engineAvailable) {
+                    log.error("Engine API not available: {}", e.toString());
                     trayIcon.displayMessage("back2back Engine is not available", e.toString(), TrayIcon.MessageType.WARNING);
                 }
                 engineAvailable = false;
@@ -263,15 +260,17 @@ public class B2BTrayIcon {
 
             // check service status
             if (serviceController != null) {
+                serviceAvailable = false;
+                boolean serviceAutostart = false;
                 try {
-                    boolean serviceAutostart = serviceController.isAutostart();
-                    serviceAvailable = true;
-                    startAutomaticallyMenuItem.setState(serviceAutostart);
+                    serviceAvailable = serviceController.isInstalled();
+                    if (serviceAvailable) {
+                        serviceAutostart = serviceController.isAutostart();
+                    }
                 } catch (ControlException e) {
                     log.error("Failed to get service status: {}", e.toString());
-                    serviceAvailable = false;
-                    startAutomaticallyMenuItem.setState(false);
                 }
+                startAutomaticallyMenuItem.setState(serviceAutostart);
             }
             startAutomaticallyMenuItem.setEnabled(serviceAvailable);
 

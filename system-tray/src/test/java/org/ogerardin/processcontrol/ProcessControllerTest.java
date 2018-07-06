@@ -1,12 +1,13 @@
 package org.ogerardin.processcontrol;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ProcessControllerTest {
 
@@ -15,23 +16,23 @@ public class ProcessControllerTest {
     @Test
     public void startStop() throws URISyntaxException, ControlException, FileNotFoundException {
         controller.start();
-        Assert.assertTrue(controller.isRunning());
+        assertTrue(controller.isRunning());
         System.out.println("process started, pid=" + controller.getPid());
 
         controller.stop();
-        Assert.assertFalse(controller.isRunning());
+        assertFalse(controller.isRunning());
         System.out.println("process stopped");
     }
 
     @Test
     public void startStart() throws URISyntaxException, ControlException, FileNotFoundException {
         controller.start();
-        Assert.assertTrue(controller.isRunning());
+        assertTrue(controller.isRunning());
         System.out.println("process started, pid=" + controller.getPid());
 
         try {
             controller.start();
-            Assert.fail("already started");
+            fail("already started");
         } catch (ControlException ignored) {
         }
 
@@ -41,27 +42,27 @@ public class ProcessControllerTest {
     @Test
     public void startRestartStop() throws URISyntaxException, ControlException, FileNotFoundException {
         controller.start();
-        Assert.assertTrue(controller.isRunning());
+        assertTrue(controller.isRunning());
         long pid0 = controller.getPid();
         System.out.println("process started, pid=" + pid0);
 
         controller.restart();
-        Assert.assertTrue(controller.isRunning());
+        assertTrue(controller.isRunning());
         long pid1 = controller.getPid();
         System.out.println("process restarted, pid=" + pid1);
-        Assert.assertNotEquals(pid0, pid1);
+        assertNotEquals(pid0, pid1);
 
         controller.stop();
-        Assert.assertFalse(controller.isRunning());
+        assertFalse(controller.isRunning());
         System.out.println("process stopped");
     }
 
     @Test
     public void stop() throws URISyntaxException, ControlException {
-        Assert.assertFalse(controller.isRunning());
+        assertFalse(controller.isRunning());
         controller.stop();
 
         Path pidFile = ((NativeProcessController) controller).getPidFile();
-        Assert.assertFalse(Files.exists(pidFile));
+        assertFalse(Files.exists(pidFile));
     }
 }

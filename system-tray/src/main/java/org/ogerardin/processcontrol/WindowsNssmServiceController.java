@@ -3,8 +3,10 @@ package org.ogerardin.processcontrol;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import org.ogerardin.process.ProcessExecutor.ExecResults;
 
 import java.io.IOException;
+import java.nio.file.Path;
 
 /**
  * Controller using "nssm" (https://nssm.cc/) to control a Windows service.
@@ -18,15 +20,19 @@ public class WindowsNssmServiceController extends ExternalServiceController impl
         this("nssm", serviceName);
     }
 
-    public WindowsNssmServiceController(String controller, String serviceName) {
-        super(controller, serviceName);
+    public WindowsNssmServiceController(String nssmCommand, String serviceName) {
+        super(nssmCommand, serviceName);
+    }
+
+    public WindowsNssmServiceController(Path nssmExePath, String serviceName) {
+        super(nssmExePath.normalize().toAbsolutePath().toString(), serviceName);
     }
 
     @Override
     public boolean isRunning() throws ControlException {
         try {
             //findstr exit code 0 if found, 1 if it doesn't
-            String cmd = String.format("cmd /c \"%s status %s\" | findstr SERVICE_RUNNING\"", controller, serviceName);
+            String cmd = String.format("cmd /c \"%s status %s\" | findstr SERVICE_RUNNING\"", controllerCommand, serviceName);
             Process p = Runtime.getRuntime().exec(cmd);
             p.waitFor();
             return p.exitValue() == 0;

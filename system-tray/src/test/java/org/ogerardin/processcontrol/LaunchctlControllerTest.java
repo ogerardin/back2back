@@ -1,24 +1,20 @@
 package org.ogerardin.processcontrol;
 
-import com.sun.jna.Platform;
-import org.junit.Before;
-import org.junit.Rule;
-import org.ogerardin.test.PlatformFilter;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
+@EnabledOnOs(OS.MAC)
 public class LaunchctlControllerTest extends ProcessControllerTest {
-
-    @Rule
-    public PlatformFilter rule = new PlatformFilter(Platform.MAC);
-
 
     private static final String SERVICE_NAME = "bla";
 
-    @Before
+    private static MacLaunchctlDaemonController LAUNCHCTL_CONTROLLER = new MacLaunchctlDaemonController(SERVICE_NAME);
+
+
+    @BeforeEach
     public void setup() {
-        this.controller = getController();
+        this.controller = LAUNCHCTL_CONTROLLER;
     }
 
-    private ProcessController getController() {
-        return new MacLaunchctlDaemonController(SERVICE_NAME);
-    }
 }

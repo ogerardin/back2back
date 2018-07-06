@@ -1,7 +1,7 @@
 package org.ogerardin.processcontrol;
 
 import nop.Nop;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -12,7 +12,7 @@ public class NativeProcessControllerTest extends ProcessControllerTest {
 
     private static final String PIDFILE = "test.pid";
 
-    @Before
+    @BeforeEach
     public void setup() throws URISyntaxException {
         this.controller = getController();
     }
@@ -30,8 +30,7 @@ public class NativeProcessControllerTest extends ProcessControllerTest {
                 .workDirectory(path)
                 .command(new String[]{
                         "java",
-                        "-cp",
-                        ".",
+                        "-cp", ".",
                         "nop.Nop"
                 })
                 .pidFileName(PIDFILE)

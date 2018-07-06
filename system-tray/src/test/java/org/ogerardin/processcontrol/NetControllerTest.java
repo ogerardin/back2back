@@ -1,19 +1,15 @@
 package org.ogerardin.processcontrol;
 
-import com.sun.jna.Platform;
-import org.junit.Before;
-import org.junit.Rule;
-import org.ogerardin.test.PlatformFilter;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
+@EnabledOnOs(OS.WINDOWS)
 public class NetControllerTest extends ProcessControllerTest {
-
-    @Rule
-    public PlatformFilter rule = new PlatformFilter(Platform.WINDOWS);
-
 
     private static final String SERVICE_NAME = "bla";
 
-    @Before
+    @BeforeEach
     public void setup() {
         this.controller = getController();
     }

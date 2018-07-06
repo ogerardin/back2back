@@ -46,9 +46,17 @@
             <scope>provided</scope>
         </dependency>
 
+<!--
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+-->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>5.1.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -115,7 +123,7 @@
                         <configuration>
                             <url>http://nssm.cc/release/nssm-${nssm.version}.zip</url>
                             <!--<md5>be7b3577c6e3a280e5106a9e9db5b3775931cefc</md5>-->
-                            <outputDirectory>${project.build.testOutputDirectory}/org/ogerardin/b2b/system_tray/processcontrol</outputDirectory>
+                            <outputDirectory>${project.build.testOutputDirectory}/org/ogerardin/processcontrol</outputDirectory>
                             <unpack>true</unpack>
                         </configuration>
                     </execution>
