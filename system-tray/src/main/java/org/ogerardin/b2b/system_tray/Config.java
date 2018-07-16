@@ -21,7 +21,7 @@ public class Config {
         String installDir = System.getProperty("back2back.home", ".");
         config.installDir = Paths.get(installDir);
 
-        String nssmHome = System.getProperty("nssm.home", "nssm");
+        String nssmHome = System.getProperty("nssm.home", "nssm-2.24");
         config.nssmHome = Paths.get(nssmHome);
 
         config.coreJar = System.getProperty("back2back.core.jar", CORE_JAR);

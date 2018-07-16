@@ -7,7 +7,7 @@ import org.junit.jupiter.api.condition.OS;
 @EnabledOnOs(OS.WINDOWS)
 public class NetControllerTest extends ProcessControllerTest {
 
-    private static final String SERVICE_NAME = "bla";
+    private static final String SERVICE_NAME = NetControllerTest.class.getSimpleName();;
 
     @BeforeEach
     public void setup() {

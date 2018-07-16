@@ -3,6 +3,7 @@ package org.ogerardin.processcontrol;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 import org.ogerardin.process.ProcessExecutor.ExecResults;
 
 import java.io.IOException;
@@ -14,6 +15,7 @@ import java.nio.file.Path;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @Data
+@Slf4j
 public class WindowsNssmServiceController extends ExternalServiceController implements ServiceController {
 
     public WindowsNssmServiceController(String serviceName) {
@@ -86,6 +88,13 @@ public class WindowsNssmServiceController extends ExternalServiceController impl
         String startType = autoStart ? "SERVICE_AUTO_START" : "SERVICE_DEMAND_START";
         ExecResults r = performControllerServiceCommand("set", "start", startType);
         mapExitCodeToException(r);
+    }
+
+    @Override
+    public void assertReady() throws ControlException {
+        //FIXME we should check if the nssm command exists but if we run it outisde of a shell it opens a GUI
+//        ExecResults r = performControllerCommand("help");
+//        String version = r.getOutputLines().get(1);
     }
 
     @Override

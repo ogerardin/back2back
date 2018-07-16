@@ -1,5 +1,6 @@
 package org.ogerardin.processcontrol;
 
+import com.sun.jna.Platform;
 import nop.Nop;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -7,11 +8,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.condition.EnabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.MissingResourceException;
 
 @EnabledOnOs(OS.WINDOWS)
 public class NssmControllerTest extends ProcessControllerTest {
@@ -22,14 +23,20 @@ public class NssmControllerTest extends ProcessControllerTest {
             = new WindowsNssmServiceController(getNssmPath().toAbsolutePath().toString(), SERVICE_NAME);
 
     private static Path getNssmPath() {
-        URI uri;
+        // NSSM is downloaded by Maven during "generate-test-resources" and placed into
+        // target/test-classes/org/ogerardin/processcontrol  so that it is available as a resource of this class.
+        // If running this test outside of Maven, run "mvn generate-test-resources" before.
+        String nssmRsrcPath = Platform.is64Bit() ? "nssm-2.24/win64/nssm.exe" : "nssm-2.24/win32/nssm.exe";
+
         try {
-            //FIXME
-            uri = WindowsNssmServiceController.class.getResource("nssm-2.24/win64/nssm.exe").toURI();
+            URL nssmRsrcUrl = WindowsNssmServiceController.class.getResource(nssmRsrcPath);
+            if (nssmRsrcUrl == null) {
+                throw new MissingResourceException("Missing NSSM executable: " + nssmRsrcPath, WindowsNssmServiceController.class.getName(), nssmRsrcPath);
+            }
+            return Paths.get(nssmRsrcUrl.toURI());
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
-        return Paths.get(uri);
     }
 
     @BeforeAll

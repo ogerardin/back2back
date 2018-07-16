@@ -13,4 +13,12 @@ public class ControlException extends Exception {
         super(throwable);
     }
 
+    @Override
+    public String toString() {
+        String msg = super.toString();
+        if (getCause() != null) {
+            msg += " - " + getCause().toString();
+        }
+        return msg;
+    }
 }

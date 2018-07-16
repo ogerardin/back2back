@@ -2,6 +2,8 @@ package org.ogerardin.processcontrol;
 
 public interface ServiceController extends ProcessController {
 
+    void assertReady() throws ControlException;
+
     void installService(String[] commandLine) throws ControlException;
 
     void uninstallService() throws ControlException;
@@ -11,5 +13,4 @@ public interface ServiceController extends ProcessController {
     boolean isAutostart() throws ControlException;
 
     void setAutostart(boolean autoStart) throws ControlException;
-
 }

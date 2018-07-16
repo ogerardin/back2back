@@ -7,7 +7,7 @@ import org.junit.jupiter.api.condition.OS;
 @EnabledOnOs(OS.MAC)
 public class LaunchctlControllerTest extends ProcessControllerTest {
 
-    private static final String SERVICE_NAME = "bla";
+    private static final String SERVICE_NAME = LaunchctlControllerTest.class.getSimpleName();;
 
     private static MacLaunchctlDaemonController LAUNCHCTL_CONTROLLER = new MacLaunchctlDaemonController(SERVICE_NAME);
 

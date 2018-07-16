@@ -26,7 +26,7 @@ public class ProcessExecutor {
         }
         Process process;
         if (cmdarray != null) {
-            log.info("Executing {}", cmdarray);
+            log.info("Executing {}", (Object[]) cmdarray);
             process = Runtime.getRuntime().exec(cmdarray, envp, dir.toFile());
         }
         else {
@@ -39,7 +39,9 @@ public class ProcessExecutor {
         StreamGobbler outputGobbler = new StreamGobbler(process.getInputStream());
         StreamGobbler errorGobbler = new StreamGobbler(process.getErrorStream());
 
-        process.waitFor();
+        int exitValue = process.waitFor();
+
+        log.debug("Process exited with value {}", exitValue);
 
         return new ExecResults(process, outputGobbler.getLines(), errorGobbler.getLines());
     }
@@ -49,8 +51,10 @@ public class ProcessExecutor {
         private IOException exception = null;
         private List<String> lines = new ArrayList<>();
 
-        private StreamGobbler(InputStream inputStream) {
+        public StreamGobbler(InputStream inputStream) {
             this.inputStream = inputStream;
+            this.setDaemon(true);
+            this.start();
         }
 
         public List<String> getLines() {
@@ -62,8 +66,9 @@ public class ProcessExecutor {
             try {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
                 String line;
-                while ((line = reader.readLine()) != null)
+                while ((line = reader.readLine()) != null) {
                     lines.add(line);
+                }
             }
             catch (IOException ioe) {
                 exception = ioe;

@@ -62,7 +62,7 @@ public class B2BTrayIcon {
             log.info("Using service controller: {}", serviceController);
         }
         else {
-            log.warn("No service controller available for platform");
+            log.warn("No service controller");
         }
 
         // initialize process controller. Used for manual start/stop when service controller is not available
@@ -90,17 +90,33 @@ public class B2BTrayIcon {
     }
 
     private static ServiceController getPlatformServiceController() {
+        ServiceController serviceController;
         switch (Platform.getOSType()) {
             case Platform.WINDOWS: {
                 Path nssmExePath = Platform.is64Bit() ?
                         config.getNssmHome().resolve("win64").resolve("nssm")
                         : config.getNssmHome().resolve("win32").resolve("nssm");
-                return new WindowsNssmServiceController(nssmExePath, Config.WINDOWS_SERVICE_NAME);
+                serviceController = new WindowsNssmServiceController(nssmExePath, Config.WINDOWS_SERVICE_NAME);
+                break;
             }
-            case Platform.MAC:
-                return new MacLaunchctlDaemonController(Config.MAC_JOB_NAME);
+            case Platform.MAC: {
+                serviceController = new MacLaunchctlDaemonController(Config.MAC_JOB_NAME);
+                break;
+            }
+            default: {
+                log.info("No service controller available for platform {}", System.getProperty("os.name"));
+                return null;
+            }
         }
-        return null;
+
+        try {
+            serviceController.assertReady();
+            return serviceController;
+        } catch (ControlException e) {
+            log.error("Service controller not ready", e);
+            return null;
+        }
+
     }
 
     private static void createAndShowGUI() {
