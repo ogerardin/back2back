@@ -223,7 +223,7 @@ public class B2BTrayIcon {
 
     private static void startEngine() throws ControlException {
         if (serviceController != null && serviceAvailable) {
-            log.debug("Using service controller to start engine");
+            log.debug("[service controller] starting engine");
             serviceController.start();
         }
         else {
@@ -240,18 +240,18 @@ public class B2BTrayIcon {
     }
 
     private static void stopEngine() throws ControlException {
-        if (processController.isRunning()) {
-            log.debug("Running under process control, stopping...");
-            processController.setProcessListener(null);
-            // to exit cleanly we call the shutdown API
-            engineClient.shutdown();
-//            processController.stop();
-        }
-
         if (serviceController != null && serviceAvailable && serviceController.isRunning()) {
-            log.debug("Running under service control, stopping...");
+            log.debug("[service controller] stopping engine...");
             serviceController.stop();
         }
+        else {
+            processController.setProcessListener(null);
+            log.debug("Shutting down engine...");
+            // to exit cleanly we call the shutdown API
+            engineClient.shutdown();
+        }
+
+
     }
 
     private static void pollStatus() {
@@ -268,7 +268,7 @@ public class B2BTrayIcon {
             } catch (RestClientException e) {
                 if (engineAvailable == null || engineAvailable) {
                     log.error("Engine API not available: {}", e.toString());
-                    trayIcon.displayMessage("back2back Engine is not available", e.toString(), TrayIcon.MessageType.WARNING);
+                    trayIcon.displayMessage("back2back Engine is not available", null, TrayIcon.MessageType.WARNING);
                 }
                 engineAvailable = false;
             }
