@@ -1,6 +1,6 @@
 import org.junit.Ignore;
 import org.junit.Test;
-import org.ogerardin.b2b.domain.BackupSet;
+import org.ogerardin.b2b.domain.entity.BackupSet;
 import org.springframework.web.client.RestTemplate;
 
 public class TestRestClient {

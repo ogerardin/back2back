@@ -1,5 +1,5 @@
 import com.fasterxml.jackson.databind.Module;
-import org.ogerardin.b2b.domain.BackupSet;
+import org.ogerardin.b2b.domain.entity.BackupSet;
 import org.ogerardin.b2b.jackson.JacksonConfig;
 import org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;

@@ -11,7 +11,7 @@ import com.ogerardin.guarana.javafx.JfxUiManager;
 import com.ogerardin.guarana.javafx.ui.JfxCollectionUI;
 import javafx.application.Application;
 import javafx.stage.Stage;
-import org.ogerardin.b2b.domain.BackupSet;
+import org.ogerardin.b2b.domain.entity.BackupSet;
 
 import java.util.Arrays;
 
