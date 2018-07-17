@@ -6,7 +6,6 @@ import com.sun.jna.platform.win32.WinNT.HANDLE;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
@@ -157,10 +156,13 @@ public class NativeProcessController implements ProcessController {
 
         ProcessBuilder processBuilder = new ProcessBuilder(command);
         processBuilder.directory(workDirectory.toFile());
+        processBuilder.redirectErrorStream(true);
 
         if (logFile != null) {
-            processBuilder.redirectErrorStream(true);
             processBuilder.redirectOutput(ProcessBuilder.Redirect.appendTo(logFile.toFile()));
+        }
+        else {
+            processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
         }
 
         Process process;

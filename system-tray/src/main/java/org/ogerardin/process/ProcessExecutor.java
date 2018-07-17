@@ -10,6 +10,12 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Provides a convenient way to run a command and get its console output as a List of Strings.
+ * The command and parameters to execute can be provided as either a String array through {@link #cmdarray} or a
+ * command line as a single String through {@link #command}.
+ * Appropriate for short-lived commands only.
+ */
 @Slf4j
 @Builder
 public class ProcessExecutor {
@@ -46,18 +52,22 @@ public class ProcessExecutor {
         return new ExecResults(process, outputGobbler.getLines(), errorGobbler.getLines());
     }
 
+    /**
+     * A daemon Thread that reads the specified {@link InputStream} as long as EOF is not reached and stores
+     * the read lines into a List. The Thread is started as soon as the constructor is called.
+     */
     private class StreamGobbler extends Thread {
         private final InputStream inputStream;
         private IOException exception = null;
         private List<String> lines = new ArrayList<>();
 
-        public StreamGobbler(InputStream inputStream) {
+        StreamGobbler(InputStream inputStream) {
             this.inputStream = inputStream;
             this.setDaemon(true);
             this.start();
         }
 
-        public List<String> getLines() {
+        List<String> getLines() {
             return lines;
         }
 

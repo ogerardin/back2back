@@ -62,7 +62,7 @@ public class B2BTrayIcon {
             log.info("Using service controller: {}", serviceController);
         }
         else {
-            log.warn("No service controller");
+            log.warn("Not using service controller");
         }
 
         // initialize process controller. Used for manual start/stop when service controller is not available
@@ -209,13 +209,6 @@ public class B2BTrayIcon {
         thread.setDaemon(true);
         thread.start();
 
-        //handle processController events
-        processController.setProcessListener(evt -> {
-            log.error("Process terminated: {}", evt);
-            trayIcon.displayMessage("Engine exited prematurely", evt.toString(), TrayIcon.MessageType.ERROR);
-        });
-
-
         log.info("Tray icon ready.");
     }
 
@@ -234,7 +227,14 @@ public class B2BTrayIcon {
             serviceController.start();
         }
         else {
-            log.debug("No service controller available, using process controller to start engine");
+            log.debug("Service controller not available, using process controller to start engine");
+
+            //handle processController events
+            processController.setProcessListener(evt -> {
+                log.error("Process terminated: {}", evt);
+                trayIcon.displayMessage("Engine exited prematurely", evt.toString(), TrayIcon.MessageType.ERROR);
+            });
+
             processController.start();
         }
     }
@@ -242,7 +242,10 @@ public class B2BTrayIcon {
     private static void stopEngine() throws ControlException {
         if (processController.isRunning()) {
             log.debug("Running under process control, stopping...");
-            processController.stop();
+            processController.setProcessListener(null);
+            // to exit cleanly we call the shutdown API
+            engineClient.shutdown();
+//            processController.stop();
         }
 
         if (serviceController != null && serviceAvailable && serviceController.isRunning()) {

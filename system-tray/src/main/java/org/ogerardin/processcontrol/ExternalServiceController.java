@@ -2,6 +2,7 @@ package org.ogerardin.processcontrol;
 
 import lombok.Data;
 import org.ogerardin.process.ProcessExecutor;
+import org.ogerardin.process.ProcessExecutor.ExecResults;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -21,7 +22,7 @@ public abstract class ExternalServiceController implements ProcessController {
         this.serviceName = serviceName;
     }
 
-    protected ProcessExecutor.ExecResults performControllerServiceCommand(String command, String... args) throws ControlException {
+    protected ExecResults performControllerServiceCommand(String command, String... args) throws ControlException {
         String cmd = buildCommandString(controllerCommand, command, serviceName, args);
         try {
             ProcessExecutor executor = ProcessExecutor.builder()
@@ -34,7 +35,7 @@ public abstract class ExternalServiceController implements ProcessController {
         }
     }
 
-    protected ProcessExecutor.ExecResults performControllerCommand(String command, String... args) throws ControlException {
+    protected ExecResults performControllerCommand(String command, String... args) throws ControlException {
         String additionalArgs = String.join(" ", args);
         String cmd = String.format("%s %s %s", controllerCommand, command, additionalArgs);
         ProcessExecutor executor = ProcessExecutor.builder()
@@ -48,9 +49,9 @@ public abstract class ExternalServiceController implements ProcessController {
         }
     }
 
-    protected void mapExitCodeToException(ProcessExecutor.ExecResults execResults) throws ControlException {
+    protected void mapExitCodeToException(ExecResults execResults) throws ControlException {
         if (execResults.getExitValue() != 0) {
-            throw new ControlException(String.format("Command returned non-0 exit code: %d", execResults.getExitValue()));
+            throw new ControlException(String.format("Command returned non-zero exit value: %d", execResults.getExitValue()));
         }
     }
 

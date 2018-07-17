@@ -1,13 +1,13 @@
-<configuration>
+<configuration xmlns="http://ch.qos.logback/xml/ns/logback">
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
-    <logger name="org.springframework.web.client.RestTemplate" level="INFO" />
+    <logger name="org.springframework.web.client.RestTemplate" level="INFO"/>
 
     <root level="DEBUG">
-        <appender-ref ref="STDOUT" />
+        <appender-ref ref="STDOUT"/>
     </root>
 </configuration>
