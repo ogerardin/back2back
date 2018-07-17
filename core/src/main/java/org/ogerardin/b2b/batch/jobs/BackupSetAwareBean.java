@@ -1,6 +1,6 @@
 package org.ogerardin.b2b.batch.jobs;
 
-import org.ogerardin.b2b.domain.BackupSet;
+import org.ogerardin.b2b.domain.entity.BackupSet;
 import org.ogerardin.b2b.domain.mongorepository.BackupSetRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

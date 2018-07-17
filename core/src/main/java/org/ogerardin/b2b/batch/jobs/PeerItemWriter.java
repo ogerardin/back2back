@@ -4,7 +4,7 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.ogerardin.b2b.config.ConfigManager;
-import org.ogerardin.b2b.domain.StoredFileVersionInfo;
+import org.ogerardin.b2b.domain.entity.StoredFileVersionInfo;
 import org.ogerardin.b2b.domain.mongorepository.RemoteFileVersionInfoRepository;
 import org.ogerardin.b2b.files.md5.StreamingMd5Calculator;
 import org.ogerardin.b2b.storage.EncryptionException;

@@ -1,6 +1,6 @@
 package org.ogerardin.b2b.api;
 
-import org.ogerardin.b2b.domain.BackupSource;
+import org.ogerardin.b2b.domain.entity.BackupSource;
 import org.ogerardin.b2b.domain.mongorepository.BackupSourceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;

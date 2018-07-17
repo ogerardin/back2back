@@ -1,6 +1,6 @@
 package org.ogerardin.b2b.batch.jobs;
 
-import org.ogerardin.b2b.domain.BackupSet;
+import org.ogerardin.b2b.domain.entity.BackupSet;
 import org.springframework.batch.core.ItemWriteListener;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.stereotype.Component;

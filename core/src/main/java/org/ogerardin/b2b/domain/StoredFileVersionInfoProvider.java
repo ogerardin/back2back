@@ -1,5 +1,6 @@
 package org.ogerardin.b2b.domain;
 
+import org.ogerardin.b2b.domain.entity.StoredFileVersionInfo;
 import org.ogerardin.b2b.storage.FileVersion;
 import org.ogerardin.b2b.storage.StorageFileNotFoundException;
 import org.ogerardin.b2b.storage.StorageService;

@@ -1,8 +1,8 @@
 package org.ogerardin.b2b.batch.jobs;
 
-import org.ogerardin.b2b.domain.FilesystemSource;
-import org.ogerardin.b2b.domain.PeerTarget;
-import org.ogerardin.b2b.domain.StoredFileVersionInfo;
+import org.ogerardin.b2b.domain.entity.FilesystemSource;
+import org.ogerardin.b2b.domain.entity.PeerTarget;
+import org.ogerardin.b2b.domain.entity.StoredFileVersionInfo;
 import org.ogerardin.b2b.domain.mongorepository.RemoteFileVersionInfoRepository;
 import org.ogerardin.b2b.files.md5.StreamingMd5Calculator;
 import org.springframework.batch.core.Job;

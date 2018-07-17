@@ -2,8 +2,8 @@ package org.ogerardin.b2b.api;
 
 import lombok.Builder;
 import lombok.Data;
-import org.ogerardin.b2b.domain.FilesystemSource;
-import org.ogerardin.b2b.domain.PeerSource;
+import org.ogerardin.b2b.domain.entity.FilesystemSource;
+import org.ogerardin.b2b.domain.entity.PeerSource;
 import org.ogerardin.b2b.domain.mongorepository.BackupSetRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;

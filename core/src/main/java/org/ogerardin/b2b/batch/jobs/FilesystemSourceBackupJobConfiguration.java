@@ -2,7 +2,7 @@ package org.ogerardin.b2b.batch.jobs;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.ogerardin.b2b.batch.FileSetItemWriter;
-import org.ogerardin.b2b.domain.FilesystemSource;
+import org.ogerardin.b2b.domain.entity.FilesystemSource;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.beans.factory.annotation.Value;

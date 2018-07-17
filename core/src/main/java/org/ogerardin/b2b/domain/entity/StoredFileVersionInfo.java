@@ -1,4 +1,4 @@
-package org.ogerardin.b2b.domain;
+package org.ogerardin.b2b.domain.entity;
 
 import lombok.Data;
 import org.ogerardin.b2b.storage.FileVersion;

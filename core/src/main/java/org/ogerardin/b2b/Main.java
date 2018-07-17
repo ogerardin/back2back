@@ -55,7 +55,7 @@ public class Main {
             configManager.init();
 
             // reset the state of all backupsets
-            backupSetManager.resetAll();
+            backupSetManager.init();
 
             // start backup jobs
             if (properties.startJobs) {

@@ -2,7 +2,7 @@ package org.ogerardin.b2b.config;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.ogerardin.b2b.domain.ConfigItem;
+import org.ogerardin.b2b.domain.entity.ConfigItem;
 import org.ogerardin.b2b.domain.mongorepository.ConfigItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

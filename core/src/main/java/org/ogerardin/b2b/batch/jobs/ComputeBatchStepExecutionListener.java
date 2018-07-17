@@ -1,9 +1,9 @@
 package org.ogerardin.b2b.batch.jobs;
 
 import lombok.extern.slf4j.Slf4j;
-import org.ogerardin.b2b.domain.BackupSet;
-import org.ogerardin.b2b.domain.BackupSource;
-import org.ogerardin.b2b.domain.FilesystemSource;
+import org.ogerardin.b2b.domain.entity.BackupSet;
+import org.ogerardin.b2b.domain.entity.BackupSource;
+import org.ogerardin.b2b.domain.entity.FilesystemSource;
 import org.ogerardin.b2b.util.FormattingHelper;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepExecution;

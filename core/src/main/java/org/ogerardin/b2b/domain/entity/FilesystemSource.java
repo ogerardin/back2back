@@ -1,4 +1,4 @@
-package org.ogerardin.b2b.domain;
+package org.ogerardin.b2b.domain.entity;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -8,6 +8,7 @@ import org.springframework.batch.core.JobParameter;
 
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -24,6 +25,7 @@ public class FilesystemSource extends BackupSource {
     private List<Path> paths;
 
     public FilesystemSource() {
+        this(Collections.emptyList());
     }
 
     // results of the latest computation of source file count and total size (for information)
@@ -38,7 +40,7 @@ public class FilesystemSource extends BackupSource {
     public void populateParams(Map<String, JobParameter> params) {
         params.put("source.type", new JobParameter(FilesystemSource.class.getName()));
         try {
-            // store param value as JSON array
+            // "source.roots" param is stored as a JSON array
             params.put("source.roots", new JobParameter(OBJECT_MAPPER.writeValueAsString(paths)));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);

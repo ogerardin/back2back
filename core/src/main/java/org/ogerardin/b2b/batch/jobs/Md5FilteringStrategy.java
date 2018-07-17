@@ -2,7 +2,7 @@ package org.ogerardin.b2b.batch.jobs;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.ogerardin.b2b.domain.StoredFileVersionInfo;
+import org.ogerardin.b2b.domain.entity.StoredFileVersionInfo;
 import org.ogerardin.b2b.domain.StoredFileVersionInfoProvider;
 import org.ogerardin.b2b.files.md5.MD5Calculator;
 import org.ogerardin.b2b.files.md5.StreamingMd5Calculator;

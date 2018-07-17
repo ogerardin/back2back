@@ -1,7 +1,7 @@
 package org.ogerardin.b2b.batch.jobs;
 
-import org.ogerardin.b2b.domain.FilesystemSource;
-import org.ogerardin.b2b.domain.LocalTarget;
+import org.ogerardin.b2b.domain.entity.FilesystemSource;
+import org.ogerardin.b2b.domain.entity.LocalTarget;
 import org.ogerardin.b2b.domain.StoredFileVersionInfoProvider;
 import org.ogerardin.b2b.files.md5.StreamingMd5Calculator;
 import org.ogerardin.b2b.storage.StorageService;

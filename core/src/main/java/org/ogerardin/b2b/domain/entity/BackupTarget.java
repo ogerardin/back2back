@@ -1,7 +1,9 @@
-package org.ogerardin.b2b.domain;
+package org.ogerardin.b2b.domain.entity;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Data;
+import org.ogerardin.b2b.domain.HasDescription;
+import org.ogerardin.b2b.domain.JobParametersPopulator;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 

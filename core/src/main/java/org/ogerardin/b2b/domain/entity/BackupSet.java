@@ -1,7 +1,8 @@
-package org.ogerardin.b2b.domain;
+package org.ogerardin.b2b.domain.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
+import org.ogerardin.b2b.domain.JobParametersPopulator;
 import org.ogerardin.b2b.mongo.cascade.CascadeSave;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;

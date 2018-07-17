@@ -2,7 +2,7 @@ package org.ogerardin.b2b.batch.jobs;
 
 import lombok.extern.slf4j.Slf4j;
 import org.ogerardin.b2b.B2BProperties;
-import org.ogerardin.b2b.domain.BackupSet;
+import org.ogerardin.b2b.domain.entity.BackupSet;
 import org.springframework.batch.core.*;
 import org.springframework.batch.core.configuration.JobLocator;
 import org.springframework.batch.core.configuration.annotation.JobScope;

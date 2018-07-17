@@ -2,7 +2,7 @@ package org.ogerardin.b2b.domain.mongorepository;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
-import org.ogerardin.b2b.domain.StoredFileVersionInfo;
+import org.ogerardin.b2b.domain.entity.StoredFileVersionInfo;
 import org.ogerardin.b2b.domain.StoredFileVersionInfoProvider;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.repository.query.MongoEntityInformation;

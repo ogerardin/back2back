@@ -2,9 +2,9 @@ package org.ogerardin.b2b.batch;
 
 import lombok.extern.slf4j.Slf4j;
 import org.ogerardin.b2b.B2BException;
-import org.ogerardin.b2b.domain.BackupSet;
-import org.ogerardin.b2b.domain.BackupSource;
-import org.ogerardin.b2b.domain.BackupTarget;
+import org.ogerardin.b2b.domain.entity.BackupSet;
+import org.ogerardin.b2b.domain.entity.BackupSource;
+import org.ogerardin.b2b.domain.entity.BackupTarget;
 import org.ogerardin.b2b.domain.mongorepository.BackupSetRepository;
 import org.ogerardin.b2b.domain.mongorepository.BackupSourceRepository;
 import org.ogerardin.b2b.domain.mongorepository.BackupTargetRepository;
