@@ -99,5 +99,13 @@
         </dependencies>
     </dependencyManagement>
 
+    <profiles>
+        <profile>
+            <id>include-guarana-ui</id>
+            <modules>
+                <module>guarana-ui</module>
+            </modules>
+        </profile>
+    </profiles>
 
 </project>

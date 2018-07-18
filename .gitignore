@@ -27,8 +27,5 @@ hs_err_pid*
 *.iml
 *.pid
 
-/core/mongo-storage/
-/core/target/
-/ui/target/
-/vuejs-ui/target/
-
+mongo-storage/
+target/
