@@ -34,6 +34,8 @@ public class BackupSet implements JobParametersPopulator {
     @CascadeSave
     private BackupTarget backupTarget;
 
+    private boolean active;
+
     private Instant lastBackupCompleteTime;
     private Instant currentBackupStartTime;
     private Instant nextBackupTime;
@@ -56,7 +58,6 @@ public class BackupSet implements JobParametersPopulator {
 
     // Job information
     private String jobName;
-    private Long jobId;
 
     @Override
     public void populateParams(Map<String, JobParameter> params) {
@@ -81,7 +82,7 @@ public class BackupSet implements JobParametersPopulator {
         toDoSize = 0;
         lastError = null;
         status = "Inactive";
+        active = false;
         jobName = null;
-        jobId = null;
     }
 }

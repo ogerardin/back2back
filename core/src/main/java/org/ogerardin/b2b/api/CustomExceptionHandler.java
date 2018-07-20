@@ -19,7 +19,7 @@ public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
         if (cause instanceof IllegalStateException) {
             Throwable cause2 = cause.getCause();
             //Tomcat-specific exception
-            if (cause2.getClass().getName().equals("org.apache.tomcat.util.http.fileupload.FileUploadBase.SizeLimitExceededException")) {
+            if (cause2 != null && cause2.getClass().getName().equals("org.apache.tomcat.util.http.fileupload.FileUploadBase.SizeLimitExceededException")) {
                 throw new FileTooLargeException(cause2.toString());
             }
         }

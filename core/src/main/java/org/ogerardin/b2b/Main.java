@@ -59,7 +59,8 @@ public class Main {
 
             // start backup jobs
             if (properties.startJobs) {
-                jobStarter.startAllJobs();
+//                jobStarter.startAllJobs();
+                jobStarter.syncJobs();
             }
         };
     }

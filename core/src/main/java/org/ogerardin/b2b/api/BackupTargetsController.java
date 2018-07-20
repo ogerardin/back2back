@@ -1,5 +1,6 @@
 package org.ogerardin.b2b.api;
 
+import org.ogerardin.b2b.batch.JobStarter;
 import org.ogerardin.b2b.domain.entity.BackupTarget;
 import org.ogerardin.b2b.domain.mongorepository.BackupTargetRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,9 +15,12 @@ public class BackupTargetsController {
 
     private final BackupTargetRepository targetRepository;
 
+    private final JobStarter jobStarter;
+
     @Autowired
-    public BackupTargetsController(BackupTargetRepository targetRepository) {
+    public BackupTargetsController(BackupTargetRepository targetRepository, JobStarter jobStarter) {
         this.targetRepository = targetRepository;
+        this.jobStarter = jobStarter;
     }
 
     @GetMapping
@@ -35,7 +39,8 @@ public class BackupTargetsController {
     @ResponseBody
     public BackupTarget create(@RequestBody BackupTarget target) {
         BackupTarget savedTarget = targetRepository.save(target);
-        //TODO: adding a target should trigger an update of current jobs
+        //TODO: use change streams? (requires Spring data MongoDB 2.1) https://docs.spring.io/spring-data/mongodb/docs/2.1.0.M3/reference/html/#change-streams
+        jobStarter.syncJobs();
         return savedTarget;
     }
 
@@ -46,7 +51,8 @@ public class BackupTargetsController {
         assertExists(id);
         target.setId(id);
         BackupTarget savedTarget = targetRepository.save(target);
-        //TODO: updating a target should trigger an update of current jobs
+        //TODO: use change streams? (requires Spring data MongoDB 2.1) https://docs.spring.io/spring-data/mongodb/docs/2.1.0.M3/reference/html/#change-streams
+        jobStarter.syncJobs();
         return savedTarget;
     }
 
@@ -54,6 +60,8 @@ public class BackupTargetsController {
     public void delete(@PathVariable String id) throws NotFoundException {
         assertExists(id);
         targetRepository.delete(id);
+        //TODO: use change streams? (requires Spring data MongoDB 2.1) https://docs.spring.io/spring-data/mongodb/docs/2.1.0.M3/reference/html/#change-streams
+        jobStarter.syncJobs();
     }
 
     private void assertExists(@PathVariable String id) throws NotFoundException {

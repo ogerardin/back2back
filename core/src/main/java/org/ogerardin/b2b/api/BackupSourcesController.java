@@ -1,5 +1,6 @@
 package org.ogerardin.b2b.api;
 
+import org.ogerardin.b2b.batch.JobStarter;
 import org.ogerardin.b2b.domain.entity.BackupSource;
 import org.ogerardin.b2b.domain.mongorepository.BackupSourceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,9 +16,12 @@ public class BackupSourcesController {
 
     private final BackupSourceRepository sourceRepository;
 
+    private final JobStarter jobStarter;
+
     @Autowired
-    public BackupSourcesController(BackupSourceRepository sourceRepository) {
+    public BackupSourcesController(BackupSourceRepository sourceRepository, JobStarter jobStarter) {
         this.sourceRepository = sourceRepository;
+        this.jobStarter = jobStarter;
     }
 
     @GetMapping
@@ -37,7 +41,8 @@ public class BackupSourcesController {
     @ResponseBody
     public BackupSource create(@RequestBody BackupSource source) {
         BackupSource savedSource = sourceRepository.save(source);
-        //TODO: adding a source should trigger an update of current jobs
+        //TODO: use change streams? (requires Spring data MongoDB 2.1) https://docs.spring.io/spring-data/mongodb/docs/2.1.0.M3/reference/html/#change-streams
+        jobStarter.syncJobs();
         return savedSource;
     }
 
@@ -48,10 +53,10 @@ public class BackupSourcesController {
         assertExists(id);
         source.setId(id);
         BackupSource savedSource = sourceRepository.save(source);
-        //TODO: updating a source should trigger an update of current jobs
+        //TODO: use change streams? (requires Spring data MongoDB 2.1) https://docs.spring.io/spring-data/mongodb/docs/2.1.0.M3/reference/html/#change-streams
+        jobStarter.syncJobs();
         return savedSource;
     }
-
 
 /*
     @PostMapping("/{id}/path")
@@ -68,10 +73,13 @@ public class BackupSourcesController {
         sourceRepository.save(filesystemSource);
     }
 */
+
     @DeleteMapping("/{id}")
     public void delete(@PathVariable String id) throws NotFoundException {
         assertExists(id);
         sourceRepository.delete(id);
+        //TODO: use change streams? (requires Spring data MongoDB 2.1) https://docs.spring.io/spring-data/mongodb/docs/2.1.0.M3/reference/html/#change-streams
+        jobStarter.syncJobs();
     }
 
     private void assertExists(@PathVariable String id) throws NotFoundException {
