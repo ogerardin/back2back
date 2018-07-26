@@ -59,6 +59,7 @@ public class PeerController {
             ) throws B2BException, IOException {
 
         log.debug("Single file upload from " + computerId);
+        log.debug("originalFilename= " + file.getOriginalFilename());
 
 /*
         if (file.isEmpty()) {

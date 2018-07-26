@@ -6,14 +6,12 @@ import lombok.val;
 import org.ogerardin.b2b.config.ConfigManager;
 import org.ogerardin.b2b.domain.entity.StoredFileVersionInfo;
 import org.ogerardin.b2b.domain.mongorepository.RemoteFileVersionInfoRepository;
-import org.ogerardin.b2b.files.md5.StreamingMd5Calculator;
 import org.ogerardin.b2b.storage.EncryptionException;
 import org.ogerardin.b2b.util.CipherHelper;
 import org.ogerardin.b2b.util.FormattingHelper;
 import org.ogerardin.b2b.web.InputStreamFileResource;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.Resource;
 import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
@@ -23,6 +21,7 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
@@ -32,33 +31,38 @@ import java.nio.file.Path;
 import java.security.DigestInputStream;
 import java.security.Key;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.List;
 
 /**
  * ItemWriter implementation that uploads the file designated by the input {@link LocalFileInfo} to a remote
- * peer instance using the "peer" REST API.
- * Also stores locally the MD5 hash of uploaded files to allow changed detection.
+ * back2back peer instance using the REST API.
+ * Files can be encrypted before transmission if a {@link Key} is provided.
+ * Also stores locally the MD5 hash of uploaded files in a {@link RemoteFileVersionInfoRepository} to allow change detection.
  */
 @Slf4j
 class PeerItemWriter implements ItemWriter<LocalFileInfo> {
 
+    /** Encyption key. If null, files are sent unencrypted */
     private final Key key;
 
-    private RemoteFileVersionInfoRepository peerFileVersionInfoRepository;
+    /** repository to store the hash and ozher info of remotely stored files */
+    private final RemoteFileVersionInfoRepository peerFileVersionInfoRepository;
 
-    @Autowired
-    @Qualifier("springMD5Calculator")
-    StreamingMd5Calculator md5Calculator;
+    /** URL of the peer instance */
+    private final URL url;
 
     @Autowired
     ConfigManager configManager;
-    private final URL url;
 
-    PeerItemWriter(@NonNull RemoteFileVersionInfoRepository peerFileVersionInfoRepository,
+    private static final RestTemplate REST_TEMPLATE = new RestTemplate();
+
+
+    PeerItemWriter(@NonNull RemoteFileVersionInfoRepository remoteFileVersionInfoRepository,
                    @NonNull String targetHostname, int targetPort, Key key) throws MalformedURLException {
 
-        this.peerFileVersionInfoRepository = peerFileVersionInfoRepository;
+        this.peerFileVersionInfoRepository = remoteFileVersionInfoRepository;
         this.key = key;
 
         // construct URL of remote "peer" API
@@ -72,7 +76,7 @@ class PeerItemWriter implements ItemWriter<LocalFileInfo> {
 
 
     @Override
-    public void write(List<? extends LocalFileInfo> items) throws Exception {
+    public void write(List<? extends LocalFileInfo> items) throws IOException, NoSuchAlgorithmException, EncryptionException {
         log.debug("Writing " + Arrays.toString(items.toArray()));
 
         for (LocalFileInfo item : items) {
@@ -83,18 +87,16 @@ class PeerItemWriter implements ItemWriter<LocalFileInfo> {
                 InputStream fileInputStream = Files.newInputStream(path);
                 // the same stream, but also updates the digest as it is read
                 InputStream digestInputStream = new DigestInputStream(fileInputStream, messageDigest);
-                // InputStream that will be uploaded
-                // if we have a key (encryption) we use wrap the stream in an ecrypted stream,
+                // InputStream that will be uploaded.
+                // If we have a key (encryption) we use it to wrap the stream in an encrypted stream,
                 // otherwise we just use the previous one
                 InputStream uploadInputStream = (key != null) ? getCipherInputStream(digestInputStream, key) : digestInputStream;
             ) {
-                //FIXME we can't use org.springframework.core.io.InputStreamResource, see https://jira.spring.io/browse/SPR-13571
-                Resource resource = new InputStreamFileResource(uploadInputStream, path.toString());
-
-                uploadFile(path, resource);
+                log.debug("Trying to upload {}", path);
+                upload(uploadInputStream, path.toString());
             }
 
-            // upload successful: update local MD5 database
+            log.debug("Updating local MD5 database for {}", path);
             byte[] md5Hash = messageDigest.digest();
             String hexMd5Hash = FormattingHelper.hex(md5Hash);
             val peerFileVersion = new StoredFileVersionInfo(path.toString(), hexMd5Hash, false);
@@ -108,37 +110,38 @@ class PeerItemWriter implements ItemWriter<LocalFileInfo> {
         return new CipherInputStream(is, cipher);
     }
 
-    private void uploadFile(@NonNull Path path, Resource resource) throws URISyntaxException {
-        RestTemplate restTemplate = new RestTemplate();
+    private void upload(InputStream inputStream, String path) {
+
+        //We can't use org.springframework.core.io.InputStreamResource, see https://jira.spring.io/browse/SPR-13571
+        Resource resource = new InputStreamFileResource(inputStream, path);
 
         // build request
-        MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
-        map.add("file", resource);
-        map.add("original-path", path.toString());
-        map.add("computer-id", configManager.getMachineInfo().getComputerId());
+        MultiValueMap<String, Object> parts = new LinkedMultiValueMap<>();
+        parts.add("file", resource);
+        parts.add("original-path", path);
+        parts.add("computer-id", configManager.getMachineInfo().getComputerId());
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-        val requestEntity = new HttpEntity<>(map, headers);
+        val requestEntity = new HttpEntity<>(parts, headers);
 
         // perform HTTP request
-        log.debug("Trying to upload " + path);
-        ResponseEntity<String> result;
         try {
-            result = restTemplate.exchange(
+            log.debug("Submitting multipart POST request: {}", requestEntity);
+            val responseEntity = REST_TEMPLATE.exchange(
                     url.toURI(),
                     HttpMethod.POST,
                     requestEntity,
                     String.class);
-        } catch (RestClientException e) {
+            log.debug("Response: {} ", responseEntity);
+        } catch (RestClientException | URISyntaxException e) {
             if (log.isDebugEnabled()) {
                 log.error("Exception during file upload: ", e);
             }
             else {
                 log.error("Exception during file upload: " + e.toString());
             }
-            return;
+            //TODO better error processing
         }
-        log.debug("Result of upload: " + result);
     }
 
 }
