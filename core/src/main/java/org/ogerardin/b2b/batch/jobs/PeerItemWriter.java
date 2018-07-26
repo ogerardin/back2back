@@ -10,10 +10,10 @@ import org.ogerardin.b2b.files.md5.StreamingMd5Calculator;
 import org.ogerardin.b2b.storage.EncryptionException;
 import org.ogerardin.b2b.util.CipherHelper;
 import org.ogerardin.b2b.util.FormattingHelper;
+import org.ogerardin.b2b.web.InputStreamFileResource;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
@@ -23,7 +23,6 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
@@ -78,18 +77,25 @@ class PeerItemWriter implements ItemWriter<LocalFileInfo> {
 
         for (LocalFileInfo item : items) {
             Path path = item.getPath();
-            MessageDigest md = MessageDigest.getInstance("MD5");
+            MessageDigest messageDigest = MessageDigest.getInstance("MD5");
             try (
-                    InputStream is = Files.newInputStream(path);
-                    DigestInputStream dis = new DigestInputStream(is, md);
-                    InputStream uploadInputStream = (key != null) ? getCipherInputStream(dis, key) : dis;
+                // the original file's InputStream
+                InputStream fileInputStream = Files.newInputStream(path);
+                // the same stream, but also updates the digest as it is read
+                InputStream digestInputStream = new DigestInputStream(fileInputStream, messageDigest);
+                // InputStream that will be uploaded
+                // if we have a key (encryption) we use wrap the stream in an ecrypted stream,
+                // otherwise we just use the previous one
+                InputStream uploadInputStream = (key != null) ? getCipherInputStream(digestInputStream, key) : digestInputStream;
             ) {
-                Resource resource = new InputStreamResource(uploadInputStream);
+                //FIXME we can't use org.springframework.core.io.InputStreamResource, see https://jira.spring.io/browse/SPR-13571
+                Resource resource = new InputStreamFileResource(uploadInputStream, path.toString());
+
                 uploadFile(path, resource);
             }
 
             // upload successful: update local MD5 database
-            byte[] md5Hash = md.digest();
+            byte[] md5Hash = messageDigest.digest();
             String hexMd5Hash = FormattingHelper.hex(md5Hash);
             val peerFileVersion = new StoredFileVersionInfo(path.toString(), hexMd5Hash, false);
             peerFileVersionInfoRepository.save(peerFileVersion);
@@ -97,19 +103,13 @@ class PeerItemWriter implements ItemWriter<LocalFileInfo> {
 
     }
 
-    private static InputStream getCipherInputStream(DigestInputStream dis, Key key) throws EncryptionException, IOException {
-        InputStream uploadInputStream;Cipher cipher = CipherHelper.getAesCipher(key, Cipher.ENCRYPT_MODE);
-        try (
-                CipherInputStream cis = new CipherInputStream(dis, cipher);
-        ) {
-            uploadInputStream = cis;
-        }
-        return uploadInputStream;
+    private static InputStream getCipherInputStream(InputStream is, Key key) throws EncryptionException {
+        Cipher cipher = CipherHelper.getAesCipher(key, Cipher.ENCRYPT_MODE);
+        return new CipherInputStream(is, cipher);
     }
 
-    private void uploadFile(@NonNull Path path, Resource resource) throws IOException, URISyntaxException {
+    private void uploadFile(@NonNull Path path, Resource resource) throws URISyntaxException {
         RestTemplate restTemplate = new RestTemplate();
-
 
         // build request
         MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();

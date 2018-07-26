@@ -1,4 +1,4 @@
-package org.ogerardin.b2b.webmvc;
+package org.ogerardin.b2b.web;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

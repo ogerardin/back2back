@@ -58,7 +58,7 @@ public class BackupJobExecutionListener extends BackupSetAwareBean implements Jo
         backupSet.setBatchSize(0);
         String status = "Complete";
 
-        if (properties != null && properties.isContinuousBackup()) {
+        if (backupSet.isActive() && properties != null && properties.isContinuousBackup()) {
             // Schedule a job restart. This is done asynchronously because
             // the current job is not considered as complete until we exit this function.
             long pauseAfterBackup = properties.getPauseAfterBackup();
@@ -82,6 +82,10 @@ public class BackupJobExecutionListener extends BackupSetAwareBean implements Jo
                 Thread.sleep(delay);
             } catch (InterruptedException e) {
                 log.warn("Restart task interrupted during pause: " + e.toString());
+            }
+            //don't start the job if the backup set has become inactive
+            if (! getBackupSet().isActive()) {
+                return;
             }
             // restart job
             try {
