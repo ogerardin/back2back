@@ -5,8 +5,11 @@ import org.ogerardin.b2b.util.FormattingHelper;
 import java.io.IOException;
 import java.io.InputStream;
 
+/**
+ * Classes that implement this interface provide a way to compute a MD5 hash from an InputStream
+ */
 @FunctionalInterface
-public interface InputStreamMd5Calculator {
+public interface InputStreamMD5Calculator {
 
     byte[] md5Hash(InputStream inputStream) throws IOException;
 

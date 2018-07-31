@@ -4,7 +4,7 @@ import org.ogerardin.b2b.domain.entity.FilesystemSource;
 import org.ogerardin.b2b.domain.entity.PeerTarget;
 import org.ogerardin.b2b.domain.entity.StoredFileVersionInfo;
 import org.ogerardin.b2b.domain.mongorepository.RemoteFileVersionInfoRepository;
-import org.ogerardin.b2b.files.md5.InputStreamMd5Calculator;
+import org.ogerardin.b2b.files.md5.InputStreamMD5Calculator;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
@@ -118,7 +118,7 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
     @Bean
     @JobScope
     protected FilteringPathItemProcessor peerFilteringPathItemProcessor(
-            @Qualifier("springMD5Calculator") InputStreamMd5Calculator md5Calculator,
+            @Qualifier("springMD5Calculator") InputStreamMD5Calculator md5Calculator,
             RemoteFileVersionInfoRepository peerFileVersionRepository
     ) {
         Md5FilteringStrategy filteringStrategy = new Md5FilteringStrategy(peerFileVersionRepository, md5Calculator);

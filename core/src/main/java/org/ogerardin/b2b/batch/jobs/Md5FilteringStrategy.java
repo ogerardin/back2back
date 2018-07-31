@@ -4,8 +4,8 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.ogerardin.b2b.domain.entity.StoredFileVersionInfo;
 import org.ogerardin.b2b.domain.StoredFileVersionInfoProvider;
-import org.ogerardin.b2b.files.md5.MD5Calculator;
-import org.ogerardin.b2b.files.md5.InputStreamMd5Calculator;
+import org.ogerardin.b2b.files.md5.ByteArrayMD5Calculator;
+import org.ogerardin.b2b.files.md5.InputStreamMD5Calculator;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -24,8 +24,8 @@ public class Md5FilteringStrategy implements Predicate<Path> {
     /** Provides a way to query information (specifically MD5) abouth the stored file */
     private final StoredFileVersionInfoProvider storedFileVersionInfoProvider;
 
-    /** The hash engine to use. See implementations of {@link MD5Calculator} */
-    private final InputStreamMd5Calculator md5Calculator;
+    /** The hash engine to use. See implementations of {@link ByteArrayMD5Calculator} */
+    private final InputStreamMD5Calculator md5Calculator;
 
     /**
      * @return true if the local file with the specified path must be backed up

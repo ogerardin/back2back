@@ -1,7 +1,7 @@
 package org.ogerardin.b2b.files.md5.spring;
 
-import org.ogerardin.b2b.files.md5.InputStreamMd5Calculator;
-import org.ogerardin.b2b.files.md5.MD5Calculator;
+import org.ogerardin.b2b.files.md5.InputStreamMD5Calculator;
+import org.ogerardin.b2b.files.md5.ByteArrayMD5Calculator;
 import org.springframework.stereotype.Component;
 import org.springframework.util.DigestUtils;
 
@@ -12,7 +12,7 @@ import java.io.InputStream;
  * MD5 hash calculator using Spring's {@link DigestUtils}
  */
 @Component
-public class SpringMD5Calculator implements MD5Calculator, InputStreamMd5Calculator {
+public class SpringMD5Calculator implements ByteArrayMD5Calculator, InputStreamMD5Calculator {
 
     @Override
     public byte[] md5Hash(byte[] bytes) {

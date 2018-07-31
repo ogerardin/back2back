@@ -29,6 +29,12 @@ import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+/**
+ * An {@link InputStream} decorator that updates a provided {@link Updatable} object as bytes are read.
+ * Based on {@link java.security.DigestInputStream}
+ *
+ * @param <U> the {@link Updatable} class
+ */
 public class UpdaterInputStream<U extends Updatable> extends FilterInputStream {
 
     /* Are we on or off? */

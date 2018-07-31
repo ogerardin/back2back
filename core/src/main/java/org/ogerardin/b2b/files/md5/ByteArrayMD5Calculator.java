@@ -2,8 +2,11 @@ package org.ogerardin.b2b.files.md5;
 
 import org.ogerardin.b2b.util.FormattingHelper;
 
+/**
+ * Classes that implement this interface provide a way to compute a MD5 hash from a byte array.
+ */
 @FunctionalInterface
-public interface MD5Calculator {
+public interface ByteArrayMD5Calculator {
 
     byte[] md5Hash(byte[] bytes);
 

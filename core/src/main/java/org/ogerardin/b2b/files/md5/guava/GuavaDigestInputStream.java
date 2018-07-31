@@ -27,38 +27,39 @@ package org.ogerardin.b2b.files.md5.guava;
 
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hasher;
-import org.ogerardin.b2b.files.md5.Updatable;
-import org.ogerardin.b2b.files.md5.UpdaterInputStream;
+import org.ogerardin.b2b.files.md5.HashProviderInputStream;
+import org.ogerardin.b2b.files.md5.UpdatableHashProvider;
+import org.ogerardin.b2b.util.Container;
 
 import java.io.InputStream;
 
-public class GuavaDigestInputStream extends UpdaterInputStream<GuavaDigestInputStream.UpdatableHasher> {
+@SuppressWarnings("UnstableApiUsage")
+public class GuavaDigestInputStream extends HashProviderInputStream {
 
     public GuavaDigestInputStream(InputStream stream, HashFunction hashFunction) {
         super(stream, new UpdatableHasher(hashFunction.newHasher()));
     }
 
-    public static class UpdatableHasher implements Updatable<Hasher> {
 
-        private final Hasher hasher;
+    private static class UpdatableHasher extends Container<Hasher> implements UpdatableHashProvider<Hasher> {
 
-        public UpdatableHasher(Hasher hasher) {
-            this.hasher = hasher;
+        UpdatableHasher(Hasher hasher) {
+            super(hasher);
         }
 
         @Override
         public void putByte(byte b) {
-            hasher.putByte(b);
+            get().putByte(b);
         }
 
         @Override
         public void putBytes(byte[] b, int off, int result) {
-            hasher.putBytes(b, off, result);
+            get().putBytes(b, off, result);
         }
 
-        public Hasher get() {
-            return hasher;
+        @Override
+        public byte[] hash() {
+            return get().hash().asBytes();
         }
-
     }
 }
