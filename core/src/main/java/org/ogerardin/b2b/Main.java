@@ -6,16 +6,14 @@ import org.ogerardin.b2b.domain.BackupSetManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 
-@SpringBootApplication
-@EnableAutoConfiguration(exclude={DataSourceAutoConfiguration.class})
-@ComponentScan(basePackages = {"org.ogerardin.b2b"})
+@SpringBootApplication(exclude={DataSourceAutoConfiguration.class})
+//@EnableAutoConfiguration(exclude={DataSourceAutoConfiguration.class})
+//@ComponentScan(basePackages = {"org.ogerardin.b2b"})
 public class Main {
 
     private static String[] args;
