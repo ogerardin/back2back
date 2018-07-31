@@ -3,6 +3,11 @@ package org.ogerardin.b2b.files.md5;
 import lombok.Data;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.ogerardin.b2b.files.md5.apache.ApacheCommonsMD5Calculator;
+import org.ogerardin.b2b.files.md5.fast.FastMD5Calculator;
+import org.ogerardin.b2b.files.md5.guava.GuavaMD5Calculator;
+import org.ogerardin.b2b.files.md5.java.JavaMD5Calculator;
+import org.ogerardin.b2b.files.md5.spring.SpringMD5Calculator;
 import org.springframework.util.StopWatch;
 
 import java.io.ByteArrayInputStream;
@@ -22,7 +27,7 @@ public class MD5CalculatorTest {
             SpringMD5Calculator.class
     );
 
-    private static final List<Class<? extends StreamingMd5Calculator>> STREAMING_MD5_CLASSES = Arrays.asList(
+    private static final List<Class<? extends InputStreamMd5Calculator>> STREAMING_MD5_CLASSES = Arrays.asList(
             JavaMD5Calculator.class,
             GuavaMD5Calculator.class,
             ApacheCommonsMD5Calculator.class,
@@ -118,12 +123,12 @@ public class MD5CalculatorTest {
         new Random().nextBytes(bytes);
 
 
-        Map<Class<? extends StreamingMd5Calculator>, Result> results = new HashMap<>();
+        Map<Class<? extends InputStreamMd5Calculator>, Result> results = new HashMap<>();
         StopWatch stopWatch = new StopWatch(description);
 
         // call and time each implementation
-        for (Class<? extends StreamingMd5Calculator> md5Class : STREAMING_MD5_CLASSES) {
-            StreamingMd5Calculator md5Calculator = md5Class.newInstance();
+        for (Class<? extends InputStreamMd5Calculator> md5Class : STREAMING_MD5_CLASSES) {
+            InputStreamMd5Calculator md5Calculator = md5Class.newInstance();
 
             stopWatch.start(md5Calculator.getClass().getSimpleName());
             String md5 = md5Calculator.hexMd5Hash(new ByteArrayInputStream(bytes));
@@ -143,7 +148,7 @@ public class MD5CalculatorTest {
         assertThat(distinctResultsCount, is(1L));
 
         // get the fastest one
-        Class<? extends StreamingMd5Calculator> first = results.entrySet().stream()
+        Class<? extends InputStreamMd5Calculator> first = results.entrySet().stream()
                 .sorted(Comparator.comparingLong(entry -> entry.getValue().getTime()))
                 .map(Map.Entry::getKey)
                 .findFirst()
@@ -162,8 +167,8 @@ public class MD5CalculatorTest {
             return md5Calculator::hexMd5Hash;
         }
 
-        static ByteArrayHasher of(StreamingMd5Calculator streamingMd5Calculator) {
-            return bytes -> streamingMd5Calculator.hexMd5Hash(new ByteArrayInputStream(bytes));
+        static ByteArrayHasher of(InputStreamMd5Calculator inputStreamMd5Calculator) {
+            return bytes -> inputStreamMd5Calculator.hexMd5Hash(new ByteArrayInputStream(bytes));
         }
     }
 

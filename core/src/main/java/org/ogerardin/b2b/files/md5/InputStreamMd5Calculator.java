@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 @FunctionalInterface
-public interface StreamingMd5Calculator {
+public interface InputStreamMd5Calculator {
 
     byte[] md5Hash(InputStream inputStream) throws IOException;
 

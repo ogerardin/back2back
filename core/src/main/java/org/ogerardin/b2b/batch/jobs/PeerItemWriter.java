@@ -85,7 +85,7 @@ class PeerItemWriter implements ItemWriter<LocalFileInfo> {
             try (
                 // the original file's InputStream
                 InputStream fileInputStream = Files.newInputStream(path);
-                // the same stream, but also updates the digest as it is read
+                // the same stream, but also updates the hasher as it is read
                 InputStream digestInputStream = new DigestInputStream(fileInputStream, messageDigest);
                 // InputStream that will be uploaded.
                 // If we have a key (encryption) we use it to wrap the stream in an encrypted stream,

@@ -1,5 +1,7 @@
-package org.ogerardin.b2b.files.md5;
+package org.ogerardin.b2b.files.md5.java;
 
+import org.ogerardin.b2b.files.md5.InputStreamMd5Calculator;
+import org.ogerardin.b2b.files.md5.MD5Calculator;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -11,7 +13,7 @@ import java.security.NoSuchAlgorithmException;
  * MD5 hash calculator using native Java
  */
 @Component
-public class JavaMD5Calculator implements MD5Calculator, StreamingMd5Calculator {
+public class JavaMD5Calculator implements MD5Calculator, InputStreamMd5Calculator {
 
     private static final int BUFFER_SIZE = 1024;
 
@@ -42,4 +44,5 @@ public class JavaMD5Calculator implements MD5Calculator, StreamingMd5Calculator 
         inputStream.close();
         return hash;
     }
+
 }

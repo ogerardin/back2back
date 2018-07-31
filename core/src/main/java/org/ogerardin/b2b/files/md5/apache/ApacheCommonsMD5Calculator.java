@@ -1,6 +1,8 @@
-package org.ogerardin.b2b.files.md5;
+package org.ogerardin.b2b.files.md5.apache;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.ogerardin.b2b.files.md5.InputStreamMd5Calculator;
+import org.ogerardin.b2b.files.md5.MD5Calculator;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -12,7 +14,7 @@ import java.io.InputStream;
  * Most performant on average.
  */
 @Component
-public class ApacheCommonsMD5Calculator implements MD5Calculator, StreamingMd5Calculator {
+public class ApacheCommonsMD5Calculator implements MD5Calculator, InputStreamMd5Calculator {
 
     @Override
     public byte[] md5Hash(byte[] bytes) {
