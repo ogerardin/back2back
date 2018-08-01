@@ -51,4 +51,10 @@ public class RemoteFileVersionInfoRepository
         save(versionInfo);
         return true;
     }
+
+    @Override
+    public void saveStoredFileVersionInfo(StoredFileVersionInfo storedFileVersionInfo) {
+        super.save(storedFileVersionInfo);
+    }
+
 }

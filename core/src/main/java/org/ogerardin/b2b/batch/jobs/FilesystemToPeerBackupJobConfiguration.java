@@ -1,21 +1,19 @@
 package org.ogerardin.b2b.batch.jobs;
 
 import org.ogerardin.b2b.batch.FileSetItemWriter;
+import org.ogerardin.b2b.domain.StoredFileVersionInfoProvider;
 import org.ogerardin.b2b.domain.entity.FilesystemSource;
 import org.ogerardin.b2b.domain.entity.PeerTarget;
 import org.ogerardin.b2b.domain.entity.StoredFileVersionInfo;
 import org.ogerardin.b2b.domain.mongorepository.RemoteFileVersionInfoRepository;
-import org.ogerardin.b2b.files.md5.InputStreamMD5Calculator;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
-import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.support.IteratorItemReader;
 import org.springframework.batch.item.support.PassThroughItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -46,7 +44,7 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
 
     @Bean
     protected Job filesystemToPeerBackupJob(
-            Step initBatchRemoteStep,
+            Step initBatchStep,
             Step peerComputeBatchStep,
             Step backupToPeerStep,
             BackupJobExecutionListener jobListener
@@ -56,19 +54,9 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
                 .validator(getValidator())
                 .incrementer(new RunIdIncrementer())
                 .listener(jobListener)
-                .start(initBatchRemoteStep)        // step 0: init batch
+                .start(initBatchStep)        // step 0: init batch
                 .next(peerComputeBatchStep)        // step 1: compute files that need to be backed up
                 .next(backupToPeerStep)            // step 2: perform backup
-                .build();
-    }
-
-    @Bean
-    @JobScope
-    protected Step initBatchRemoteStep(
-            RemoteFileVersionInfoRepository peerFileVersionRepository
-    ) {
-        return stepBuilderFactory.get("initBatchRemoteStep")
-                .tasklet(new InitBatchTasklet(peerFileVersionRepository))
                 .build();
     }
 
@@ -81,8 +69,8 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
     protected Step peerComputeBatchStep(
             BackupJobContext jobContext,
             FilesystemItemReader filesystemItemReader,
-            FilteringPathItemProcessor peerFilteringPathItemProcessor
-    ) {
+            FilteringPathItemProcessor peerFilteringPathItemProcessor,
+            ComputeBatchStepExecutionListener computeBatchStepExecutionListener) {
         return stepBuilderFactory
                 .get("computeBatchStep")
                 .<LocalFileInfo, LocalFileInfo> chunk(10)
@@ -93,11 +81,9 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
                 // store them in the context
                 .writer(new FileSetItemWriter(jobContext.getBackupBatch()))
                 // update BackupSet with stats
-                .listener(new ComputeBatchStepExecutionListener(jobContext, peerFilteringPathItemProcessor))
+                .listener(computeBatchStepExecutionListener)
                 .build();
     }
-
-
 
     /**
      * Provides a {@link Step} that writes items from the current batch by storing them to the remote peer
@@ -131,35 +117,16 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
     protected PeerItemWriter peerItemWriter(
             @Value("#{jobParameters['target.hostname']}") String targetHostname,
             @Value("#{jobParameters['target.port']}") Integer targetPort,
-            @Qualifier("peerFileVersionRepository") RemoteFileVersionInfoRepository peerFileVersionInfoRepository) throws MalformedURLException {
+            StoredFileVersionInfoProvider storedFileVersionInfoProvider) throws MalformedURLException {
         if (targetPort == null) {
             targetPort = properties.getDefaultPeerPort();
         }
-        return new PeerItemWriter(peerFileVersionInfoRepository, targetHostname, targetPort);
+        return new PeerItemWriter(storedFileVersionInfoProvider, targetHostname, targetPort);
     }
 
-    /**
-     * Provides a job-scoped {@link ItemProcessor} that filters out {@link Path} items
-     * corresponding to a file that isn't different from the latest stored version.
-     */
-    @Bean
-    @JobScope
-    protected FilteringPathItemProcessor peerFilteringPathItemProcessor(
-            @Qualifier("springMD5Calculator") InputStreamMD5Calculator md5Calculator,
-            RemoteFileVersionInfoRepository peerFileVersionRepository
-    ) {
-        Md5FilteringStrategy filteringStrategy = new Md5FilteringStrategy(peerFileVersionRepository, md5Calculator);
-        return new FilteringPathItemProcessor(peerFileVersionRepository, filteringStrategy);
-    }
-
-    @Bean
-    @JobScope
-    protected RemoteFileVersionInfoRepository peerFileVersionRepository(
-            @Value("#{jobParameters['backupset.id']}"
-            ) String backupSetId) {
-
+    protected StoredFileVersionInfoProvider storedFileVersionInfoProvider(String backupSetId) {
         // The RemoteFileVersionInfoRepository used by the PeerItemWriter needs to be specific to this BackupSet,
-        // so we need to instantiate one with a BackupSet-specific collection name
+        // so use a BackupSet-derived collection name
         String collectionName = backupSetId + ".peer";
 
         MappingContext<? extends MongoPersistentEntity<?>, MongoPersistentProperty> mappingContext =

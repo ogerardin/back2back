@@ -8,6 +8,7 @@ import org.springframework.batch.item.ItemProcessor;
 import java.nio.file.Path;
 import java.util.function.Predicate;
 
+
 /**
  * ItemProcessor implementation that filters (eliminates from further processing) the input item
  * according to a specified filter.
@@ -23,8 +24,6 @@ class FilteringPathItemProcessor implements ItemProcessor<LocalFileInfo, LocalFi
     private final StoredFileVersionInfoProvider storedFileVersionInfoProvider;
 
     /**
-     *
-     * @param storedFileVersionInfoProvider
      * @param filter a {@link Predicate} that filters out files that don't need backup
      */
     public FilteringPathItemProcessor(StoredFileVersionInfoProvider storedFileVersionInfoProvider, Predicate<Path> filter) {

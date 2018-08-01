@@ -4,6 +4,7 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.ogerardin.b2b.config.ConfigManager;
+import org.ogerardin.b2b.domain.StoredFileVersionInfoProvider;
 import org.ogerardin.b2b.domain.entity.StoredFileVersionInfo;
 import org.ogerardin.b2b.domain.mongorepository.RemoteFileVersionInfoRepository;
 import org.ogerardin.b2b.storage.EncryptionException;
@@ -48,7 +49,7 @@ class PeerItemWriter implements ItemWriter<LocalFileInfo> {
     private final Key key;
 
     /** repository to store the hash and ozher info of remotely stored files */
-    private final RemoteFileVersionInfoRepository peerFileVersionInfoRepository;
+    private final StoredFileVersionInfoProvider peerFileVersionInfoRepository;
 
     /** URL of the peer instance */
     private final URL url;
@@ -59,7 +60,7 @@ class PeerItemWriter implements ItemWriter<LocalFileInfo> {
     private static final RestTemplate REST_TEMPLATE = new RestTemplate();
 
 
-    PeerItemWriter(@NonNull RemoteFileVersionInfoRepository remoteFileVersionInfoRepository,
+    PeerItemWriter(@NonNull StoredFileVersionInfoProvider remoteFileVersionInfoRepository,
                    @NonNull String targetHostname, int targetPort, Key key) throws MalformedURLException {
 
         this.peerFileVersionInfoRepository = remoteFileVersionInfoRepository;
@@ -69,7 +70,7 @@ class PeerItemWriter implements ItemWriter<LocalFileInfo> {
         this.url = new URL("http", targetHostname, targetPort, "/api/peer/upload");
     }
 
-    PeerItemWriter(RemoteFileVersionInfoRepository peerFileVersionInfoRepository,
+    PeerItemWriter(StoredFileVersionInfoProvider peerFileVersionInfoRepository,
                    String targetHostname, int targetPort) throws MalformedURLException {
         this(peerFileVersionInfoRepository, targetHostname, targetPort, null);
     }
@@ -100,7 +101,7 @@ class PeerItemWriter implements ItemWriter<LocalFileInfo> {
             byte[] md5Hash = messageDigest.digest();
             String hexMd5Hash = FormattingHelper.hex(md5Hash);
             val peerFileVersion = new StoredFileVersionInfo(path.toString(), hexMd5Hash, false);
-            peerFileVersionInfoRepository.save(peerFileVersion);
+            peerFileVersionInfoRepository.saveStoredFileVersionInfo(peerFileVersion);
         }
 
     }

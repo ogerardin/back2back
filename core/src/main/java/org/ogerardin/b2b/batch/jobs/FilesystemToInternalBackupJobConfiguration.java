@@ -1,10 +1,10 @@
 package org.ogerardin.b2b.batch.jobs;
 
+import lombok.val;
 import org.ogerardin.b2b.batch.FileSetItemWriter;
+import org.ogerardin.b2b.domain.StoredFileVersionInfoProvider;
 import org.ogerardin.b2b.domain.entity.FilesystemSource;
 import org.ogerardin.b2b.domain.entity.LocalTarget;
-import org.ogerardin.b2b.domain.StoredFileVersionInfoProvider;
-import org.ogerardin.b2b.files.md5.InputStreamMD5Calculator;
 import org.ogerardin.b2b.storage.StorageService;
 import org.ogerardin.b2b.storage.StorageServiceFactory;
 import org.springframework.batch.core.Job;
@@ -58,18 +58,6 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
                 .build();
     }
 
-    @Bean
-    @JobScope
-    protected Step initBatchStep(
-            BackupJobContext jobContext
-    ) {
-        StorageService storageService = storageServiceFactory.getStorageService(jobContext.getBackupSetId());
-        StoredFileVersionInfoProvider storedFileVersionInfoProvider = StoredFileVersionInfoProvider.of(storageService);
-        return stepBuilderFactory.get("initBatchStep")
-                .tasklet(new InitBatchTasklet(storedFileVersionInfoProvider))
-                .build();
-    }
-
     /**
      * Provides a {@link Step} that computes the backup batch using local information
      * and stores it into the context
@@ -79,8 +67,8 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
     protected Step internalComputeBatchStep(
             BackupJobContext jobContext,
             FilesystemItemReader filesystemItemReader,
-            FilteringPathItemProcessor internalFilteringPathItemProcessor
-    ) {
+            FilteringPathItemProcessor internalFilteringPathItemProcessor,
+            ComputeBatchStepExecutionListener computeBatchStepExecutionListener) {
         return stepBuilderFactory
                 .get("computeBatchStep")
                 .<LocalFileInfo, LocalFileInfo> chunk(10)
@@ -91,7 +79,7 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
                 // store them in the context
                 .writer(new FileSetItemWriter(jobContext.getBackupBatch()))
                 // update BackupSet with stats
-                .listener(new ComputeBatchStepExecutionListener(jobContext, internalFilteringPathItemProcessor))
+                .listener(computeBatchStepExecutionListener)
                 .build();
     }
 
@@ -127,25 +115,17 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
     protected InternalStorageItemWriter internalStorageItemWriter(
             @Value("#{jobParameters['backupset.id']}") String backupSetId
     )  {
-        StorageService storageService = storageServiceFactory.getStorageService(backupSetId);
+        val storageService = storageServiceFactory.getStorageService(backupSetId);
         return new InternalStorageItemWriter(storageService, properties.getFileThrottleDelay());
     }
 
-    /**
-     * Provides a job-scoped {@link org.springframework.batch.item.ItemProcessor} that filters out {@link Path} items
-     * corresponding to a file that isn't different from the latest stored version.
-     */
-    @Bean
-    @JobScope
-    protected FilteringPathItemProcessor internalFilteringPathItemProcessor(
-            @Value("#{jobParameters['backupset.id']}") String backupSetId,
-            @Qualifier("springMD5Calculator") InputStreamMD5Calculator md5Calculator
-    ) {
-        StorageService storageService = storageServiceFactory.getStorageService(backupSetId);
-        StoredFileVersionInfoProvider storedFileVersionInfoProvider = StoredFileVersionInfoProvider.of(storageService);
-        Md5FilteringStrategy filteringStrategy = new Md5FilteringStrategy(storedFileVersionInfoProvider, md5Calculator);
-        return new FilteringPathItemProcessor(storedFileVersionInfoProvider, filteringStrategy);
+    protected StoredFileVersionInfoProvider storedFileVersionInfoProvider(String backupSetId) {
+        val storageService = storageServiceFactory.getStorageService(backupSetId);
+        val storedFileVersionInfoProvider = StoredFileVersionInfoProvider.of(storageService);
+        return storedFileVersionInfoProvider;
     }
+
+
 
 
 }

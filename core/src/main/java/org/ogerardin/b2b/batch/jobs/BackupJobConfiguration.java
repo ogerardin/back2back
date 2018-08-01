@@ -18,7 +18,7 @@ import java.util.List;
  */
 public abstract class BackupJobConfiguration {
 
-    protected static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     @Autowired
     protected JobBuilderFactory jobBuilderFactory;

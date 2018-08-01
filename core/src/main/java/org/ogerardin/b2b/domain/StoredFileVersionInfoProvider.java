@@ -4,6 +4,7 @@ import org.ogerardin.b2b.domain.entity.StoredFileVersionInfo;
 import org.ogerardin.b2b.storage.FileVersion;
 import org.ogerardin.b2b.storage.StorageFileNotFoundException;
 import org.ogerardin.b2b.storage.StorageService;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.nio.file.Path;
 import java.util.Optional;
@@ -38,10 +39,15 @@ public interface StoredFileVersionInfoProvider {
      */
     boolean touch(Path path);
 
+    /**
+     * save a provided {@link StoredFileVersionInfo}
+     */
+    void saveStoredFileVersionInfo(StoredFileVersionInfo storedFileVersionInfo);
 
     /**
      * @return an adapter for the specified {@link StorageService}
      */
+    //FIXME should not be here
     static StoredFileVersionInfoProvider of(StorageService storageService) {
         return new StoredFileVersionInfoProvider() {
             @Override
@@ -63,6 +69,11 @@ public interface StoredFileVersionInfoProvider {
             @Override
             public boolean touch(Path path) {
                 return storageService.touch(path);
+            }
+
+            @Override
+            public void saveStoredFileVersionInfo(StoredFileVersionInfo storedFileVersionInfo) {
+                throw new NotImplementedException();
             }
         };
     }
