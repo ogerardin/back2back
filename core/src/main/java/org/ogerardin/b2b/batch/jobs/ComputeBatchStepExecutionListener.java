@@ -8,24 +8,22 @@ import org.ogerardin.b2b.util.FormattingHelper;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
-import org.springframework.batch.core.configuration.annotation.JobScope;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /**
  * A {@link StepExecutionListener} that updates the backupSet with the total file stats and batch file stats
  * Intended to be attached to the "compute batch" step of the backup job.
  */
-@Component
-@JobScope
 @Slf4j
-public class ComputeBatchStepExecutionListener extends BackupSetAwareBean implements StepExecutionListener {
+public class ComputeBatchStepExecutionListener implements StepExecutionListener {
 
-    @Autowired
-    BackupJobContext backupJobContext;
+    private final BackupJobContext backupJobContext;
 
-    @Autowired
-    FilteringPathItemProcessor filteringPathItemProcessor;
+    private final FilteringPathItemProcessor filteringPathItemProcessor;
+
+    public ComputeBatchStepExecutionListener(BackupJobContext jobContext, FilteringPathItemProcessor filteringPathItemProcessor) {
+        this.backupJobContext = jobContext;
+        this.filteringPathItemProcessor = filteringPathItemProcessor;
+    }
 
 
     @Override

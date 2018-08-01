@@ -1,5 +1,6 @@
 package org.ogerardin.b2b.batch.jobs;
 
+import org.ogerardin.b2b.batch.FileSetItemWriter;
 import org.ogerardin.b2b.domain.entity.FilesystemSource;
 import org.ogerardin.b2b.domain.entity.LocalTarget;
 import org.ogerardin.b2b.domain.StoredFileVersionInfoProvider;
@@ -42,7 +43,7 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
     @Bean
     protected Job filesystemToInternalBackupJob(
             Step initBatchStep,
-            Step computeBatchStep,
+            Step internalComputeBatchStep,
             Step backupToInternalStorageStep,
             BackupJobExecutionListener jobListener
     ) {
@@ -52,7 +53,7 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
                 .incrementer(new RunIdIncrementer())
                 .listener(jobListener)
                 .start(initBatchStep)               // step 0: init batch
-                .next(computeBatchStep)             // step 1: compute files that need to be backed up
+                .next(internalComputeBatchStep)     // step 1: compute files that need to be backed up
                 .next(backupToInternalStorageStep)  // step 2: perform backup
                 .build();
     }
@@ -68,6 +69,32 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
                 .tasklet(new InitBatchTasklet(storedFileVersionInfoProvider))
                 .build();
     }
+
+    /**
+     * Provides a {@link Step} that computes the backup batch using local information
+     * and stores it into the context
+     */
+    @Bean
+    @JobScope
+    protected Step internalComputeBatchStep(
+            BackupJobContext jobContext,
+            FilesystemItemReader filesystemItemReader,
+            FilteringPathItemProcessor internalFilteringPathItemProcessor
+    ) {
+        return stepBuilderFactory
+                .get("computeBatchStep")
+                .<LocalFileInfo, LocalFileInfo> chunk(10)
+                // read files from local filesystem
+                .reader(filesystemItemReader)
+                // filter out files that don't need backup
+                .processor(internalFilteringPathItemProcessor)
+                // store them in the context
+                .writer(new FileSetItemWriter(jobContext.getBackupBatch()))
+                // update BackupSet with stats
+                .listener(new ComputeBatchStepExecutionListener(jobContext, internalFilteringPathItemProcessor))
+                .build();
+    }
+
 
     /**
      * Provides a {@link Step} that writes items from the current batch by storing them to the internal storage
@@ -110,7 +137,7 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
      */
     @Bean
     @JobScope
-    protected FilteringPathItemProcessor filteringPathItemProcessor(
+    protected FilteringPathItemProcessor internalFilteringPathItemProcessor(
             @Value("#{jobParameters['backupset.id']}") String backupSetId,
             @Qualifier("springMD5Calculator") InputStreamMD5Calculator md5Calculator
     ) {

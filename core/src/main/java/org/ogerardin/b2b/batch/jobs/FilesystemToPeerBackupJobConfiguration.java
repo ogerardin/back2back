@@ -1,5 +1,6 @@
 package org.ogerardin.b2b.batch.jobs;
 
+import org.ogerardin.b2b.batch.FileSetItemWriter;
 import org.ogerardin.b2b.domain.entity.FilesystemSource;
 import org.ogerardin.b2b.domain.entity.PeerTarget;
 import org.ogerardin.b2b.domain.entity.StoredFileVersionInfo;
@@ -46,7 +47,7 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
     @Bean
     protected Job filesystemToPeerBackupJob(
             Step initBatchRemoteStep,
-            Step computeBatchStep,
+            Step peerComputeBatchStep,
             Step backupToPeerStep,
             BackupJobExecutionListener jobListener
     ) {
@@ -56,7 +57,7 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
                 .incrementer(new RunIdIncrementer())
                 .listener(jobListener)
                 .start(initBatchRemoteStep)        // step 0: init batch
-                .next(computeBatchStep)            // step 1: compute files that need to be backed up
+                .next(peerComputeBatchStep)        // step 1: compute files that need to be backed up
                 .next(backupToPeerStep)            // step 2: perform backup
                 .build();
     }
@@ -70,6 +71,32 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
                 .tasklet(new InitBatchTasklet(peerFileVersionRepository))
                 .build();
     }
+
+    /**
+     * Provides a {@link Step} that computes the backup batch using peer information
+     * and stores it into the context
+     */
+    @Bean
+    @JobScope
+    protected Step peerComputeBatchStep(
+            BackupJobContext jobContext,
+            FilesystemItemReader filesystemItemReader,
+            FilteringPathItemProcessor peerFilteringPathItemProcessor
+    ) {
+        return stepBuilderFactory
+                .get("computeBatchStep")
+                .<LocalFileInfo, LocalFileInfo> chunk(10)
+                // read files from local filesystem
+                .reader(filesystemItemReader)
+                // filter out files that don't need backup
+                .processor(peerFilteringPathItemProcessor)
+                // store them in the context
+                .writer(new FileSetItemWriter(jobContext.getBackupBatch()))
+                // update BackupSet with stats
+                .listener(new ComputeBatchStepExecutionListener(jobContext, peerFilteringPathItemProcessor))
+                .build();
+    }
+
 
 
     /**

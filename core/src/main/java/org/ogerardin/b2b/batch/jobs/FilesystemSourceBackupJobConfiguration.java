@@ -1,9 +1,7 @@
 package org.ogerardin.b2b.batch.jobs;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import org.ogerardin.b2b.batch.FileSetItemWriter;
 import org.ogerardin.b2b.domain.entity.FilesystemSource;
-import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -36,30 +34,6 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
         return new BackupJobContext(backupSetId);
     }
 
-    /**
-     * Provides a {@link Step} that computes the backup batch and stores it into the context
-     */
-    @Bean
-    @JobScope
-    protected Step computeBatchStep(
-            BackupJobContext jobContext,
-            FilesystemItemReader filesystemItemReader,
-            FilteringPathItemProcessor filteringPathItemProcessor,
-            ComputeBatchStepExecutionListener computeBatchStepExecutionListener
-    ) {
-        return stepBuilderFactory
-                .get("computeBatchStep")
-                .<LocalFileInfo, LocalFileInfo> chunk(10)
-                // read files from local filesystem
-                .reader(filesystemItemReader)
-                // filter out files that don't need backup
-                .processor(filteringPathItemProcessor)
-                // store them in the context
-                .writer(new FileSetItemWriter(jobContext.getBackupBatch()))
-                // update BackupSet with stats
-                .listener(computeBatchStepExecutionListener)
-                .build();
-    }
 
     @Bean
     @JobScope
