@@ -1,26 +1,28 @@
 package org.ogerardin.b2b.batch.jobs;
 
+import lombok.val;
 import org.ogerardin.b2b.batch.FileSetItemWriter;
 import org.ogerardin.b2b.domain.StoredFileVersionInfoProvider;
 import org.ogerardin.b2b.domain.entity.FilesystemSource;
 import org.ogerardin.b2b.domain.entity.PeerTarget;
 import org.ogerardin.b2b.domain.entity.StoredFileVersionInfo;
 import org.ogerardin.b2b.domain.mongorepository.RemoteFileVersionInfoRepository;
+import org.ogerardin.b2b.files.md5.InputStreamMD5Calculator;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
+import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.support.IteratorItemReader;
 import org.springframework.batch.item.support.PassThroughItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.mapping.MongoPersistentEntity;
-import org.springframework.data.mongodb.core.mapping.MongoPersistentProperty;
 import org.springframework.data.mongodb.repository.support.MappingMongoEntityInformation;
 
 import java.net.MalformedURLException;
@@ -55,8 +57,8 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
                 .incrementer(new RunIdIncrementer())
                 .listener(jobListener)
                 .start(initBatchStep)        // step 0: init batch
-                .next(peerComputeBatchStep)        // step 1: compute files that need to be backed up
-                .next(backupToPeerStep)            // step 2: perform backup
+                .next(peerComputeBatchStep)  // step 1: compute files that need to be backed up
+                .next(backupToPeerStep)      // step 2: perform backup
                 .build();
     }
 
@@ -70,7 +72,7 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
             BackupJobContext jobContext,
             FilesystemItemReader filesystemItemReader,
             FilteringPathItemProcessor peerFilteringPathItemProcessor,
-            ComputeBatchStepExecutionListener computeBatchStepExecutionListener) {
+            ComputeBatchStepExecutionListener peerComputeBatchStepExecutionListener) {
         return stepBuilderFactory
                 .get("computeBatchStep")
                 .<LocalFileInfo, LocalFileInfo> chunk(10)
@@ -81,9 +83,34 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
                 // store them in the context
                 .writer(new FileSetItemWriter(jobContext.getBackupBatch()))
                 // update BackupSet with stats
-                .listener(computeBatchStepExecutionListener)
+                .listener(peerComputeBatchStepExecutionListener)
                 .build();
     }
+
+    /**
+     * Provides a job-scoped {@link ItemProcessor} that filters out {@link Path} items
+     * corresponding to a file that isn't different from the latest stored version, base on MD5 hashes.
+     */
+    @Bean
+    @JobScope
+    protected FilteringPathItemProcessor peerFilteringPathItemProcessor(
+            @Qualifier("springMD5Calculator") InputStreamMD5Calculator md5Calculator,
+            @Value("#{jobParameters['backupset.id']}") String backupSetId
+    ) {
+        val storedFileVersionInfoProvider = getStoredFileVersionInfoProvider(backupSetId);
+        val filteringStrategy = new Md5FilteringStrategy(storedFileVersionInfoProvider, md5Calculator);
+        return new FilteringPathItemProcessor(storedFileVersionInfoProvider, filteringStrategy);
+    }
+
+    @Bean
+    @JobScope
+    protected ComputeBatchStepExecutionListener peerComputeBatchStepExecutionListener(
+            BackupJobContext backupJobContext,
+            FilteringPathItemProcessor peerFilteringPathItemProcessor) {
+        return new ComputeBatchStepExecutionListener(backupJobContext, peerFilteringPathItemProcessor);
+    }
+
+
 
     /**
      * Provides a {@link Step} that writes items from the current batch by storing them to the remote peer
@@ -117,25 +144,24 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
     protected PeerItemWriter peerItemWriter(
             @Value("#{jobParameters['target.hostname']}") String targetHostname,
             @Value("#{jobParameters['target.port']}") Integer targetPort,
-            StoredFileVersionInfoProvider storedFileVersionInfoProvider) throws MalformedURLException {
+            @Value("#{jobParameters['backupset.id']}") String backupSetId) throws MalformedURLException {
         if (targetPort == null) {
             targetPort = properties.getDefaultPeerPort();
         }
+        val storedFileVersionInfoProvider = getStoredFileVersionInfoProvider(backupSetId);
         return new PeerItemWriter(storedFileVersionInfoProvider, targetHostname, targetPort);
     }
 
-    protected StoredFileVersionInfoProvider storedFileVersionInfoProvider(String backupSetId) {
+    protected StoredFileVersionInfoProvider getStoredFileVersionInfoProvider(String backupSetId) {
         // The RemoteFileVersionInfoRepository used by the PeerItemWriter needs to be specific to this BackupSet,
         // so use a BackupSet-derived collection name
         String collectionName = backupSetId + ".peer";
 
-        MappingContext<? extends MongoPersistentEntity<?>, MongoPersistentProperty> mappingContext =
-                mongoOperations.getConverter().getMappingContext();
-
-        MongoPersistentEntity<?> entity = mappingContext.getPersistentEntity(StoredFileVersionInfo.class);
+        // to customize collection name we need to build a taylored MappingMongoEntityInformation
+        val mappingContext = mongoOperations.getConverter().getMappingContext();
         //noinspection unchecked
-        MappingMongoEntityInformation<StoredFileVersionInfo, String> entityInformation = new MappingMongoEntityInformation<>(
-                (MongoPersistentEntity<StoredFileVersionInfo>) entity, collectionName);
+        val entity = (MongoPersistentEntity<StoredFileVersionInfo>) mappingContext.getPersistentEntity(StoredFileVersionInfo.class);
+        val entityInformation = new MappingMongoEntityInformation<StoredFileVersionInfo, String>(entity, collectionName);
 
         return new RemoteFileVersionInfoRepository(entityInformation, mongoOperations);
     }

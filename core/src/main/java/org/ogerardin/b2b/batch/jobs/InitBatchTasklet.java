@@ -12,7 +12,7 @@ import org.springframework.batch.repeat.RepeatStatus;
 @Slf4j
 public class InitBatchTasklet implements Tasklet  {
 
-    final StoredFileVersionInfoProvider storedFileVersionInfoProvider;
+    private final StoredFileVersionInfoProvider storedFileVersionInfoProvider;
 
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {

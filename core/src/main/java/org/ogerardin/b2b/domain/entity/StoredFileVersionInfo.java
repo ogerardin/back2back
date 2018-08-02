@@ -20,6 +20,9 @@ public class StoredFileVersionInfo {
 
     private boolean deleted = false;
 
+    public StoredFileVersionInfo() {
+    }
+
     public StoredFileVersionInfo(String path, String md5hash) {
         this.path = path;
         this.md5hash = md5hash;

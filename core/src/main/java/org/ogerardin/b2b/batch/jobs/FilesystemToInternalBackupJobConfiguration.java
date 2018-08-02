@@ -5,12 +5,14 @@ import org.ogerardin.b2b.batch.FileSetItemWriter;
 import org.ogerardin.b2b.domain.StoredFileVersionInfoProvider;
 import org.ogerardin.b2b.domain.entity.FilesystemSource;
 import org.ogerardin.b2b.domain.entity.LocalTarget;
+import org.ogerardin.b2b.files.md5.InputStreamMD5Calculator;
 import org.ogerardin.b2b.storage.StorageService;
 import org.ogerardin.b2b.storage.StorageServiceFactory;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
+import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.support.IteratorItemReader;
 import org.springframework.batch.item.support.PassThroughItemProcessor;
@@ -83,6 +85,30 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
                 .build();
     }
 
+    /**
+     * Provides a job-scoped {@link ItemProcessor} that filters out {@link Path} items
+     * corresponding to a file that isn't different from the latest stored version, base on MD5 hashes.
+     */
+    @Bean
+    @JobScope
+    protected FilteringPathItemProcessor internalFilteringPathItemProcessor(
+            @Qualifier("springMD5Calculator") InputStreamMD5Calculator md5Calculator,
+            @Value("#{jobParameters['backupset.id']}") String backupSetId
+    ) {
+        val storedFileVersionInfoProvider = getStoredFileVersionInfoProvider(backupSetId);
+        val filteringStrategy = new Md5FilteringStrategy(storedFileVersionInfoProvider, md5Calculator);
+        return new FilteringPathItemProcessor(storedFileVersionInfoProvider, filteringStrategy);
+    }
+
+    @Bean
+    @JobScope
+    protected ComputeBatchStepExecutionListener internalComputeBatchStepExecutionListener(
+            BackupJobContext backupJobContext,
+            FilteringPathItemProcessor internalFilteringPathItemProcessor) {
+        return new ComputeBatchStepExecutionListener(backupJobContext, internalFilteringPathItemProcessor);
+    }
+
+
 
     /**
      * Provides a {@link Step} that writes items from the current batch by storing them to the internal storage
@@ -119,7 +145,7 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
         return new InternalStorageItemWriter(storageService, properties.getFileThrottleDelay());
     }
 
-    protected StoredFileVersionInfoProvider storedFileVersionInfoProvider(String backupSetId) {
+    protected StoredFileVersionInfoProvider getStoredFileVersionInfoProvider(String backupSetId) {
         val storageService = storageServiceFactory.getStorageService(backupSetId);
         val storedFileVersionInfoProvider = StoredFileVersionInfoProvider.of(storageService);
         return storedFileVersionInfoProvider;

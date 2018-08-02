@@ -26,4 +26,5 @@ public class B2BProperties {
 
     /** Start backup jobs automatically */
     boolean startJobs = true;
+
 }
