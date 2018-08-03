@@ -119,7 +119,7 @@ class PeerItemWriter implements ItemWriter<LocalFileInfo> {
         // build request
         MultiValueMap<String, Object> parts = new LinkedMultiValueMap<>();
         parts.add("file", resource);
-        parts.add("original-path", path);
+//        parts.add("original-path", path);
         parts.add("computer-id", configManager.getMachineInfo().getComputerId());
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);

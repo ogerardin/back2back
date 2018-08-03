@@ -79,7 +79,7 @@ public class JobStarter {
                         .filter(p -> p.left.shouldStartJob())
                         .filter(p -> p.right.isEnabled())
                         .collect(Collectors.toSet());
-        log.debug("Found {} eligible source/target pairs", sourceTargetPairs.size());
+        log.debug("Found {} eligible source/target pair(s)", sourceTargetPairs.size());
 
         // get all corresponding backup sets
         Set<BackupSet> activeBackupSets = new HashSet<>();
@@ -90,7 +90,7 @@ public class JobStarter {
             BackupSet backupSet = findBackupSet(source, target);
             activeBackupSets.add(backupSet);
         }
-        log.debug("{} active backup sets", activeBackupSets.size());
+//        log.debug("{} active backup set(s)", activeBackupSets.size());
         Set<String> activeBackupSetIds = activeBackupSets.stream().map(BackupSet::getId).collect(Collectors.toSet());
 
         //start jobs for all active backup sets, mark others as inactive
@@ -98,11 +98,8 @@ public class JobStarter {
             boolean isActive = activeBackupSetIds.contains(backupSet.getId());
             if (isActive) {
                 // backup set is active, make sure the corresponding job is started
-                log.debug("activating backup set {}", backupSet);
+                log.debug("Starting job for backup set {}", backupSet.getId());
                 startJob(backupSet);
-            }
-            else {
-                log.debug("backup set is inactive: {}", backupSet);
             }
             backupSet.setActive(isActive);
             backupSetRepository.save(backupSet);
@@ -156,7 +153,7 @@ public class JobStarter {
             backupSet.setBackupSource(source);
             backupSet.setBackupTarget(target);
             backupSetRepository.insert(backupSet);
-            log.info("Created backup set: {}", backupSet);
+            log.info("Created backup set: {}", backupSet.getId());
             return backupSet;
         }
 
@@ -164,7 +161,7 @@ public class JobStarter {
             log.warn("More than 1 backup set found for {}, {}: {}", source, target, backupSets);
         }
         BackupSet backupSet = backupSets.get(0);
-        log.debug("Using existing backup set {}", backupSet);
+        log.debug("Using existing backup set {}", backupSet.getId());
         return backupSet;
     }
 
@@ -190,10 +187,10 @@ public class JobStarter {
         backupSetRepository.save(backupSet);
 
         // launch it
-        log.info("Starting job: " + job.getName() + " with params: " + jobParameters);
+        log.info("Starting job: {}", job.getName());
         try {
             JobExecution jobExecution = jobLauncher.run(job, jobParameters);
-            log.debug("Job started: {}", jobExecution);
+//            log.debug("Job started: {}", jobExecution);
             return jobExecution;
         } catch (JobExecutionAlreadyRunningException e) {
             log.warn(e.toString());

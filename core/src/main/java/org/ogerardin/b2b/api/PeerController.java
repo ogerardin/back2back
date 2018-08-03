@@ -54,20 +54,17 @@ public class PeerController {
     @PostMapping("/upload")
     public ResponseEntity<?> uploadFile(
             @RequestParam("computer-id") String computerId,
-            @RequestParam("original-path") String originalPath,
+//            @RequestParam("original-path") String originalPath,
             @RequestParam("file") MultipartFile file
             ) throws B2BException, IOException {
 
-        log.debug("Single file upload from " + computerId);
-        log.debug("originalFilename= " + file.getOriginalFilename());
+        String originalFilename = file.getOriginalFilename();
 
-/*
-        if (file.isEmpty()) {
-            return new ResponseEntity<>("File is empty", HttpStatus.BAD_REQUEST);
-        }
-*/
+        log.info("Single file upload from {}", computerId);
+        log.debug("file.originalFilename = {}", originalFilename);
+//        log.debug("original-path = " + originalPath);
 
-        //TODO we should also check credentials for the remote computer
+        //TODO check credentials for the remote computer
 
         // find or create the local BackupSet for the remote computer
         UUID remoteComputerUuid = UUID.fromString(computerId);
@@ -75,9 +72,9 @@ public class PeerController {
 
         // store the file in the local storage
         StorageService storageService = storageServiceFactory.getStorageService(backupSet.getId());
-        storageService.store(file.getInputStream(), originalPath);
+        storageService.store(file.getInputStream(), originalFilename);
 
-        return new ResponseEntity<>(String.format("Successfully uploaded '%s'", file.getOriginalFilename()),
+        return new ResponseEntity<>(String.format("Successfully uploaded '%s'", originalFilename),
                 new HttpHeaders(), HttpStatus.OK);
 
     }
