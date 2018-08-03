@@ -46,7 +46,7 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
 
     @Bean
     protected Job filesystemToPeerBackupJob(
-            Step initBatchStep,
+            Step peerInitBatchStep,
             Step peerComputeBatchStep,
             Step backupToPeerStep,
             BackupJobExecutionListener jobListener
@@ -56,7 +56,7 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
                 .validator(getValidator())
                 .incrementer(new RunIdIncrementer())
                 .listener(jobListener)
-                .start(initBatchStep)        // step 0: init batch
+                .start(peerInitBatchStep)        // step 0: init batch
                 .next(peerComputeBatchStep)  // step 1: compute files that need to be backed up
                 .next(backupToPeerStep)      // step 2: perform backup
                 .build();
@@ -74,7 +74,7 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
             FilteringPathItemProcessor peerFilteringPathItemProcessor,
             ComputeBatchStepExecutionListener peerComputeBatchStepExecutionListener) {
         return stepBuilderFactory
-                .get("computeBatchStep")
+                .get("peerComputeBatchStep")
                 .<LocalFileInfo, LocalFileInfo> chunk(10)
                 // read files from local filesystem
                 .reader(filesystemItemReader)
@@ -167,6 +167,14 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
     }
 
 
-
-
+    @Bean
+    @JobScope
+    protected Step peerInitBatchStep(
+            @Value("#{jobParameters['backupset.id']}") String backupSetId
+    ) {
+        val storedFileVersionInfoProvider = getStoredFileVersionInfoProvider(backupSetId);
+        return stepBuilderFactory.get("peerInitBatchStep")
+                .tasklet(new InitBatchTasklet(storedFileVersionInfoProvider))
+                .build();
+    }
 }

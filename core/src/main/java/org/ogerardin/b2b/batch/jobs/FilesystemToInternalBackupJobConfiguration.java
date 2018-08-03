@@ -44,7 +44,7 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
      */
     @Bean
     protected Job filesystemToInternalBackupJob(
-            Step initBatchStep,
+            Step internalInitBatchStep,
             Step internalComputeBatchStep,
             Step backupToInternalStorageStep,
             BackupJobExecutionListener jobListener
@@ -54,7 +54,7 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
                 .validator(getValidator())
                 .incrementer(new RunIdIncrementer())
                 .listener(jobListener)
-                .start(initBatchStep)               // step 0: init batch
+                .start(internalInitBatchStep)               // step 0: init batch
                 .next(internalComputeBatchStep)     // step 1: compute files that need to be backed up
                 .next(backupToInternalStorageStep)  // step 2: perform backup
                 .build();
@@ -70,9 +70,9 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
             BackupJobContext jobContext,
             FilesystemItemReader filesystemItemReader,
             FilteringPathItemProcessor internalFilteringPathItemProcessor,
-            ComputeBatchStepExecutionListener computeBatchStepExecutionListener) {
+            ComputeBatchStepExecutionListener internalComputeBatchStepExecutionListener) {
         return stepBuilderFactory
-                .get("computeBatchStep")
+                .get("internalComputeBatchStep")
                 .<LocalFileInfo, LocalFileInfo> chunk(10)
                 // read files from local filesystem
                 .reader(filesystemItemReader)
@@ -81,7 +81,7 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
                 // store them in the context
                 .writer(new FileSetItemWriter(jobContext.getBackupBatch()))
                 // update BackupSet with stats
-                .listener(computeBatchStepExecutionListener)
+                .listener(internalComputeBatchStepExecutionListener)
                 .build();
     }
 
@@ -152,6 +152,14 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
     }
 
 
-
-
+    @Bean
+    @JobScope
+    protected Step internalInitBatchStep(
+            @Value("#{jobParameters['backupset.id']}") String backupSetId
+    ) {
+        val storedFileVersionInfoProvider = getStoredFileVersionInfoProvider(backupSetId);
+        return stepBuilderFactory.get("internalInitBatchStep")
+                .tasklet(new InitBatchTasklet(storedFileVersionInfoProvider))
+                .build();
+    }
 }

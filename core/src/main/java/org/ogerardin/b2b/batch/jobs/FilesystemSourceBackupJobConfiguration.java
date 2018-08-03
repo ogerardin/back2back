@@ -1,10 +1,8 @@
 package org.ogerardin.b2b.batch.jobs;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import lombok.val;
 import org.ogerardin.b2b.domain.StoredFileVersionInfoProvider;
 import org.ogerardin.b2b.domain.entity.FilesystemSource;
-import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.scope.context.JobContext;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,18 +21,6 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
         addStaticParameter("source.type", FilesystemSource.class.getName());
         addMandatoryParameter("source.roots");
     }
-
-    @Bean
-    @JobScope
-    protected Step initBatchStep(
-            @Value("#{jobParameters['backupset.id']}") String backupSetId
-    ) {
-        val storedFileVersionInfoProvider = getStoredFileVersionInfoProvider(backupSetId);
-        return stepBuilderFactory.get("initBatchStep")
-                .tasklet(new InitBatchTasklet(storedFileVersionInfoProvider))
-                .build();
-    }
-
 
 
     /**
