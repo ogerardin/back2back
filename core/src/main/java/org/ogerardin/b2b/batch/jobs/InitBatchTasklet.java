@@ -16,6 +16,11 @@ public class InitBatchTasklet implements Tasklet  {
 
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
+
+        long deletedCount = storedFileVersionInfoProvider.deletedCount();
+        log.debug("{} deleted files currently", deletedCount);
+
+
         log.debug("Setting deleted flag");
         // Set the "deleted" flag to true for all stored files.
         // Later as we examine each file, we will set this flag to false, whether the file is backed up or not.

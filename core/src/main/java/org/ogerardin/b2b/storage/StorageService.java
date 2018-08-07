@@ -86,4 +86,6 @@ public interface StorageService {
 
     /** Mark the specified file as "touched" (not deleted) */
     boolean touch(Path path);
+
+    long countDeleted();
 }

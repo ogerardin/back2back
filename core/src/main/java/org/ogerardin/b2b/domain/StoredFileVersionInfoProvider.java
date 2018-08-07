@@ -44,6 +44,8 @@ public interface StoredFileVersionInfoProvider {
      */
     void saveStoredFileVersionInfo(StoredFileVersionInfo storedFileVersionInfo);
 
+    long deletedCount();
+
     /**
      * @return an adapter for the specified {@link StorageService}
      */
@@ -74,6 +76,11 @@ public interface StoredFileVersionInfoProvider {
             @Override
             public void saveStoredFileVersionInfo(StoredFileVersionInfo storedFileVersionInfo) {
                 throw new NotImplementedException();
+            }
+
+            @Override
+            public long deletedCount() {
+                return storageService.countDeleted();
             }
         };
     }

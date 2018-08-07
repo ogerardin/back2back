@@ -2,8 +2,8 @@ package org.ogerardin.b2b.domain.mongorepository;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
-import org.ogerardin.b2b.domain.entity.StoredFileVersionInfo;
 import org.ogerardin.b2b.domain.StoredFileVersionInfoProvider;
+import org.ogerardin.b2b.domain.entity.StoredFileVersionInfo;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.repository.query.MongoEntityInformation;
 import org.springframework.data.mongodb.repository.support.SimpleMongoRepository;
@@ -55,6 +55,14 @@ public class RemoteFileVersionInfoRepository
     @Override
     public void saveStoredFileVersionInfo(StoredFileVersionInfo storedFileVersionInfo) {
         super.save(storedFileVersionInfo);
+    }
+
+    @Override
+    public long deletedCount() {
+        //FIXME poor implementation
+        return findAll().stream()
+                .filter(StoredFileVersionInfo::isDeleted)
+                .count();
     }
 
 }

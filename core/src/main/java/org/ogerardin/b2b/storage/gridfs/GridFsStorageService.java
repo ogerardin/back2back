@@ -106,7 +106,7 @@ public class GridFsStorageService implements StorageService {
 
         // if required, keep only those that are not deleted
         if (!includeDeleted) {
-            stream = stream.filter(fileInfo -> !fileInfo.isDeleted());
+            stream = stream.filter(FileInfo::isNotDeleted);
         }
 
         return stream;
@@ -352,6 +352,13 @@ public class GridFsStorageService implements StorageService {
         } catch (StorageFileNotFoundException e) {
             return false;
         }
+    }
+
+    @Override
+    public long countDeleted() {
+        return getAllFiles(true)
+                .filter(FileInfo::isDeleted)
+                .count();
     }
 
     // this should be exposed by GridFsTemplate

@@ -261,6 +261,11 @@ public class FilesystemStorageService implements StorageService {
     }
 
     @Override
+    public long countDeleted() {
+        return 0;
+    }
+
+    @Override
     public String store(InputStream inputStream, String filename, Key key) {
         throw new RuntimeException("not implemented");
     }

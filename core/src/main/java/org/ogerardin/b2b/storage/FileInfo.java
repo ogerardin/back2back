@@ -10,4 +10,8 @@ public class FileInfo {
     final Path path;
 
     final boolean deleted;
+
+    public boolean isNotDeleted() {
+        return ! isDeleted();
+    }
 }
