@@ -155,11 +155,11 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
     @Bean
     @JobScope
     protected Step internalInitBatchStep(
-            @Value("#{jobParameters['backupset.id']}") String backupSetId
+            BackupJobContext jobContext
     ) {
-        val storedFileVersionInfoProvider = getStoredFileVersionInfoProvider(backupSetId);
+        val storedFileVersionInfoProvider = getStoredFileVersionInfoProvider(jobContext.getBackupSetId());
         return stepBuilderFactory.get("internalInitBatchStep")
-                .tasklet(new InitBatchTasklet(storedFileVersionInfoProvider))
+                .tasklet(new InitBatchTasklet(storedFileVersionInfoProvider, jobContext))
                 .build();
     }
 }

@@ -14,12 +14,13 @@ public class InitBatchTasklet implements Tasklet  {
 
     private final StoredFileVersionInfoProvider storedFileVersionInfoProvider;
 
+    private final BackupJobContext backupJobContext;
+
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
 
         long deletedCount = storedFileVersionInfoProvider.deletedCount();
-        log.debug("{} deleted files currently", deletedCount);
-
+        backupJobContext.setDeletedBefore(deletedCount);
 
         log.debug("Setting deleted flag");
         // Set the "deleted" flag to true for all stored files.

@@ -154,7 +154,7 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
 
     protected StoredFileVersionInfoProvider getStoredFileVersionInfoProvider(String backupSetId) {
         // The RemoteFileVersionInfoRepository used by the PeerItemWriter needs to be specific to this BackupSet,
-        // so use a BackupSet-derived collection name
+        // so we use a collection name derived from the backup set ID.
         String collectionName = backupSetId + ".peer";
 
         // to customize collection name we need to build a taylored MappingMongoEntityInformation
@@ -170,11 +170,11 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
     @Bean
     @JobScope
     protected Step peerInitBatchStep(
-            @Value("#{jobParameters['backupset.id']}") String backupSetId
+            BackupJobContext jobContext
     ) {
-        val storedFileVersionInfoProvider = getStoredFileVersionInfoProvider(backupSetId);
+        val storedFileVersionInfoProvider = getStoredFileVersionInfoProvider(jobContext.getBackupSetId());
         return stepBuilderFactory.get("peerInitBatchStep")
-                .tasklet(new InitBatchTasklet(storedFileVersionInfoProvider))
+                .tasklet(new InitBatchTasklet(storedFileVersionInfoProvider, jobContext))
                 .build();
     }
 }

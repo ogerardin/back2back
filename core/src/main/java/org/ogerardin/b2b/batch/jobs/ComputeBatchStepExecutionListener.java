@@ -42,8 +42,15 @@ public class ComputeBatchStepExecutionListener extends BackupSetAwareBean implem
             // total files stats are obtained from the filteringPathItemProcessor
             updateTotalFilesStats(backupSet, filteringPathItemProcessor.getProcessedFilesStats());
 
-            // batch stats are obtained from the job context
+            // deleted files
+            long deletedCount = filteringPathItemProcessor.getStoredFileVersionInfoProvider().deletedCount();
+            backupJobContext.setDeletedNow(deletedCount);
+            long deletedBefore = backupJobContext.getDeletedBefore();
+            log.info("Deleted file count was {}, now {}", deletedBefore, deletedCount);
+
+            // batch stats are obtained from the current job context
             updateBatchStats(backupSet, backupJobContext.getBackupBatch().getStats());
+
         }
         else {
             String status = "Failed to compute backup batch";
@@ -73,7 +80,7 @@ public class ComputeBatchStepExecutionListener extends BackupSetAwareBean implem
         int fileCount = allFilesStats.getFileCount();
         long byteCount = allFilesStats.getByteCount();
 
-        String status = "Found " + fileCount + " file(s), " + FormattingHelper.humanReadableByteCount(byteCount);
+        String status = "Found: " + fileCount + " file(s), " + FormattingHelper.humanReadableByteCount(byteCount);
         log.info(status);
 
         backupSet.setFileCount(fileCount);

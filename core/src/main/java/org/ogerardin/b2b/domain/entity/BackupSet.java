@@ -45,10 +45,12 @@ public class BackupSet implements JobParametersPopulator {
     private long size;
 
     // total files/bytes to backup during the current job run
+    //TODO use FileSetStats?
     private long batchCount;
     private long batchSize;
 
     // remaining files/bytes to backup during the current job run
+    //TODO use FileSetStats?
     private long toDoCount;
     private long toDoSize;
 

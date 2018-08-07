@@ -10,7 +10,7 @@ import java.util.function.Predicate;
 
 
 /**
- * ItemProcessor implementation that filters (eliminates from further processing) the input item
+ * ItemProcessor implementation that filters out (eliminates from further processing) the input item
  * according to a specified filter.
  */
 @Data
