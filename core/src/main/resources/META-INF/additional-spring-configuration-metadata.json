@@ -1,0 +1,8 @@
+{
+  "properties": [
+    {
+      "name": "org.ogerardin.b2b.job-sync-rate",
+      "type": "java.lang.String",
+      "description": "Period between job syncs."
+  }
+] }

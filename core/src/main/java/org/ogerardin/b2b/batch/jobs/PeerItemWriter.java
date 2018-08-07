@@ -59,7 +59,6 @@ class PeerItemWriter implements ItemWriter<LocalFileInfo> {
 
     private static final RestTemplate REST_TEMPLATE = new RestTemplate();
 
-
     PeerItemWriter(@NonNull StoredFileVersionInfoProvider remoteFileVersionInfoRepository,
                    @NonNull String targetHostname, int targetPort, Key key) throws MalformedURLException {
 
@@ -97,11 +96,12 @@ class PeerItemWriter implements ItemWriter<LocalFileInfo> {
                 upload(uploadInputStream, path.toString());
             }
 
-            log.debug("Updating local MD5 database for {}", path);
             byte[] md5Hash = messageDigest.digest();
             String hexMd5Hash = FormattingHelper.hex(md5Hash);
+            log.debug("Updating local MD5 database for {} -> {}", path, md5Hash);
             val peerFileVersion = new StoredFileVersionInfo(path.toString(), hexMd5Hash, false);
             peerFileVersionInfoRepository.saveStoredFileVersionInfo(peerFileVersion);
+
         }
 
     }

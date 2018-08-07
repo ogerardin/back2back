@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.ogerardin.b2b.B2BProperties;
 import org.ogerardin.b2b.domain.entity.BackupSet;
 import org.ogerardin.b2b.domain.entity.BackupSource;
 import org.ogerardin.b2b.domain.entity.BackupTarget;
@@ -17,6 +18,7 @@ import org.springframework.batch.core.repository.JobExecutionAlreadyRunningExcep
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -35,6 +37,9 @@ import java.util.stream.Collectors;
 @Component
 @Slf4j
 public class JobStarter {
+
+    @Autowired
+    B2BProperties properties;
 
     private final BackupSourceRepository sourceRepository;
     private final BackupTargetRepository targetRepository;
@@ -96,12 +101,27 @@ public class JobStarter {
         //start jobs for all active backup sets, mark others as inactive
         for (BackupSet backupSet : backupSetRepository.findAll()) {
             boolean isActive = activeBackupSetIds.contains(backupSet.getId());
-            if (isActive) {
-                // backup set is active, make sure the corresponding job is started
+            if (!isActive) {
+                // Backup set is not active, just make sure next run time is null.
+                // If a job instance is running it will be stopped by the next step.
+                backupSet.setNextBackupTime(null);
+                backupSet.setStatus("Stopping");
+                backupSetRepository.save(backupSet);
+                continue;
+            }
+
+            if (isRunning(backupSet)) {
+                // Backup set is active and job running, nothing to do here.
+                continue;
+            }
+
+            // Backup set is active but not running
+            Instant nextBackupTime = backupSet.getNextBackupTime();
+            log.debug("Backup set {} scheduled to start at {}", backupSet.getId(), nextBackupTime);
+            if (nextBackupTime == null || Instant.now().isAfter(nextBackupTime)) {
                 log.debug("Starting job for backup set {}", backupSet.getId());
                 startJob(backupSet);
             }
-            backupSet.setActive(isActive);
             backupSetRepository.save(backupSet);
         }
 
@@ -118,6 +138,12 @@ public class JobStarter {
         }
 
         log.debug("Done syncing jobs");
+    }
+
+    private boolean isRunning(BackupSet backupSet) {
+        String jobName = backupSet.getJobName();
+        //FIXME should check instances with matching backup set parameters !
+        return !jobExplorer.findRunningJobExecutions(jobName).isEmpty();
     }
 
     /**
@@ -185,6 +211,8 @@ public class JobStarter {
         Job job = applicableJob.get();
         backupSet.setJobName(job.getName());
         backupSetRepository.save(backupSet);
+
+        //FIXME look for completed execution, if there is one it's a retart!
 
         // launch it
         log.info("Starting job: {}", job.getName());

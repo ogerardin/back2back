@@ -51,22 +51,18 @@ public class BackupJobExecutionListener extends BackupSetAwareBean implements Jo
     @Override
     public void afterJob(JobExecution jobExecution) {
 //        logger.debug("afterJob, jobExecution=" + jobExecution);
-        BackupSet backupSet = getBackupSet();
         Instant completeTime = jobExecution.getEndTime().toInstant();
+
+        BackupSet backupSet = getBackupSet();
         backupSet.setLastBackupCompleteTime(completeTime);
         backupSet.setBatchCount(0);
         backupSet.setBatchSize(0);
-        String status = "Complete";
 
-        if (backupSet.isActive() && properties != null && properties.isContinuousBackup()) {
-            // Schedule a job restart. This is done asynchronously because
-            // the current job is not considered as complete until we exit this function.
-            long pauseAfterBackup = properties.getPauseAfterBackup();
-            Instant nextBackupTime = completeTime.plusMillis(pauseAfterBackup);
-            backupSet.setNextBackupTime(nextBackupTime);
-            status += " (next backup at " + nextBackupTime + ")";
-            scheduleDelayedRestart(jobExecution, pauseAfterBackup);
-        }
+        String status = "Complete";
+        long pauseAfterBackup = properties.getPauseAfterBackup();
+        Instant nextBackupTime = completeTime.plusMillis(pauseAfterBackup);
+        backupSet.setNextBackupTime(nextBackupTime);
+        status += " (next backup at " + nextBackupTime + ")";
         backupSet.setStatus(status);
 
         backupSetRepository.save(backupSet);
@@ -82,10 +78,6 @@ public class BackupJobExecutionListener extends BackupSetAwareBean implements Jo
                 Thread.sleep(delay);
             } catch (InterruptedException e) {
                 log.warn("Restart task interrupted during pause: " + e.toString());
-            }
-            //don't start the job if the backup set has become inactive
-            if (! getBackupSet().isActive()) {
-                return;
             }
             // restart job
             try {

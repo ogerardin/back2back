@@ -37,6 +37,7 @@ class InternalStorageItemWriter implements ItemWriter<LocalFileInfo> {
             }
 
             if (throttleDelay != 0) {
+                log.debug("Throttling for {} ms", throttleDelay);
                 Thread.sleep(throttleDelay);
             }
         }

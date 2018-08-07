@@ -1,5 +1,6 @@
 package org.ogerardin.b2b;
 
+import lombok.extern.slf4j.Slf4j;
 import org.ogerardin.b2b.batch.JobStarter;
 import org.ogerardin.b2b.config.ConfigManager;
 import org.ogerardin.b2b.domain.BackupSetManager;
@@ -10,10 +11,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 
+@Slf4j
 @SpringBootApplication(exclude={DataSourceAutoConfiguration.class})
-//@EnableAutoConfiguration(exclude={DataSourceAutoConfiguration.class})
-//@ComponentScan(basePackages = {"org.ogerardin.b2b"})
+@EnableScheduling
 public class Main {
 
     private static String[] args;
@@ -56,12 +59,15 @@ public class Main {
             backupSetManager.init();
 
             // start backup jobs
-            if (properties.startJobs) {
-//                jobStarter.startAllJobs();
-                jobStarter.syncJobs();
-            }
+//            jobStarter.syncJobs();
         };
     }
+
+    @Scheduled(fixedRateString = "${org.ogerardin.b2b.job-sync-rate}")
+    public void scheduledSync() {
+        jobStarter.syncJobs();
+    }
+
 
 
 
