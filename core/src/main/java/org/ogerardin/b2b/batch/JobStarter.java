@@ -15,6 +15,7 @@ import org.springframework.batch.core.*;
 import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
+import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -44,6 +45,9 @@ public class JobStarter {
     private final BackupSourceRepository sourceRepository;
     private final BackupTargetRepository targetRepository;
     private final BackupSetRepository backupSetRepository;
+
+    @Autowired
+    private JobRepository jobRepository;
 
     private final JobLauncher jobLauncher;
     private final JobExplorer jobExplorer;
@@ -115,6 +119,7 @@ public class JobStarter {
                 continue;
             }
 
+            //FIXME handle restart case
             // Backup set is active but not running
             Instant nextBackupTime = backupSet.getNextBackupTime();
             log.debug("Backup set {} scheduled to start at {}", backupSet.getId(), nextBackupTime);
@@ -142,8 +147,36 @@ public class JobStarter {
 
     private boolean isRunning(BackupSet backupSet) {
         String jobName = backupSet.getJobName();
-        //FIXME should check instances with matching backup set parameters !
-        return !jobExplorer.findRunningJobExecutions(jobName).isEmpty();
+        if (jobName == null) {
+            log.debug("Looking for job matching backup set: " + backupSet);
+
+            JobParameters jobParameters = backupSet.getJobParameters();
+            log.debug("Parameters: " + jobParameters);
+
+            // try to find a Job that is applicable to the parameters
+            Optional<Job> applicableJob = findApplicableJob(jobParameters);
+            if (!applicableJob.isPresent()) {
+                log.error("No job found for parameters {}", jobParameters);
+                return false;
+            }
+            Job job = applicableJob.get();
+            jobName = job.getName();
+        }
+
+        JobExecution runningJobExecution = findRunningJobExecution(jobName, backupSet.getId());
+        return runningJobExecution != null;
+
+    }
+
+    private JobExecution findRunningJobExecution(String jobName, String targetBackupSetId) {
+        Set<JobExecution> runningJobExecutions = jobExplorer.findRunningJobExecutions(jobName);
+        for (JobExecution jobExecution : runningJobExecutions) {
+            String backupSetId = jobExecution.getJobParameters().getString("backupset.id");
+            if (targetBackupSetId.equals(backupSetId)) {
+                return jobExecution;
+            }
+        }
+        return null;
     }
 
     /**
