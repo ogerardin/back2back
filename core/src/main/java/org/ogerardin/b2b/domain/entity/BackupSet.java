@@ -58,6 +58,7 @@ public class BackupSet implements JobParametersPopulator {
 
     // Job information
     private String jobName;
+    private JobParameters jobParameters;
 
     @Override
     public void populateParams(Map<String, JobParameter> params) {

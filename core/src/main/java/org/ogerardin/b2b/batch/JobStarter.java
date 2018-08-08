@@ -15,15 +15,14 @@ import org.springframework.batch.core.*;
 import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
+import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -104,7 +103,9 @@ public class JobStarter {
 
         //start jobs for all active backup sets, mark others as inactive
         for (BackupSet backupSet : backupSetRepository.findAll()) {
-            boolean isActive = activeBackupSetIds.contains(backupSet.getId());
+            String backupSetId = backupSet.getId();
+
+            boolean isActive = activeBackupSetIds.contains(backupSetId);
             if (!isActive) {
                 // Backup set is not active, just make sure next run time is null.
                 // If a job instance is running it will be stopped by the next step.
@@ -114,19 +115,58 @@ public class JobStarter {
                 continue;
             }
 
-            JobExecution runningJobExecution = findRunningJobExecution(backupSet);
-            if (runningJobExecution != null) {
-                // Backup set is active and job is running, nothing to do here.
+            // Backup set is active, we need to make sure it's running or scheduled
+            // First get or compute job name and job parameters
+            String jobName = backupSet.getJobName();
+            JobParameters jobParameters = backupSet.getJobParameters();
+            Job job;
+            if (jobParameters == null || jobName == null) {
+                log.debug("Looking for job matching backup set: {}", backupSet);
+
+                Map<String, JobParameter> params = new HashMap<>();
+                backupSet.populateParams(params);
+                jobParameters = new JobParameters(params);
+                backupSet.setJobParameters(jobParameters);
+                log.debug("Parameters: {}", jobParameters);
+
+                // try to find a Job that is applicable to the parameters
+                Optional<Job> applicableJob = findApplicableJob(jobParameters);
+                if (!applicableJob.isPresent()) {
+                    log.error("No applicable job found for parameters {}", jobParameters);
+                    //TODO better error reporting for this case
+                    continue;
+                }
+                job = applicableJob.get();
+                log.debug("Found applicable job: {}", job);
+                backupSet.setJobName(job.getName());
+            }
+            else {
+                job = allJobs.stream()
+                        .filter(j -> j.getName().equals(jobName))
+                        .findFirst().get();
+            }
+
+            // Get lest execution of job with those parameters
+            JobExecution lastJobExecution = jobRepository.getLastJobExecution(jobName, jobParameters);
+
+            // Check if running
+            if (lastJobExecution != null && lastJobExecution.isRunning()) {
+                log.debug("Backup set is active and job is running, nothing to do here");
+                backupSetRepository.save(backupSet);
                 continue;
             }
 
-            //FIXME handle restart case
-            // Backup set is active but not running
+            // Backup set is active but not running!
             Instant nextBackupTime = backupSet.getNextBackupTime();
-            log.debug("Backup set {} scheduled to start at {}", backupSet.getId(), nextBackupTime);
+            log.debug("Backup set {} scheduled to start at {}", backupSetId, nextBackupTime);
             if (nextBackupTime == null || Instant.now().isAfter(nextBackupTime)) {
-                log.debug("Starting job for backup set {}", backupSet.getId());
-                startJob(backupSet);
+                log.debug("Starting job for backup set {}", backupSetId);
+                //TODO if lastJobExecution not null and completed, use incrementer!
+                try {
+                    jobLauncher.run(job, jobParameters);
+                } catch (JobExecutionAlreadyRunningException | JobRestartException | JobParametersInvalidException | JobInstanceAlreadyCompleteException e) {
+                    log.error("Failed to start job", e);
+                }
             }
             backupSetRepository.save(backupSet);
         }
@@ -146,27 +186,6 @@ public class JobStarter {
         log.debug("Done syncing jobs");
     }
 
-
-    private JobExecution findRunningJobExecution(BackupSet backupSet) {
-        String jobName = backupSet.getJobName();
-        if (jobName == null) {
-            log.debug("Looking for job matching backup set: " + backupSet);
-
-            JobParameters jobParameters = backupSet.getJobParameters();
-            log.debug("Parameters: " + jobParameters);
-
-            // try to find a Job that is applicable to the parameters
-            Optional<Job> applicableJob = findApplicableJob(jobParameters);
-            if (!applicableJob.isPresent()) {
-                log.error("No job found for parameters {}", jobParameters);
-                return null;
-            }
-            Job job = applicableJob.get();
-            jobName = job.getName();
-        }
-
-        return findRunningJobExecution(jobName, backupSet.getId());
-    }
 
     private JobExecution findRunningJobExecution(String jobName, String targetBackupSetId) {
         Set<JobExecution> runningJobExecutions = jobExplorer.findRunningJobExecutions(jobName);
