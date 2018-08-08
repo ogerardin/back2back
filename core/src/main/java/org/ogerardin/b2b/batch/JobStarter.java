@@ -114,8 +114,9 @@ public class JobStarter {
                 continue;
             }
 
-            if (isRunning(backupSet)) {
-                // Backup set is active and job running, nothing to do here.
+            JobExecution runningJobExecution = findRunningJobExecution(backupSet);
+            if (runningJobExecution != null) {
+                // Backup set is active and job is running, nothing to do here.
                 continue;
             }
 
@@ -145,7 +146,8 @@ public class JobStarter {
         log.debug("Done syncing jobs");
     }
 
-    private boolean isRunning(BackupSet backupSet) {
+
+    private JobExecution findRunningJobExecution(BackupSet backupSet) {
         String jobName = backupSet.getJobName();
         if (jobName == null) {
             log.debug("Looking for job matching backup set: " + backupSet);
@@ -157,15 +159,13 @@ public class JobStarter {
             Optional<Job> applicableJob = findApplicableJob(jobParameters);
             if (!applicableJob.isPresent()) {
                 log.error("No job found for parameters {}", jobParameters);
-                return false;
+                return null;
             }
             Job job = applicableJob.get();
             jobName = job.getName();
         }
 
-        JobExecution runningJobExecution = findRunningJobExecution(jobName, backupSet.getId());
-        return runningJobExecution != null;
-
+        return findRunningJobExecution(jobName, backupSet.getId());
     }
 
     private JobExecution findRunningJobExecution(String jobName, String targetBackupSetId) {
@@ -245,7 +245,7 @@ public class JobStarter {
         backupSet.setJobName(job.getName());
         backupSetRepository.save(backupSet);
 
-        //FIXME look for completed execution, if there is one it's a retart!
+        //FIXME look for completed execution, if there is one it's a restart!
 
         // launch it
         log.info("Starting job: {}", job.getName());
