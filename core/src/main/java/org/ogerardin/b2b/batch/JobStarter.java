@@ -64,18 +64,8 @@ public class JobStarter {
     }
 
     /**
-     * Attempt to start jobs for all enabled sources
+     * Attempts to sync running jobs with configured sources and targets
      */
-    public void startAllJobs() {
-        log.debug("STARTING JOBS");
-        for (BackupSource backupSource : sourceRepository.findAll()) {
-            if (backupSource.shouldStartJob() && backupSource.isEnabled()) {
-                startJobs(backupSource);
-            }
-        }
-        log.debug("Done strating jobs");
-    }
-
     public void syncJobs() {
         log.debug("SYNCING JOBS");
 
@@ -90,135 +80,119 @@ public class JobStarter {
         log.debug("Found {} eligible source/target pair(s)", sourceTargetPairs.size());
 
         // get all corresponding backup sets
-        Set<BackupSet> activeBackupSets = new HashSet<>();
-        for (Pair<BackupSource, BackupTarget> p : sourceTargetPairs) {
-            BackupSource source = p.getLeft();
-            BackupTarget target = p.getRight();
-            log.debug("Getting backup set for {} / {}", source, target);
-            BackupSet backupSet = findBackupSet(source, target);
-            activeBackupSets.add(backupSet);
-        }
-//        log.debug("{} active backup set(s)", activeBackupSets.size());
-        Set<String> activeBackupSetIds = activeBackupSets.stream().map(BackupSet::getId).collect(Collectors.toSet());
+        Set<BackupSet> activeBackupSets = sourceTargetPairs.stream()
+                .peek(st -> log.debug("Getting backup set for {} / {}", st.getLeft(), st.getRight()))
+                .map(st -> findBackupSet(st.getLeft(), st.getRight()))
+                .collect(Collectors.toSet());
+
+        Set<String> activeBackupSetIds = activeBackupSets.stream()
+                .map(BackupSet::getId)
+                .collect(Collectors.toSet());
 
         //start jobs for all active backup sets, mark others as inactive
+        Set<JobExecution> validExecutions = new HashSet<>();
         for (BackupSet backupSet : backupSetRepository.findAll()) {
+            log.debug("Processing backup set {}", backupSet);
             String backupSetId = backupSet.getId();
-
             boolean isActive = activeBackupSetIds.contains(backupSetId);
+
             if (!isActive) {
-                // Backup set is not active, just make sure next run time is null.
-                // If a job instance is running it will be stopped by the next step.
+                log.debug("Backup set {} is not active", backupSetId);
+                // Stop any running job associated to this backup set
+                stopAllJobs(backupSet);
                 backupSet.setNextBackupTime(null);
-                backupSet.setStatus("Stopping");
+                backupSet.setStatus("Inactive");
                 backupSetRepository.save(backupSet);
                 continue;
             }
 
             // Backup set is active, we need to make sure it's running or scheduled
-            // First get or compute job name and job parameters
-            String jobName = backupSet.getJobName();
+
+            log.debug("Looking for matching job");
             JobParameters jobParameters = backupSet.getJobParameters();
-            Job job;
-            if (jobParameters == null || jobName == null) {
-                log.debug("Looking for job matching backup set: {}", backupSet);
-
-                Map<String, JobParameter> params = new HashMap<>();
-                backupSet.populateParams(params);
-                jobParameters = new JobParameters(params);
-                backupSet.setJobParameters(jobParameters);
-                log.debug("Parameters: {}", jobParameters);
-
-                // try to find a Job that is applicable to the parameters
-                Optional<Job> applicableJob = findApplicableJob(jobParameters);
-                if (!applicableJob.isPresent()) {
-                    log.error("No applicable job found for parameters {}", jobParameters);
-                    //TODO better error reporting for this case
-                    continue;
-                }
-                job = applicableJob.get();
-                log.debug("Found applicable job: {}", job);
-                backupSet.setJobName(job.getName());
+            log.debug("Parameters: {}", jobParameters);
+            // try to find a Job that is applicable to the parameters
+            Optional<Job> applicableJob = findApplicableJob(jobParameters);
+            if (!applicableJob.isPresent()) {
+                String msg = String.format("No applicable job found for parameters %s", jobParameters);
+                log.error(msg);
+                //TODO better error reporting for this case
+                backupSet.setStatus(String.format("Failed: %s", msg));
+                backupSetRepository.save(backupSet);
+                continue;
             }
-            else {
-                job = allJobs.stream()
-                        .filter(j -> j.getName().equals(jobName))
-                        .findFirst().get();
-            }
+            Job job = applicableJob.get();
+            log.debug("Found applicable job: {}", job);
+            backupSet.setJobName(job.getName());
 
-            // Get lest execution of job with those parameters
-            JobExecution lastJobExecution = jobRepository.getLastJobExecution(jobName, jobParameters);
+            // Get last execution of job with those parameters
+            //FIXME this is wrong, it always returns the last execution of the first instance (oroginal params wihtout run.id)
+            JobExecution lastJobExecution = jobRepository.getLastJobExecution(job.getName(), jobParameters);
+            log.debug("last execution: {}", lastJobExecution);
 
             // Check if running
             if (lastJobExecution != null && lastJobExecution.isRunning()) {
                 log.debug("Backup set is active and job is running, nothing to do here");
                 backupSetRepository.save(backupSet);
+                validExecutions.add(lastJobExecution);
                 continue;
             }
 
-            // Backup set is active but not running!
+            // Backup set is active but no appropriate job is running
+
+            // Stop any running job associated to this backup set (in case parameters have changed)
+            stopAllJobs(backupSet);
+
             Instant nextBackupTime = backupSet.getNextBackupTime();
             log.debug("Backup set {} scheduled to start at {}", backupSetId, nextBackupTime);
             if (nextBackupTime == null || Instant.now().isAfter(nextBackupTime)) {
                 log.debug("Starting job for backup set {}", backupSetId);
-                //TODO if lastJobExecution not null and completed, use incrementer!
+
+                // If we had a previous execution, use incrementer to generate new parameter set
+                if (lastJobExecution != null) {
+                    JobParameters lastJobParameters = lastJobExecution.getJobParameters();
+                    jobParameters = job.getJobParametersIncrementer().getNext(lastJobParameters);
+                    log.debug("Incremented parameters: {}", jobParameters);
+                }
+
                 try {
-                    jobLauncher.run(job, jobParameters);
+                    JobExecution jobExecution = jobLauncher.run(job, jobParameters);
+                    validExecutions.add(jobExecution);
                 } catch (JobExecutionAlreadyRunningException | JobRestartException | JobParametersInvalidException | JobInstanceAlreadyCompleteException e) {
+                    String msg = String.format("Failed to start job: %s", e.toString());
+                    backupSet.setStatus(msg);
+                    backupSetRepository.save(backupSet);
                     log.error("Failed to start job", e);
                 }
             }
             backupSetRepository.save(backupSet);
         }
 
-        //stop all running jobs not related to an active backupSet
-        for (Job job : allJobs) {
-            Set<JobExecution> runningJobExecutions = jobExplorer.findRunningJobExecutions(job.getName());
-            for (JobExecution jobExecution : runningJobExecutions) {
-                String backupSetId = jobExecution.getJobParameters().getString("backupset.id");
-                if (!activeBackupSetIds.contains(backupSetId)) {
-                    log.debug("job execution {} belongs to inactive backup set, stopping", jobExecution);
-                    jobExecution.stop();
+        //stop all remaining running jobs
+        allJobs.stream()
+                .map(j -> jobExplorer.findRunningJobExecutions(j.getName()))
+                .flatMap(Collection::stream)
+                .filter(je -> !validExecutions.contains(je))
+                .forEach(je -> {
+                    log.debug("Stopping stale job execution {}", je);
+                    je.stop();
                 }
-            }
-        }
+        );
 
         log.debug("Done syncing jobs");
     }
 
-
-    private JobExecution findRunningJobExecution(String jobName, String targetBackupSetId) {
-        Set<JobExecution> runningJobExecutions = jobExplorer.findRunningJobExecutions(jobName);
-        for (JobExecution jobExecution : runningJobExecutions) {
-            String backupSetId = jobExecution.getJobParameters().getString("backupset.id");
-            if (targetBackupSetId.equals(backupSetId)) {
-                return jobExecution;
-            }
-        }
-        return null;
+    private void stopAllJobs(BackupSet backupSet) {
+        String jobName = backupSet.getJobName();
+        String backupSetId = backupSet.getId();
+        jobExplorer.findRunningJobExecutions(jobName).stream()
+                .filter(je -> backupSetId.equals(je.getJobParameters().getString("backupset.id")))
+                .forEach(je -> {
+                    log.debug("Stopping outdated job execution {} for backup set {}", je, backupSetId);
+                    je.stop();
+                });
     }
 
-    /**
-     * Attempt to start backup jobs for all enabled targets and the specified source
-     */
-    private void startJobs(BackupSource source) {
-        log.debug("Starting jobs for source " + source);
-        for (BackupTarget target : targetRepository.findAll()) {
-            if (target.isEnabled()) {
-                startJob(source, target);
-            }
-        }
-    }
-
-    /**
-     * Attempt to start a backup job for the specified source and target
-     */
-    private JobExecution startJob(BackupSource source, BackupTarget target) {
-        log.info("Starting job for source:" + source + ", target:" + target);
-        BackupSet backupSet = findBackupSet(source, target);
-        JobExecution jobExecution = startJob(backupSet);
-        return jobExecution;
-    }
 
     /**
      * Retrieve the {@link BackupSet} for the specified source and target; creates it if it doesn't exist.
@@ -241,43 +215,6 @@ public class JobStarter {
         BackupSet backupSet = backupSets.get(0);
         log.debug("Using existing backup set {}", backupSet.getId());
         return backupSet;
-    }
-
-    /**
-     * Attempts to start the appropriate backup job for the specified BackupSet.
-     *
-     * @throws JobExecutionException in case Spring Batch failed to start the job
-     */
-    private JobExecution startJob(BackupSet backupSet) {
-        log.debug("Looking for job matching backup set: " + backupSet);
-
-        JobParameters jobParameters = backupSet.getJobParameters();
-        log.debug("Parameters: " + jobParameters);
-
-        // try to find a Job that is applicable to the parameters
-        Optional<Job> applicableJob = findApplicableJob(jobParameters);
-        if (!applicableJob.isPresent()) {
-            log.error("No job found for parameters {}", jobParameters);
-            return null;
-        }
-        Job job = applicableJob.get();
-        backupSet.setJobName(job.getName());
-        backupSetRepository.save(backupSet);
-
-        //FIXME look for completed execution, if there is one it's a restart!
-
-        // launch it
-        log.info("Starting job: {}", job.getName());
-        try {
-            JobExecution jobExecution = jobLauncher.run(job, jobParameters);
-//            log.debug("Job started: {}", jobExecution);
-            return jobExecution;
-        } catch (JobExecutionAlreadyRunningException e) {
-            log.warn(e.toString());
-        } catch (JobExecutionException e) {
-            log.error("Exception while trying to start job", e);
-        }
-        return null;
     }
 
     /**
