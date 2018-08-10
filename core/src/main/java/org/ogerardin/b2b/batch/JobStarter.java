@@ -2,6 +2,7 @@ package org.ogerardin.b2b.batch;
 
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.ogerardin.b2b.B2BProperties;
@@ -126,14 +127,12 @@ public class JobStarter {
             backupSet.setJobName(job.getName());
 
             // Get last execution of job with those parameters
-            //FIXME this is wrong, it always returns the last execution of the first instance (oroginal params wihtout run.id)
-            JobExecution lastJobExecution = jobRepository.getLastJobExecution(job.getName(), jobParameters);
+            JobExecution lastJobExecution = findLastJobExecution(job.getName(), jobParameters);
             log.debug("last execution: {}", lastJobExecution);
 
             // Check if running
             if (lastJobExecution != null && lastJobExecution.isRunning()) {
                 log.debug("Backup set is active and job is running, nothing to do here");
-                backupSetRepository.save(backupSet);
                 validExecutions.add(lastJobExecution);
                 continue;
             }
@@ -143,6 +142,7 @@ public class JobStarter {
             // Stop any running job associated to this backup set (in case parameters have changed)
             stopAllJobs(backupSet);
 
+            // if we have reached next scheduled backup time, start the job
             Instant nextBackupTime = backupSet.getNextBackupTime();
             log.debug("Backup set {} scheduled to start at {}", backupSetId, nextBackupTime);
             if (nextBackupTime == null || Instant.now().isAfter(nextBackupTime)) {
@@ -180,6 +180,25 @@ public class JobStarter {
         );
 
         log.debug("Done syncing jobs");
+    }
+
+    /**
+     * Returns the last {@link JobExecution} (by start date) across all {@link JobInstance}s of the job with the
+     * specified name whose job parameters contain all the paramaters of the specified {@link JobParameters}
+     */
+    private JobExecution findLastJobExecution(String jobName, JobParameters jobParameters) {
+        return jobExplorer.findJobInstancesByJobName(jobName, 0, Integer.MAX_VALUE).stream()
+                .map(jobExplorer::getJobExecutions)
+                .flatMap(Collection::stream)
+                .filter(jobExecution -> containsAllParameters(jobExecution, jobParameters))
+                .max(Comparator.comparing(JobExecution::getStartTime))
+                .orElse(null);
+    }
+
+    private boolean containsAllParameters(JobExecution jobExecution, JobParameters jobParameters) {
+        val jobExecutionParameterMap = jobExecution.getJobParameters().getParameters();
+        val targetParameterMap = jobParameters.getParameters();
+        return jobExecutionParameterMap.entrySet().containsAll(targetParameterMap.entrySet());
     }
 
     private void stopAllJobs(BackupSet backupSet) {
