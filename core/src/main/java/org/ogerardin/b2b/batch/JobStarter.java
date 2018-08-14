@@ -195,12 +195,20 @@ public class JobStarter {
                 .orElse(null);
     }
 
+    /**
+     * Returns true if and only if the specified {@link JobExecution}'s parameters contains all
+     * the parameters contained in the specified {@link JobParameters} with the same values; in other words
+     * the JobExecution's parameters are a superset of the JobParameters.
+     */
     private boolean containsAllParameters(JobExecution jobExecution, JobParameters jobParameters) {
         val jobExecutionParameterMap = jobExecution.getJobParameters().getParameters();
         val targetParameterMap = jobParameters.getParameters();
         return jobExecutionParameterMap.entrySet().containsAll(targetParameterMap.entrySet());
     }
 
+    /**
+     * Stops all the job executions pertaining to the specified {@link BackupSet}
+     */
     private void stopAllJobs(BackupSet backupSet) {
         String jobName = backupSet.getJobName();
         String backupSetId = backupSet.getId();
@@ -229,7 +237,7 @@ public class JobStarter {
         }
 
         if (backupSets.size() > 1) {
-            log.warn("More than 1 backup set found for {}, {}: {}", source, target, backupSets);
+            log.warn("More than 1 backup set found for {} / {}: {}", source, target, backupSets);
         }
         BackupSet backupSet = backupSets.get(0);
         log.debug("Using existing backup set {}", backupSet.getId());
