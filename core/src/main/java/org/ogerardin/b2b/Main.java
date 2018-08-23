@@ -11,12 +11,14 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
 @Slf4j
 @SpringBootApplication(exclude={DataSourceAutoConfiguration.class})
 @EnableScheduling
+@ComponentScan(basePackages = {"org.ogerardin.b2b"})
 public class Main {
 
     private static String[] args;
