@@ -24,6 +24,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -100,7 +101,7 @@ public class JobStarter {
             if (!isActive) {
                 log.debug("Backup set {} is not active", backupSetId);
                 // Stop any running job associated to this backup set
-                stopAllJobs(backupSet);
+                stopJobs(backupSet);
                 backupSet.setNextBackupTime(null);
                 backupSet.setStatus("Inactive");
                 backupSetRepository.save(backupSet);
@@ -140,7 +141,7 @@ public class JobStarter {
             // Backup set is active but no appropriate job is running
 
             // Stop any running job associated to this backup set (in case parameters have changed)
-            stopAllJobs(backupSet);
+            stopJobs(backupSet);
 
             // if we have reached next scheduled backup time, start the job
             Instant nextBackupTime = backupSet.getNextBackupTime();
@@ -169,15 +170,7 @@ public class JobStarter {
         }
 
         //stop all remaining running jobs
-        allJobs.stream()
-                .map(j -> jobExplorer.findRunningJobExecutions(j.getName()))
-                .flatMap(Collection::stream)
-                .filter(je -> !validExecutions.contains(je))
-                .forEach(je -> {
-                    log.debug("Stopping stale job execution {}", je);
-                    je.stop();
-                }
-        );
+        stopJobs(jobExecution -> !validExecutions.contains(jobExecution), "orphan job execution");
 
         log.debug("Done syncing jobs");
     }
@@ -195,21 +188,39 @@ public class JobStarter {
                 .orElse(null);
     }
 
+    /**
+     * Returns true if and only if the specified {@link JobExecution}'s parameters contains all
+     * the parameters of the specified {@link JobParameters} with the same values.
+     */
     private boolean containsAllParameters(JobExecution jobExecution, JobParameters jobParameters) {
         val jobExecutionParameterMap = jobExecution.getJobParameters().getParameters();
         val targetParameterMap = jobParameters.getParameters();
         return jobExecutionParameterMap.entrySet().containsAll(targetParameterMap.entrySet());
     }
 
-    private void stopAllJobs(BackupSet backupSet) {
-        String jobName = backupSet.getJobName();
+    /**
+     * Stops all the running job executions pertaining to the specified {@link BackupSet}
+     */
+    private void stopJobs(BackupSet backupSet) {
         String backupSetId = backupSet.getId();
-        jobExplorer.findRunningJobExecutions(jobName).stream()
-                .filter(je -> backupSetId.equals(je.getJobParameters().getString("backupset.id")))
-                .forEach(je -> {
-                    log.debug("Stopping outdated job execution {} for backup set {}", je, backupSetId);
-                    je.stop();
-                });
+        stopJobs(je -> pertainsToBackupSet(je, backupSetId), "stale job execution for backup set " + backupSetId);
+    }
+
+    private boolean pertainsToBackupSet(JobExecution jobExecution, String backupSetId) {
+        String jobExecutionBackupSetId = jobExecution.getJobParameters().getString("backupset.id");
+        return Objects.equals(jobExecutionBackupSetId, backupSetId);
+    }
+
+    private void stopJobs(Predicate<JobExecution> predicate, String message) {
+        allJobs.stream()
+                .map(Job::getName)
+                .map(jobExplorer::findRunningJobExecutions)
+                .flatMap(Collection::stream)
+                .filter(predicate)
+                .peek( je -> {
+                        log.info("Stopping {}: {}", je, message);
+                })
+                .forEach(JobExecution::stop);
     }
 
 
@@ -229,7 +240,7 @@ public class JobStarter {
         }
 
         if (backupSets.size() > 1) {
-            log.warn("More than 1 backup set found for {}, {}: {}", source, target, backupSets);
+            log.warn("More than 1 backup set found for {} / {}: {}", source, target, backupSets);
         }
         BackupSet backupSet = backupSets.get(0);
         log.debug("Using existing backup set {}", backupSet.getId());

@@ -4,14 +4,12 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobInstance;
 import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/jobs")
@@ -22,7 +20,9 @@ public class JobsController {
 
     @GetMapping
     public List<String> names() {
-        return jobExplorer.getJobNames();
+        return jobExplorer.getJobNames().stream()
+                .distinct()
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/{name}/running")
@@ -30,15 +30,21 @@ public class JobsController {
         return jobExplorer.findRunningJobExecutions(name);
     }
 
-    @GetMapping("/{name}/instances")
-    public List<JobInstance> instances(@PathVariable String name) {
-        List<JobInstance> jobInstances = jobExplorer.getJobInstances(name, 0, 100);
+    @GetMapping("/{name}")
+    public List<JobInstance> instances(@PathVariable String name,
+                                       @RequestParam(required = false, defaultValue = "0") int start,
+                                       @RequestParam(required = false, defaultValue = "100") int count
+                                       ) {
+        List<JobInstance> jobInstances = jobExplorer.getJobInstances(name, start, count);
         return jobInstances;
     }
 
     @GetMapping("/{name}/executions")
-    public List<JobExecution> executions(@PathVariable String name) {
-        List<JobInstance> jobInstances = jobExplorer.getJobInstances(name, 0, 100);
+    public List<JobExecution> executions(@PathVariable String name,
+                                         @RequestParam(required = false, defaultValue = "0") int start,
+                                         @RequestParam(required = false, defaultValue = "100") int count
+                                         ) {
+        List<JobInstance> jobInstances = jobExplorer.getJobInstances(name, start, count);
 
         List<JobExecution> jobExecutions = new ArrayList<>();
         for (JobInstance jobInstance : jobInstances) {
@@ -47,5 +53,7 @@ public class JobsController {
 
         return jobExecutions;
     }
+
+
 
 }
