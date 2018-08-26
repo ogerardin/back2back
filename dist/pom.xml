@@ -21,6 +21,7 @@
         <back2back.core.jar>back2back-bundle-repackaged.jar</back2back.core.jar>
         <back2back.tray-icon.jar>back2back-system-tray-onejar.jar</back2back.tray-icon.jar>
         <back2back.tray-icon.mainClass>com.simontuffs.onejar.Boot</back2back.tray-icon.mainClass>
+        <back2back.service-name>back2back</back2back.service-name>
     </properties>
 
     <dependencies>

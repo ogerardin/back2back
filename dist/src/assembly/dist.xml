@@ -8,27 +8,33 @@
     <includeBaseDirectory>false</includeBaseDirectory>
     <fileSets>
         <fileSet>
-            <directory>${project.build.outputDirectory}</directory>
-            <outputDirectory></outputDirectory>
-            <includes>
-                <include>LICENSE.txt</include>
-            </includes>
-        </fileSet>
-        <fileSet>
             <directory>${project.build.directory}/dependency</directory>
             <outputDirectory></outputDirectory>
         </fileSet>
         <fileSet>
-            <directory>${project.build.outputDirectory}/bin</directory>
+            <directory>${project.build.outputDirectory}</directory>
             <outputDirectory></outputDirectory>
+            <filtered>true</filtered>
+            <includes>
+                <include>launchd/*.plist</include>
+                <include>*.txt</include>
+                <include>*.bat</include>
+            </includes>
         </fileSet>
         <fileSet>
-            <directory>${project.build.outputDirectory}/winsrv</directory>
+            <directory>${project.build.outputDirectory}</directory>
             <outputDirectory></outputDirectory>
+            <filtered>true</filtered>
+            <includes>
+                <include>*.sh</include>
+            </includes>
+            <fileMode>0777</fileMode>
+            <lineEnding>unix</lineEnding>
         </fileSet>
         <fileSet>
             <directory>${project.build.directory}/nssm-${nssm.version}</directory>
             <outputDirectory>nssm</outputDirectory>
+            <filtered>false</filtered>
             <includes>
                 <include>README.txt</include>
                 <include>win32/*</include>

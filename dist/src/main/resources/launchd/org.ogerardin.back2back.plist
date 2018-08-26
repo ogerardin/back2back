@@ -9,11 +9,11 @@
         <array>
             <string>java</string>
             <string>-jar</string>
-            <string>${INSTALL_PATH}/lib/${back2back.core.jar}</string>
+            <string>${B2BHOME}/@back2back.core.jar@</string>
         </array>
 
         <key>WorkingDirectory</key>
-        <string>${INSTALL_PATH}</string>
+        <string>${B2BHOME}</string>
 
         <key>RunAtLoad</key>
         <true/>

@@ -14,10 +14,6 @@
         <requiresjdk>no</requiresjdk>
     </info>
     
-    <properties>
-        <property name="serviceName" value="back2back"/>
-    </properties>
-
     <locale>
         <langpack iso3="eng"/>
     </locale>
@@ -42,8 +38,8 @@
             <description>The core backup engine</description>
             <file src="dependency/@{back2back.core.jar}" targetdir="${INSTALL_PATH}" override="true"/>
             <file src="classes/b2b.ico" targetdir="${INSTALL_PATH}" override="true"/>
-            <file src="classes/bin/startEngine.bat" targetdir="${INSTALL_PATH}" override="true" condition="izpack.windowsinstall"/>
-            <file src="classes/bin/startEngine.sh" targetdir="${INSTALL_PATH}" override="true" condition="!izpack.windowsinstall"/>
+            <file src="classes/startEngine.bat" targetdir="${INSTALL_PATH}" override="true" condition="izpack.windowsinstall"/>
+            <file src="classes/startEngine.sh" targetdir="${INSTALL_PATH}" override="true" condition="!izpack.windowsinstall"/>
             <parsable targetfile="${INSTALL_PATH}/startEngine.bat" type="plain" condition="izpack.windowsinstall"/>
             <parsable targetfile="${INSTALL_PATH}/startEngine.sh" type="plain" condition="!izpack.windowsinstall"/>
             <executable type="bin" targetfile="${INSTALL_PATH}/startEngine.bat" keep="true" condition="izpack.windowsinstall"/>
@@ -56,8 +52,8 @@
             <file src="nssm-@{nssm.version}/win32/nssm.exe" targetdir="${INSTALL_PATH}/nssm/win32"/>
             <file src="nssm-@{nssm.version}/win64/nssm.exe" targetdir="${INSTALL_PATH}/nssm/win64"/>
             <file src="nssm-@{nssm.version}/README.txt" targetdir="${INSTALL_PATH}/nssm"/>
-            <file src="classes/winsrv/installService.bat" targetdir="${INSTALL_PATH}" override="true"/>
-            <file src="classes/winsrv/removeService.bat" targetdir="${INSTALL_PATH}" override="true"/>
+            <file src="classes/installService.bat" targetdir="${INSTALL_PATH}" override="true"/>
+            <file src="classes/removeService.bat" targetdir="${INSTALL_PATH}" override="true"/>
             <parsable targetfile="${INSTALL_PATH}/installService.bat" type="plain"/>
             <parsable targetfile="${INSTALL_PATH}/removeService.bat" type="plain"/>
             <executable type="bin" targetfile="${INSTALL_PATH}/installService.bat" keep="true"/>
@@ -68,9 +64,9 @@
             <os family="mac"/>
             <description>Install the backup engine as a macOS background daemon.</description>
             <file src="classes/launchd/org.ogerardin.back2back.plist" targetdir="${INSTALL_PATH}/etc"/>
-            <file src="classes/launchd/installDaemon.sh" targetdir="${INSTALL_PATH}"/>
-            <file src="classes/launchd/removeDaemon.sh" targetdir="${INSTALL_PATH}"/>
-            <parsable targetfile="${INSTALL_PATH}/etc/org.ogerardin.back2back.plist" type="plain"/>
+            <file src="classes/installDaemon.sh" targetdir="${INSTALL_PATH}"/>
+            <file src="classes/removeDaemon.sh" targetdir="${INSTALL_PATH}"/>
+            <parsable targetfile="${INSTALL_PATH}/launchd/org.ogerardin.back2back.plist" type="plain"/>
             <parsable targetfile="${INSTALL_PATH}/installDaemon.sh" type="plain"/>
             <parsable targetfile="${INSTALL_PATH}/removeDaemon.sh" type="plain"/>
             <executable type="bin" targetfile="${INSTALL_PATH}/installDaemon.sh" keep="true"/>
@@ -81,7 +77,7 @@
             <os family="windows"/>
             <description>Allow easy access through an icon in the Windows tray</description>
             <file src="dependency/@{back2back.tray-icon.jar}" targetdir="${INSTALL_PATH}" override="true"/>
-            <file src="classes/bin/startTrayIcon.bat" targetdir="${INSTALL_PATH}" override="true"/>
+            <file src="classes/startTrayIcon.bat" targetdir="${INSTALL_PATH}" override="true"/>
             <parsable targetfile="${INSTALL_PATH}/startTrayIcon.bat" type="plain"/>
             <executable type="bin" targetfile="${INSTALL_PATH}/startTrayIcon.bat" keep="true"/>
         </pack>
@@ -90,18 +86,18 @@
             <os family="mac"/>
             <description>Allow easy access through an icon in the Mac menu bar</description>
             <file src="dependency/@{back2back.tray-icon.jar}" targetdir="${INSTALL_PATH}" override="true"/>
-            <file src="classes/bin/startTrayIcon.sh" targetdir="${INSTALL_PATH}" override="true"/>
+            <file src="classes/startTrayIcon.sh" targetdir="${INSTALL_PATH}" override="true"/>
             <parsable targetfile="${INSTALL_PATH}/startTrayIcon.sh" type="plain"/>
             <executable type="bin" targetfile="${INSTALL_PATH}/startTrayIcon.sh" keep="true"/>
         </pack>
     </packs>
 
     <resources>
-        <res src="classes/install-sidebar.png" id="Installer.image"/>
-        <res src="classes/LICENSE.txt" id="LicencePanel.licence"/>
-        <res src="classes/shortcutSpec.xml" id="shortcutSpec.xml"/>
-        <res src="classes/ProcessPanel.Spec.xml" id="ProcessPanel.Spec.xml" />
-        <res src="classes/RegistrySpec.xml" id="RegistrySpec.xml"/>
+        <res src="classes/izpack/install-sidebar.png" id="Installer.image"/>
+        <res src="classes/izpack/LICENSE.txt" id="LicencePanel.licence"/>
+        <res src="classes/izpack/shortcutSpec.xml" id="shortcutSpec.xml"/>
+        <res src="classes/izpack/ProcessPanel.Spec.xml" id="ProcessPanel.Spec.xml" />
+        <res src="classes/izpack/RegistrySpec.xml" id="RegistrySpec.xml"/>
     </resources>
 
     <natives>
