@@ -10,6 +10,9 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Properties;
 
+/**
+ * A Utility class to help make API calls to the back2back core.
+ */
 @Slf4j
 public class EngineClient {
 
@@ -20,9 +23,9 @@ public class EngineClient {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    public EngineClient(Path installDir) throws IOException {
+    public EngineClient(Path homeDir) throws IOException {
 
-        Path propertiesFile = installDir.resolve(ENGINE_PROPERTIES_FILE).toAbsolutePath().normalize();
+        Path propertiesFile = homeDir.resolve(ENGINE_PROPERTIES_FILE).toAbsolutePath().normalize();
         Properties engineProperties = new Properties();
         try (FileInputStream fileInputStream = new FileInputStream(propertiesFile.toFile())) {
             engineProperties.load(fileInputStream);

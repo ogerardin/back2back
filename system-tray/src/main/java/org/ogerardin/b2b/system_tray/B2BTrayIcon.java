@@ -1,8 +1,9 @@
 package org.ogerardin.b2b.system_tray;
 
-import com.sun.jna.Platform;
 import lombok.extern.slf4j.Slf4j;
 import org.ogerardin.b2b.EngineClient;
+import org.ogerardin.b2b.control.Config;
+import org.ogerardin.b2b.control.ControlHelper;
 import org.ogerardin.processcontrol.*;
 import org.springframework.web.client.RestClientException;
 
@@ -39,8 +40,6 @@ public class B2BTrayIcon {
     private static Boolean engineAvailable = null;
     private static Boolean serviceAvailable = null;
 
-    private static Config config;
-
 
     public static void main(String[] args) throws IOException {
 
@@ -49,15 +48,17 @@ public class B2BTrayIcon {
         // Hide the dock icon on Mac OS
         System.setProperty("apple.awt.UIElement", "true");
 
-        // initializing config
-        config = Config.read();
-
         // initialize engine client. Used to communicate with engine using REST API
-        log.info("Engine home directory: {}", config.getInstallDir());
-        engineClient = new EngineClient(config.getInstallDir());
+        log.info("Engine home directory: {}", Config.getHomeDirectory());
+        engineClient = new EngineClient(Config.getHomeDirectory());
 
         // initialize service controller. Used to control engine autostart and (if available) for manual start/stop
-        serviceController = getPlatformServiceController();
+        serviceController = null;
+        try {
+            ControlHelper.getPlatformServiceController();
+        } catch (ControlException e) {
+            log.error("Error while getting platform service controller", e);
+        }
         if (serviceController != null) {
             log.info("Using service controller: {}", serviceController);
         }
@@ -66,7 +67,7 @@ public class B2BTrayIcon {
         }
 
         // initialize process controller. Used for manual start/stop when service controller is not available
-        Path coreJarPath = config.getInstallDir().resolve(config.getCoreJar());
+        Path coreJarPath = Config.getHomeDirectory().resolve(Config.getCoreJar());
         processController = buildJarProcessController(coreJarPath);
 
         // set UI options
@@ -87,36 +88,6 @@ public class B2BTrayIcon {
             Thread.sleep(3000);
         } catch (InterruptedException ignored) {
         }
-    }
-
-    private static ServiceController getPlatformServiceController() {
-        ServiceController serviceController;
-        switch (Platform.getOSType()) {
-            case Platform.WINDOWS: {
-                Path nssmExePath = Platform.is64Bit() ?
-                        config.getNssmHome().resolve("win64").resolve("nssm")
-                        : config.getNssmHome().resolve("win32").resolve("nssm");
-                serviceController = new WindowsNssmServiceController(nssmExePath, Config.WINDOWS_SERVICE_NAME);
-                break;
-            }
-            case Platform.MAC: {
-                serviceController = new MacLaunchctlDaemonController(Config.MAC_JOB_NAME);
-                break;
-            }
-            default: {
-                log.info("No service controller available for platform {}", System.getProperty("os.name"));
-                return null;
-            }
-        }
-
-        try {
-            serviceController.assertReady();
-            return serviceController;
-        } catch (ControlException e) {
-            log.error("Service controller not ready", e);
-            return null;
-        }
-
     }
 
     private static void createAndShowGUI() {
