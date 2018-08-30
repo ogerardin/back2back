@@ -1,13 +1,13 @@
 package org.ogerardin.b2b.update;
 
-import lombok.Data;
-
 import java.net.URL;
 
-@Data
-public class Release {
+public interface Release {
 
-    String version;
+    String getVersion();
 
-    URL zipUrl;
+    URL getZipDownloadUrl();
+
+    String getDescription();
+
 }

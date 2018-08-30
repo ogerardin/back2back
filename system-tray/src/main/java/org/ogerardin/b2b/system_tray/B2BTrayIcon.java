@@ -25,8 +25,6 @@ public class B2BTrayIcon {
 
     private static final int POLL_PERIOD_MILLIS = 10000;
 
-
-
     private static EngineClient engineClient;
     private static ServiceController serviceController;
     private static NativeProcessController processController;

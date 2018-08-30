@@ -2,9 +2,7 @@ package org.ogerardin.b2b.update;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-class GithubChannelTest {
+class GithubReleaseChannelTest {
 
     @Test
     void getReleases() {

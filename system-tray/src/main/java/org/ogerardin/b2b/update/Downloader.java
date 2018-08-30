@@ -12,8 +12,7 @@ public class Downloader {
 
     private final Path dir;
 
-    public void download(Download download) throws IOException {
-        URL url = download.getUrl();
+    public void download(URL url) throws IOException {
 
         String[] parts = url.getPath().split("/");
         String filename = parts[parts.length - 1];
