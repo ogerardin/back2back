@@ -8,10 +8,10 @@ import org.ogerardin.processcontrol.ServiceController;
 
 @Slf4j
 @Data
-public class Updater {
+public class UpdatePerformerr {
 
     public static void main(String[] args) throws ControlException {
-        Updater updater = new Updater();
+        UpdatePerformerr updater = new UpdatePerformerr();
         updater.run();
     }
 

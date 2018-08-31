@@ -58,11 +58,11 @@ public class GithubChannel implements ReleaseChannel {
     }
 
     @Override
-    public GithubRelease[] getReleases() {
+    public Release[] getReleases() {
 
         URL baseUrl = getBaseUrl();
 
-        GithubRelease[] result = restTemplate.getForObject(baseUrl.toString(), GithubRelease[].class);
+        Release[] result = restTemplate.getForObject(baseUrl.toString(), GithubRelease[].class);
 
         return result;
     }
