@@ -12,7 +12,7 @@ public class Downloader {
 
     private final Path dir;
 
-    public void download(URL url) throws IOException {
+    public Path download(URL url) throws IOException {
 
         String[] parts = url.getPath().split("/");
         String filename = parts[parts.length - 1];
@@ -20,5 +20,7 @@ public class Downloader {
         Path targetFile = dir.resolve(filename);
 
         FileUtils.copyURLToFile(url, targetFile.toFile(), 10000, 10000);
+
+        return targetFile;
     }
 }

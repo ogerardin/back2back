@@ -53,7 +53,7 @@ public class B2BTrayIcon {
         // initialize service controller. Used to control engine autostart and (if available) for manual start/stop
         serviceController = null;
         try {
-            ControlHelper.getPlatformServiceController();
+            serviceController = ControlHelper.getPlatformServiceController();
         } catch (ControlException e) {
             log.error("Error while getting platform service controller", e);
         }
