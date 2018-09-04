@@ -10,8 +10,7 @@ import java.nio.file.Paths;
 
 public class Config extends CompositeConfiguration {
 
-    private static final String WINDOWS_SERVICE_NAME = "back2back";
-    private static final String MAC_JOB_NAME = "back2back";
+    private static final String SERVICE_NAME = "back2back";
     private static final String CORE_JAR = "back2back-bundle-repackaged.jar";
 
     private static final Config CONFIG = new Config();
@@ -39,12 +38,8 @@ public class Config extends CompositeConfiguration {
         return CONFIG.getString("back2back.core.jar", CORE_JAR);
     }
 
-    public static String getWindowsServiceName() {
-        return CONFIG.getString("back2back.windows.service.name", WINDOWS_SERVICE_NAME);
-    }
-
-    public static String getMacServiceName() {
-        return CONFIG.getString("back2back.mac.service.name", MAC_JOB_NAME);
+    public static String getServiceName() {
+        return CONFIG.getString("back2back.service.name", SERVICE_NAME);
     }
 
 }

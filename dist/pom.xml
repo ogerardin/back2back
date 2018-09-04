@@ -38,9 +38,24 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
         <dependency>
             <groupId>org.ogerardin</groupId>
             <artifactId>back2back-system-tray</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <classifier>onejar</classifier>
+            <!-- jar is standalone: we don't need transitive dependencies  -->
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.ogerardin</groupId>
+            <artifactId>back2back-updater</artifactId>
             <version>1.0-SNAPSHOT</version>
             <classifier>onejar</classifier>
             <!-- jar is standalone: we don't need transitive dependencies  -->
@@ -88,10 +103,10 @@
 
         <plugins>
 
+            <!-- Don't generate a jar -->
             <plugin>
                 <artifactId>maven-jar-plugin</artifactId>
                 <executions>
-                    <!-- Don't generate a jar -->
                     <execution>
                         <id>default-jar</id>
                         <phase>none</phase>
@@ -192,7 +207,7 @@
                             <goal>exec</goal>
                         </goals>
                         <configuration>
-                            <!-- This will only work with Java 1.8- if we're running with a JRE
+                            <!-- HACK ALERT: This will only work with Java 1.8- if we're running with a JRE
                                 that is inside a JDK !!! -->
                             <executable>${java.home}/../bin/javapackager</executable>
                             <!--<workingDirectory>${project.build.directory}</workingDirectory>-->

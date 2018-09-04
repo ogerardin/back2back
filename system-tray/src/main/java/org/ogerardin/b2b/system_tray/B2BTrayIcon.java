@@ -3,8 +3,10 @@ package org.ogerardin.b2b.system_tray;
 import lombok.extern.slf4j.Slf4j;
 import org.ogerardin.b2b.EngineClient;
 import org.ogerardin.b2b.control.Config;
-import org.ogerardin.b2b.control.ControlHelper;
-import org.ogerardin.processcontrol.*;
+import org.ogerardin.process.control.ControlHelper;
+import org.ogerardin.process.control.ControlException;
+import org.ogerardin.process.control.NativeProcessController;
+import org.ogerardin.process.control.ServiceController;
 import org.springframework.web.client.RestClientException;
 
 import javax.swing.*;
@@ -18,7 +20,7 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.text.MessageFormat;
 
-import static org.ogerardin.processcontrol.JavaProcessControllerHelper.buildJarProcessController;
+import static org.ogerardin.process.control.ControlHelper.buildJarProcessController;
 
 @Slf4j
 public class B2BTrayIcon {
@@ -53,7 +55,7 @@ public class B2BTrayIcon {
         // initialize service controller. Used to control engine autostart and (if available) for manual start/stop
         serviceController = null;
         try {
-            serviceController = ControlHelper.getPlatformServiceController();
+            serviceController = ControlHelper.getPlatformServiceController(Config.getServiceName());
         } catch (ControlException e) {
             log.error("Error while getting platform service controller", e);
         }
