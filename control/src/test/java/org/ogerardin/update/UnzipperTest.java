@@ -19,14 +19,14 @@ class UnzipperTest {
 
     @Test
     void unzip() throws URISyntaxException, IOException {
-        Path zipfile = Paths.get(getClass().getResource("/back2back-dist-1.0-SNAPSHOT.zip").toURI());
+        Path zipfile = Paths.get(getClass().getResource("/test.zip").toURI());
 
         Path tempDirectory = Files.createTempDirectory(getClass().getSimpleName());
         log.info("Unzipping to {} ", tempDirectory);
 
         unzipper.unzip(zipfile, tempDirectory);
 
-        MatcherAssert.assertThat(tempDirectory.resolve("back2back-bundle-repackaged.jar").toFile(),
-                aFileWithSize((33321819)));
+        MatcherAssert.assertThat(tempDirectory.resolve("test/README.txt").toFile(),
+                aFileWithSize((3072)));
     }
 }

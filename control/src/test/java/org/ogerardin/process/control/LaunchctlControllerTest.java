@@ -1,10 +1,12 @@
 package org.ogerardin.process.control;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.condition.EnabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 
 @EnabledOnOs(OS.MAC)
+@Disabled
 public class LaunchctlControllerTest extends ProcessControllerTest {
 
     private static final String SERVICE_NAME = LaunchctlControllerTest.class.getSimpleName();;
