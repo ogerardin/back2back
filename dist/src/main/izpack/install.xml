@@ -37,7 +37,7 @@
         <pack name="back2back engine" required="yes">
             <description>The core backup engine</description>
             <file src="dependency/@{back2back.core.jar}" targetdir="${INSTALL_PATH}" override="true"/>
-            <file src="classes/b2b.ico" targetdir="${INSTALL_PATH}" override="true"/>
+            <file src="classes/izpack/b2b.ico" targetdir="${INSTALL_PATH}" override="true"/>
             <file src="classes/startEngine.bat" targetdir="${INSTALL_PATH}" override="true" condition="izpack.windowsinstall"/>
             <file src="classes/startEngine.sh" targetdir="${INSTALL_PATH}" override="true" condition="!izpack.windowsinstall"/>
             <parsable targetfile="${INSTALL_PATH}/startEngine.bat" type="plain" condition="izpack.windowsinstall"/>
@@ -94,7 +94,7 @@
 
     <resources>
         <res src="classes/izpack/install-sidebar.png" id="Installer.image"/>
-        <res src="classes/izpack/LICENSE.txt" id="LicencePanel.licence"/>
+        <res src="classes/LICENSE.txt" id="LicencePanel.licence"/>
         <res src="classes/izpack/shortcutSpec.xml" id="shortcutSpec.xml"/>
         <res src="classes/izpack/ProcessPanel.Spec.xml" id="ProcessPanel.Spec.xml" />
         <res src="classes/izpack/RegistrySpec.xml" id="RegistrySpec.xml"/>
