@@ -144,6 +144,7 @@
             </plugin>
 
             <!-- Strip version from NSSM resource directory -->
+<!--
             <plugin>
                 <groupId>com.coderplus.maven.plugins</groupId>
                 <artifactId>copy-rename-maven-plugin</artifactId>
@@ -158,6 +159,25 @@
                         <configuration>
                             <sourceFile>${project.build.outputDirectory}/org/ogerardin/processcontrol/nssm-${nssm.version}</sourceFile>
                             <destinationFile>${project.build.outputDirectory}/org/ogerardin/processcontrol/nssm/</destinationFile>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+-->
+
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <move file  ="${project.build.outputDirectory}/org/ogerardin/processcontrol/nssm-${nssm.version}"
+                                      toFile="${project.build.outputDirectory}/org/ogerardin/processcontrol/nssm"/>
+                            </target>
                         </configuration>
                     </execution>
                 </executions>
