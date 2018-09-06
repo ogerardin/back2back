@@ -1,6 +1,7 @@
 package org.ogerardin.process.control;
 
 import com.sun.jna.Platform;
+import org.apache.commons.lang3.ArrayUtils;
 
 import java.nio.file.Path;
 
@@ -36,10 +37,12 @@ public enum ControlHelper {
                 .build();
     }
 
-    public static String[] buildJavaCommand(Path jarFile) {
-        return new String[] {
+    public static String[] buildJavaCommand(Path jarFile, String... extraArgs) {
+        String[] cmdArray = {
                 "java",
                 "-jar", jarFile.toAbsolutePath().toString()
         };
+        String[] result = ArrayUtils.addAll(cmdArray, extraArgs);
+        return result;
     }
 }

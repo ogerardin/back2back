@@ -2,6 +2,8 @@ package org.ogerardin.update;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.ogerardin.process.execute.ExecResults;
 import org.ogerardin.process.execute.ProcessExecutor;
 import org.ogerardin.process.control.ControlHelper;
 
@@ -13,6 +15,7 @@ import java.util.Comparator;
 
 @Data
 @AllArgsConstructor
+@Slf4j
 public class UpdateManager {
 
     private static final Comparator<String> DEFAULT_VERSION_COMPARATOR = new MavenVersionComparator();
@@ -57,10 +60,17 @@ public class UpdateManager {
             throw new UpdateException("updater not found in downloaded artefact " + downloadedFile.getFileName());
         }
 
+        // we pass the folder where the artefact has been unzipped as argument; the rest is up to the updater.
+        String arg1 = outputFolder.normalize().toAbsolutePath().toString();
+        String[] javaCommand = ControlHelper.buildJavaCommand(updater, arg1);
         ProcessExecutor processExecutor = ProcessExecutor.builder()
-                .cmdarray(ControlHelper.buildJavaCommand(updater))
+                .cmdarray(javaCommand)
                 .build();
-        processExecutor.performExec();
+        ExecResults execResults = processExecutor.performExec();
+
+        if (execResults.getExitValue() != 0) {
+            throw new UpdateException(String.format("Update failed with status %d", execResults.getExitValue()));
+        }
 
     }
 
