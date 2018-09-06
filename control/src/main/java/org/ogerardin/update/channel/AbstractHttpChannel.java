@@ -1,7 +1,9 @@
 package org.ogerardin.update.channel;
 
 import com.github.markusbernhardt.proxy.ProxySearch;
+import lombok.Data;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 
@@ -9,7 +11,14 @@ import java.net.*;
 import java.util.Arrays;
 import java.util.List;
 
+@Data
 public abstract class AbstractHttpChannel {
+
+    protected final RestTemplate restTemplate;
+
+    public AbstractHttpChannel() {
+        this.restTemplate = getDefaultRestTemplate();
+    }
 
     protected static RestTemplate getDefaultRestTemplate() {
         Proxy proxy = detectProxy();
@@ -20,14 +29,14 @@ public abstract class AbstractHttpChannel {
         }
         RestTemplate restTemplate = new RestTemplate(requestFactory);
 
-        MappingJackson2HttpMessageConverter jsonConverter = new MappingJackson2HttpMessageConverter();
         restTemplate.setMessageConverters(Arrays.asList(
-                jsonConverter
+                new MappingJackson2HttpMessageConverter(),
+                new StringHttpMessageConverter()
         ));
         return restTemplate;
     }
 
-    private static  Proxy detectProxy() {
+    private static Proxy detectProxy() {
         ProxySearch proxySearch = ProxySearch.getDefaultProxySearch();
         ProxySelector proxySelector = proxySearch.getProxySelector();
         if (proxySelector != null) {
@@ -42,5 +51,4 @@ public abstract class AbstractHttpChannel {
         return null;
     }
 
-    protected abstract String getApiHost();
 }

@@ -3,7 +3,6 @@ package org.ogerardin.update.channel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.springframework.web.client.RestTemplate;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -14,10 +13,5 @@ public class GithubChannel extends AbstractHttpChannel {
 
     protected final String owner;
     protected final String repo;
-    protected final RestTemplate restTemplate;
 
-    @Override
-    protected String getApiHost() {
-        return GithubChannel.API_HOST;
-    }
 }

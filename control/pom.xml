@@ -64,6 +64,11 @@
             <groupId>com.github.markusbernhardt</groupId>
             <artifactId>proxy-vole</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>1.11.3</version>
+        </dependency>
 
         <dependency>
             <groupId>org.apache.maven</groupId>
@@ -144,27 +149,6 @@
             </plugin>
 
             <!-- Strip version from NSSM resource directory -->
-<!--
-            <plugin>
-                <groupId>com.coderplus.maven.plugins</groupId>
-                <artifactId>copy-rename-maven-plugin</artifactId>
-                <version>1.0</version>
-                <executions>
-                    <execution>
-                        <id>rename-nssm</id>
-                        <phase>process-resources</phase>
-                        <goals>
-                            <goal>rename</goal>
-                        </goals>
-                        <configuration>
-                            <sourceFile>${project.build.outputDirectory}/org/ogerardin/processcontrol/nssm-${nssm.version}</sourceFile>
-                            <destinationFile>${project.build.outputDirectory}/org/ogerardin/processcontrol/nssm/</destinationFile>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
--->
-
             <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>
                 <executions>

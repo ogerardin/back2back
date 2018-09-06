@@ -1,10 +1,13 @@
-package org.ogerardin.update;
+package org.ogerardin.update.channel;
 
 import lombok.extern.slf4j.Slf4j;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
-import org.ogerardin.update.channel.GithubReleaseChannel;
+import org.ogerardin.update.Release;
 
 import java.util.Arrays;
+
+import static org.hamcrest.MatcherAssert.assertThat;
 
 @Slf4j
 class GithubReleaseChannelTest {
@@ -16,8 +19,8 @@ class GithubReleaseChannelTest {
         log.debug("Getting releases from {}", channel);
 
         Release[] releases = channel.getReleases();
+        Arrays.stream(releases).forEach(r -> log.debug("release {}", r));
 
-        Arrays.stream(releases)
-            .forEach(release -> log.debug(release.getVersion()));
+        assertThat(releases.length, Matchers.greaterThan(0));
     }
 }

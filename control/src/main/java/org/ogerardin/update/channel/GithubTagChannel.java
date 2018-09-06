@@ -14,7 +14,7 @@ import java.net.URL;
 public class GithubTagChannel extends GithubChannel implements ReleaseChannel {
 
     public GithubTagChannel(String owner, String repo) {
-        super(owner, repo, getDefaultRestTemplate());
+        super(owner, repo);
     }
 
     @Override
