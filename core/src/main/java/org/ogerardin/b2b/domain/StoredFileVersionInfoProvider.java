@@ -4,7 +4,7 @@ import org.ogerardin.b2b.domain.entity.StoredFileVersionInfo;
 import org.ogerardin.b2b.storage.FileVersion;
 import org.ogerardin.b2b.storage.StorageFileNotFoundException;
 import org.ogerardin.b2b.storage.StorageService;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import org.ogerardin.b2b.util.NotImplementedException;
 
 import java.nio.file.Path;
 import java.util.Optional;
