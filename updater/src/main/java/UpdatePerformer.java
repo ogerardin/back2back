@@ -12,10 +12,12 @@ import java.nio.file.Paths;
 public class UpdatePerformer {
 
     private final Path updateSourceDir;
+    private final Path targetDir;
 
     public static void main(String[] args) throws ControlException {
         Path updateSourceDir = Paths.get(args[0]);
-        UpdatePerformer updater = new UpdatePerformer(updateSourceDir);
+        Path targetDir = Paths.get(args[1]);
+        UpdatePerformer updater = new UpdatePerformer(updateSourceDir, targetDir);
         updater.run();
     }
 
