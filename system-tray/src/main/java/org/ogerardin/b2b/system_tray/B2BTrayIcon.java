@@ -2,10 +2,16 @@ package org.ogerardin.b2b.system_tray;
 
 import lombok.extern.slf4j.Slf4j;
 import org.ogerardin.b2b.EngineClient;
-import org.ogerardin.process.control.ControlHelper;
 import org.ogerardin.process.control.ControlException;
+import org.ogerardin.process.control.ControlHelper;
 import org.ogerardin.process.control.NativeProcessController;
 import org.ogerardin.process.control.ServiceController;
+import org.ogerardin.update.Release;
+import org.ogerardin.update.ReleaseChannel;
+import org.ogerardin.update.UpdateException;
+import org.ogerardin.update.UpdateManager;
+import org.ogerardin.update.channel.GithubReleaseChannel;
+import org.ogerardin.update.jar.JarVersionExtractor;
 import org.springframework.web.client.RestClientException;
 
 import javax.swing.*;
@@ -19,8 +25,6 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.text.MessageFormat;
 
-import static org.ogerardin.process.control.ControlHelper.buildJarProcessController;
-
 @Slf4j
 public class B2BTrayIcon {
 
@@ -29,6 +33,7 @@ public class B2BTrayIcon {
     private static EngineClient engineClient;
     private static ServiceController serviceController;
     private static NativeProcessController processController;
+    private static UpdateManager updateManager;
 
     private static TrayIcon trayIcon;
     private static MenuItem openWebUIMenuItem;
@@ -67,7 +72,23 @@ public class B2BTrayIcon {
 
         // initialize process controller. Used for manual start/stop when service controller is not available
         Path coreJarPath = Config.getHomeDirectory().resolve(Config.getCoreJar());
-        processController = buildJarProcessController(coreJarPath);
+        processController = ControlHelper.buildJarProcessController(coreJarPath);
+
+        // initialize update manager
+        Path jar = Config.getHomeDirectory().resolve(Config.getCoreJar());
+        String version = JarVersionExtractor.getImplementationVersion(jar);
+        if (version == null) {
+            log.warn("Failed to obtain current version, update manager disabled");
+        }
+        else {
+            ReleaseChannel releaseChannel = new GithubReleaseChannel("ogerardin", "back2back");
+            updateManager = UpdateManager.builder()
+                    .currentVersion(version)
+                    .homeDir(Config.getHomeDirectory())
+                    .releaseChannel(releaseChannel)
+                    .build();
+            log.info("Update manager instantiated: {}", updateManager);
+        }
 
         // set UI options
         try {
@@ -152,6 +173,12 @@ public class B2BTrayIcon {
             popupMenu.add(item);
         }
         {
+            MenuItem item = new MenuItem("Check for update");
+            item.setEnabled(updateManager != null);
+            item.addActionListener(B2BTrayIcon::checkForUpdate);
+            popupMenu.add(item);
+        }
+        {
             MenuItem item = new MenuItem("Close tray icon");
             item.addActionListener(e -> {
                 tray.remove(trayIcon);
@@ -231,18 +258,21 @@ public class B2BTrayIcon {
             try {
                 String engineStatus = engineClient.apiStatus();
                 if (engineAvailable == null || !engineAvailable) {
+                    // only log after first check or if previous status was unavailable
                     log.debug("Engine available, API status: {}", engineStatus);
                     trayIcon.displayMessage("back2back Engine is available", null, TrayIcon.MessageType.INFO);
                 }
                 engineAvailable = true;
             } catch (RestClientException e) {
                 if (engineAvailable == null || engineAvailable) {
+                    // only log after first check or if previous status was available
                     log.error("Engine API not available: {}", e.toString());
                     trayIcon.displayMessage("back2back Engine is not available", null, TrayIcon.MessageType.WARNING);
                 }
                 engineAvailable = false;
             }
 
+            // enable or disable actions accordingly
             openWebUIMenuItem.setEnabled(engineAvailable);
             startMenuItem.setEnabled(!engineAvailable);
             stopMenuItem.setEnabled(engineAvailable);
@@ -289,7 +319,7 @@ public class B2BTrayIcon {
         return new ImageIcon(imageURL, description).getImage();
     }
 
-    private static void about(ActionEvent e) {
+    private static void about(ActionEvent evt) {
         try {
             String version = engineClient.version();
             JOptionPane.showMessageDialog(null,
@@ -299,5 +329,29 @@ public class B2BTrayIcon {
                     MessageFormat.format("back2back: peer to peer backup\nEngine is not running\n{0}", e1.toString()));
         }
 
+    }
+
+    private static void checkForUpdate(ActionEvent evt) {
+        Release update = updateManager.checkForUpdate();
+        if (update == null) {
+            JOptionPane.showMessageDialog(null,
+                    MessageFormat.format("You have version {0}\nYou have the latest version.",
+                            updateManager.getCurrentVersion()),
+                    "No update available", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        int choice = JOptionPane.showConfirmDialog(null,
+                MessageFormat.format("You have version {0}\nLatest version is {1}\n\nUpdate now?",
+                        updateManager.getCurrentVersion(),
+                        update.getVersion()
+                ), "Update available!", JOptionPane.YES_NO_OPTION);
+        if (choice == JOptionPane.YES_OPTION) {
+            try {
+                updateManager.update(update);
+            } catch (IOException | UpdateException | InterruptedException e) {
+                log.error("Update failed", e);
+            }
+        }
     }
 }

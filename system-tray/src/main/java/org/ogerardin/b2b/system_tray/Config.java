@@ -29,11 +29,6 @@ public class Config extends CompositeConfiguration {
         return Paths.get(dir);
     }
 
-    public static Path getNssmHomeDirectory() {
-        String dir = CONFIG.getString("nssm.home", "nssm");
-        return Paths.get(dir);
-    }
-
     public static String getCoreJar() {
         return CONFIG.getString("back2back.core.jar", CORE_JAR);
     }

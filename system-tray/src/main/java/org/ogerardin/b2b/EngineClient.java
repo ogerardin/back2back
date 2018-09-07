@@ -19,23 +19,42 @@ public class EngineClient {
     private static final int DEFAULT_SERVER_PORT = 8080;
     private static final String ENGINE_PROPERTIES_FILE = "application.properties";
 
+    private final RestTemplate restTemplate = new RestTemplate();
+    private final Path homeDir;
     private final int serverPort;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    public EngineClient() {
+        this(DEFAULT_SERVER_PORT);
+    }
 
-    public EngineClient(Path homeDir) throws IOException {
+    public EngineClient(int serverPort) {
+        this(null, serverPort);
+    }
 
-        Path propertiesFile = homeDir.resolve(ENGINE_PROPERTIES_FILE).toAbsolutePath().normalize();
+    public EngineClient(Path homeDir, int serverPort) {
+        this.homeDir = homeDir;
+        this.serverPort = serverPort;
+    }
+
+    public EngineClient(Path homeDir) {
+        this(homeDir, getServerPort(homeDir));
+    }
+
+    private static int getServerPort(Path homeDir)  {
+        Path propertiesFile = homeDir.resolve(ENGINE_PROPERTIES_FILE);
         Properties engineProperties = new Properties();
         try (FileInputStream fileInputStream = new FileInputStream(propertiesFile.toFile())) {
             engineProperties.load(fileInputStream);
         } catch (FileNotFoundException fnfe) {
             log.warn("engine configuration not found: " + propertiesFile);
+        } catch (IOException e) {
+            log.error("Failed to read engine configuration: " + propertiesFile, e);
         }
 
         String serverPortProperty = engineProperties.getProperty("server.port");
-        serverPort = (serverPortProperty == null) ? DEFAULT_SERVER_PORT : Integer.parseInt(serverPortProperty);
+        int serverPort = (serverPortProperty == null) ? DEFAULT_SERVER_PORT : Integer.parseInt(serverPortProperty);
         log.info("server port = " + serverPort);
+        return serverPort;
     }
 
     public String apiStatus()  {
@@ -62,6 +81,5 @@ public class EngineClient {
     public String getBaseUrl() {
         return String.format("http://localhost:%d", serverPort);
     }
-
 
 }
