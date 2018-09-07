@@ -4,7 +4,6 @@ import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.ogerardin.b2b.B2BProperties;
 import org.ogerardin.b2b.domain.entity.BackupSet;
 import org.ogerardin.b2b.domain.entity.BackupSource;
@@ -72,20 +71,15 @@ public class JobStarter {
         log.debug("SYNCING JOBS");
 
         // get all source/target combinations that should have a backup job running
-        Set<Pair<BackupSource, BackupTarget>> sourceTargetPairs =
+        Set<BackupSet> activeBackupSets =
                 Lists.cartesianProduct(sourceRepository.findAll(), targetRepository.findAll()).stream()
-                        .map(l -> new ImmutablePair<>((BackupSource) l.get(0), (BackupTarget) l.get(1)))
-                        .filter(p -> p.left.isEnabled())
-                        .filter(p -> p.left.shouldStartJob())
-                        .filter(p -> p.right.isEnabled())
-                        .collect(Collectors.toSet());
-        log.debug("Found {} eligible source/target pair(s)", sourceTargetPairs.size());
-
-        // get all corresponding backup sets
-        Set<BackupSet> activeBackupSets = sourceTargetPairs.stream()
-                .peek(st -> log.debug("Getting backup set for {} / {}", st.getLeft(), st.getRight()))
-                .map(st -> findBackupSet(st.getLeft(), st.getRight()))
-                .collect(Collectors.toSet());
+                    .map(l -> new ImmutablePair<>((BackupSource) l.get(0), (BackupTarget) l.get(1)))
+                    .filter(p -> p.left.isEnabled())
+                    .filter(p -> p.left.shouldStartJob())
+                    .filter(p -> p.right.isEnabled())
+                    .peek(st -> log.debug("Getting backup set for {} / {}", st.getLeft(), st.getRight()))
+                    .map(st -> findBackupSet(st.getLeft(), st.getRight()))
+                    .collect(Collectors.toSet());
 
         Set<String> activeBackupSetIds = activeBackupSets.stream()
                 .map(BackupSet::getId)

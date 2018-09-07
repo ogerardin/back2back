@@ -24,7 +24,7 @@ class UnzipperTest {
         Path tempDirectory = Files.createTempDirectory(getClass().getSimpleName());
         log.info("Unzipping to {} ", tempDirectory);
 
-        unzipper.unzip(zipfile, tempDirectory);
+        unzipper.unzipFile(zipfile, tempDirectory);
 
         MatcherAssert.assertThat(tempDirectory.resolve("test/README.txt").toFile(),
                 aFileWithSize((3072)));

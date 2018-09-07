@@ -13,7 +13,7 @@ import java.util.zip.ZipFile;
 
 public class Unzipper {
 
-    public void unzip(Path zipFile, Path outputFolder) throws IOException {
+    public void unzipFile(Path zipFile, Path outputFolder) throws IOException {
         ZipFile zf = new ZipFile(zipFile.toFile());
         Enumeration<? extends ZipEntry> entries = zf.entries();
         while (entries.hasMoreElements()) {

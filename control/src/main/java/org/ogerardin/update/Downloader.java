@@ -10,9 +10,7 @@ import java.nio.file.Path;
 @Data
 public class Downloader {
 
-    private final Path dir;
-
-    public Path download(URL url) throws IOException {
+    public Path downloadFile(URL url, Path dir) throws IOException {
 
         String[] parts = url.getPath().split("/");
         String filename = parts[parts.length - 1];

@@ -20,10 +20,11 @@ public class UpdateManager {
 
     private static final Comparator<String> DEFAULT_VERSION_COMPARATOR = new MavenVersionComparator();
     private static final Unzipper UNZIPPER = new Unzipper();
+    private static final Downloader DOWNLOADER = new Downloader();
 
     private final ReleaseChannel releaseChannel;
     private final String currentVersion;
-    private Comparator<String> versionComparator = DEFAULT_VERSION_COMPARATOR;
+    private final Comparator<String> versionComparator;
 
     public UpdateManager(ReleaseChannel releaseChannel, String currentVersion) {
         this(releaseChannel, currentVersion, DEFAULT_VERSION_COMPARATOR);
@@ -45,23 +46,21 @@ public class UpdateManager {
 
     public void update(Release release) throws IOException, UpdateException, InterruptedException {
         // download zip
-        Path tempDirectory = Files.createTempDirectory(this.getClass().getSimpleName());
-        Downloader downloader = new Downloader(tempDirectory);
-
-        Path downloadedFile = downloader.download(release.getZipDownloadUrl());
+        Path downloadDir = Files.createTempDirectory(this.getClass().getSimpleName());
+        Path downloadedFile = DOWNLOADER.downloadFile(release.getZipDownloadUrl(), downloadDir);
 
         // unzip
-        Path outputFolder = downloadedFile.getParent().resolve("extracted");
-        UNZIPPER.unzip(downloadedFile, outputFolder);
+        Path extractDir = downloadDir.resolve("extracted");
+        UNZIPPER.unzipFile(downloadedFile, extractDir);
 
         // invoke updater jar
-        Path updater = outputFolder.resolve("updater.jar");
+        Path updater = extractDir.resolve("updater.jar");
         if (! Files.exists(updater)) {
             throw new UpdateException("updater not found in downloaded artefact " + downloadedFile.getFileName());
         }
 
         // we pass the folder where the artefact has been unzipped as argument; the rest is up to the updater.
-        String arg1 = outputFolder.normalize().toAbsolutePath().toString();
+        String arg1 = extractDir.normalize().toAbsolutePath().toString();
         String[] javaCommand = ControlHelper.buildJavaCommand(updater, arg1);
         ProcessExecutor processExecutor = ProcessExecutor.builder()
                 .cmdarray(javaCommand)

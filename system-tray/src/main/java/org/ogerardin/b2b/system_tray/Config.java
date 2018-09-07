@@ -1,4 +1,4 @@
-package org.ogerardin.b2b.control;
+package org.ogerardin.b2b.system_tray;
 
 import org.apache.commons.configuration.CompositeConfiguration;
 import org.apache.commons.configuration.ConfigurationException;
