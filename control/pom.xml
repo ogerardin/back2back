@@ -141,7 +141,7 @@
                         <configuration>
                             <url>http://nssm.cc/release/nssm-${nssm.version}.zip</url>
                             <!--<md5>be7b3577c6e3a280e5106a9e9db5b3775931cefc</md5>-->
-                            <outputDirectory>${project.build.outputDirectory}/org/ogerardin/processcontrol</outputDirectory>
+                            <outputDirectory>${project.build.outputDirectory}/org/ogerardin/process/control</outputDirectory>
                             <unpack>true</unpack>
                         </configuration>
                     </execution>
@@ -159,8 +159,8 @@
                         </goals>
                         <configuration>
                             <target>
-                                <move file  ="${project.build.outputDirectory}/org/ogerardin/processcontrol/nssm-${nssm.version}"
-                                      toFile="${project.build.outputDirectory}/org/ogerardin/processcontrol/nssm"/>
+                                <move file  ="${project.build.outputDirectory}/org/ogerardin/process/control/nssm-${nssm.version}"
+                                      toFile="${project.build.outputDirectory}/org/ogerardin/process/control/nssm"/>
                             </target>
                         </configuration>
                     </execution>

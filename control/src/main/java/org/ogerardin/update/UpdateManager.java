@@ -1,7 +1,6 @@
 package org.ogerardin.update;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.ogerardin.process.execute.ExecResults;
 import org.ogerardin.process.execute.ProcessExecutor;
@@ -15,6 +14,8 @@ import java.util.Comparator;
 
 @Data
 @AllArgsConstructor
+@Builder
+@ToString
 @Slf4j
 public class UpdateManager {
 
@@ -22,13 +23,14 @@ public class UpdateManager {
     private static final Unzipper UNZIPPER = new Unzipper();
     private static final Downloader DOWNLOADER = new Downloader();
 
+    @Builder.Default
+    private final Comparator<String> versionComparator = DEFAULT_VERSION_COMPARATOR;
+    @NonNull
     private final ReleaseChannel releaseChannel;
+    @NonNull
     private final String currentVersion;
-    private final Comparator<String> versionComparator;
-
-    public UpdateManager(ReleaseChannel releaseChannel, String currentVersion) {
-        this(releaseChannel, currentVersion, DEFAULT_VERSION_COMPARATOR);
-    }
+    /** The home directory of the current installation */
+    private final Path homeDir;
 
     public Release checkForUpdate() {
         Release[] releases = releaseChannel.getReleases();
@@ -61,7 +63,8 @@ public class UpdateManager {
 
         // we pass the folder where the artefact has been unzipped as argument; the rest is up to the updater.
         String arg1 = extractDir.normalize().toAbsolutePath().toString();
-        String[] javaCommand = ControlHelper.buildJavaCommand(updater, arg1);
+        String arg2 = homeDir.normalize().toAbsolutePath().toString();
+        String[] javaCommand = ControlHelper.buildJavaCommand(updater, arg1, arg2);
         ProcessExecutor processExecutor = ProcessExecutor.builder()
                 .cmdarray(javaCommand)
                 .build();
@@ -70,10 +73,10 @@ public class UpdateManager {
         if (execResults.getExitValue() != 0) {
             throw new UpdateException(String.format("Update failed with status %d", execResults.getExitValue()));
         }
-
     }
 
     private int compareVersion(Release r1, Release r2) {
         return versionComparator.compare(r1.getVersion(), r2.getVersion());
     }
 }
+

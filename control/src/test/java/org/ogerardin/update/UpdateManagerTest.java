@@ -21,7 +21,10 @@ public class UpdateManagerTest {
         GithubReleaseChannel channel = new GithubReleaseChannel("edvin", "fxlauncher");
 
         String currentVersion = "v1.0.0";
-        UpdateManager updateManager = new UpdateManager(channel, currentVersion);
+        UpdateManager updateManager = UpdateManager.builder()
+                .releaseChannel(channel)
+                .currentVersion(currentVersion)
+                .build();
 
         Release availableUpdate = updateManager.checkForUpdate();
 
@@ -45,10 +48,15 @@ public class UpdateManagerTest {
         ReleaseChannel mockedChannel = mock(ReleaseChannel.class);
         when(mockedChannel.getReleases()).thenReturn(new Release[] { r1, r2, r3});
 
-        UpdateManager updateManager = new UpdateManager(mockedChannel, "1.2.1");
+        UpdateManager updateManager = UpdateManager.builder()
+                .releaseChannel(mockedChannel)
+                .currentVersion("1.2.1")
+                .build();
 
         Release availableUpdate = updateManager.checkForUpdate();
 
         assertThat(availableUpdate.getVersion(), is(r3.getVersion()));
     }
+
+
 }

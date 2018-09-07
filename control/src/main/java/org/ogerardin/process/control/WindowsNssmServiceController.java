@@ -10,6 +10,7 @@ import org.ogerardin.process.execute.ExecResults;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -53,8 +54,12 @@ public class WindowsNssmServiceController extends ExternalServiceController impl
      */
     private static Path extractNssmExe() throws IOException {
         String nssmExeRsrc = String.format("nssm/%s/nssm.exe", Platform.is64Bit() ? "win64" : "win32");
+        URL nssmExeUrl = WindowsNssmServiceController.class.getResource(nssmExeRsrc);
+        if (nssmExeUrl == null) {
+            throw new RuntimeException("Resource not found: " + nssmExeRsrc);
+        }
         Path nssmExe = Files.createTempFile("nssm", ".exe");
-        InputStream inputStream = ControlHelper.class.getResource(nssmExeRsrc).openStream();
+        InputStream inputStream = nssmExeUrl.openStream();
         FileUtils.copyInputStreamToFile(inputStream, nssmExe.toFile());
         return nssmExe;
     }
