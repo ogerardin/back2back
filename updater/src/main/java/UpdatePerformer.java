@@ -1,15 +1,21 @@
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.ogerardin.process.control.ControlHelper;
 import org.ogerardin.process.control.ControlException;
+import org.ogerardin.process.control.ControlHelper;
 import org.ogerardin.process.control.ServiceController;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @Slf4j
 @Data
 public class UpdatePerformer {
 
+    private final Path updateSourceDir;
+
     public static void main(String[] args) throws ControlException {
-        UpdatePerformer updater = new UpdatePerformer();
+        Path updateSourceDir = Paths.get(args[0]);
+        UpdatePerformer updater = new UpdatePerformer(updateSourceDir);
         updater.run();
     }
 

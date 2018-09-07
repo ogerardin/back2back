@@ -28,35 +28,8 @@
         </dependency>
     </dependencies>
 
-
     <build>
         <plugins>
-            <!--
-            <plugin>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>generate-test-resources</phase>
-                        <goals>
-                            <goal>copy</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>${project.groupId}</groupId>
-                                    <artifactId>back2back-dist</artifactId>
-                                    <version>1.0-SNAPSHOT</version>
-                                    <type>zip</type>
-                                    <destFileName>dist.zip</destFileName>
-                                </artifactItem>
-                            </artifactItems>
-                        </configuration>
-
-                    </execution>
-                </executions>
-            </plugin>
--->
-
             <plugin>
                 <groupId>com.jolira</groupId>
                 <artifactId>onejar-maven-plugin</artifactId>
