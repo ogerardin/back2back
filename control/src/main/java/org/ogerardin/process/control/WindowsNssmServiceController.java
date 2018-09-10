@@ -126,13 +126,6 @@ public class WindowsNssmServiceController extends ExternalServiceController impl
     }
 
     @Override
-    public void assertReady() throws ControlException {
-        //FIXME we should check if the nssm command exists but if we run it outisde of a shell it opens a GUI
-//        ExecResults r = performControllerCommand("help");
-//        String version = r.getOutputLines().get(1);
-    }
-
-    @Override
     public boolean isInstalled() throws ControlException {
         ExecResults r = performControllerServiceCommand("status");
         return r.getExitValue() == 0;

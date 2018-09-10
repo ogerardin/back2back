@@ -39,7 +39,7 @@
                             <goal>one-jar</goal>
                         </goals>
                         <configuration>
-                            <mainClass>UpdatePerformer</mainClass>
+                            <mainClass>Updater</mainClass>
                             <attachToBuild>true</attachToBuild>
                             <!--<filename>${project.build.finalName}-standalone.${project.packaging}</filename>-->
                         </configuration>

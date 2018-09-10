@@ -103,9 +103,4 @@ public class MacLaunchctlDaemonController extends ExternalServiceController impl
         return false;
     }
 
-    @Override
-    public void assertReady() throws ControlException {
-        //TODO
-        return;
-    }
 }

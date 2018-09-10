@@ -2,8 +2,6 @@ package org.ogerardin.process.control;
 
 public interface ServiceController extends ProcessController {
 
-    void assertReady() throws ControlException;
-
     void installService(String[] commandLine) throws ControlException;
 
     void uninstallService() throws ControlException;

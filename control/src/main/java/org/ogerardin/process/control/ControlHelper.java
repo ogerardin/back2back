@@ -22,22 +22,20 @@ public enum ControlHelper {
                 break;
             }
             default: {
-                throw new ControlException("No service controller available for platform " + System
-                        .getProperty("os.name"));
+                throw new ControlException("No service controller available for platform " + System.getProperty("os.name"));
             }
         }
 
-        serviceController.assertReady();
         return serviceController;
     }
 
     public static NativeProcessController buildJarProcessController(Path jarFile) {
         return NativeProcessController.builder()
-                .command(buildJavaCommand(jarFile))
+                .command(buildJavaJarCommand(jarFile))
                 .build();
     }
 
-    public static String[] buildJavaCommand(Path jarFile, String... extraArgs) {
+    public static String[] buildJavaJarCommand(Path jarFile, String... extraArgs) {
         String[] cmdArray = {
                 "java",
                 "-jar", jarFile.toAbsolutePath().toString()
