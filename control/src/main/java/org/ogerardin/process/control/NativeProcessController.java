@@ -118,18 +118,18 @@ public class NativeProcessController implements ProcessController {
 
     @Override
     public void stop() throws ControlException {
-        log.debug("stopping process");
+        log.info("stopping process");
         long pid;
         try {
             pid = readPid();
             log.debug("read pid={}", pid);
         } catch (FileNotFoundException e) {
-            log.debug("no pid file, assuming process already stopped");
+            log.warn("no pid file, assuming process already stopped");
             return;
         }
 
         if (!isRunning(pid)) {
-            log.debug("invalid pid, deleting stale pid file");
+            log.warn("invalid pid, deleting stale pid file");
             // stale pid file
             deletePidFile();
             return;
