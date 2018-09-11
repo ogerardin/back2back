@@ -6,6 +6,7 @@ import org.ogerardin.process.control.ControlException;
 import org.ogerardin.process.control.ControlHelper;
 import org.ogerardin.process.control.ServiceController;
 import org.ogerardin.update.UpdateAction;
+import org.ogerardin.update.UpdateContext;
 import org.ogerardin.update.UpdateException;
 
 @Data
@@ -22,5 +23,10 @@ public class StopServiceAction implements UpdateAction {
         } catch (ControlException e) {
             throw new UpdateException("Failed to stop service", e);
         }
+    }
+
+    @Override
+    public UpdateAction getRollbackStep() {
+        return new StartServiceAction(serviceName);
     }
 }

@@ -1,7 +1,7 @@
 package org.ogerardin.process.control;
 
 import com.sun.jna.Platform;
-import org.apache.commons.lang3.ArrayUtils;
+import org.ogerardin.process.execute.JavaCommandLine;
 
 import java.nio.file.Path;
 
@@ -29,18 +29,15 @@ public enum ControlHelper {
         return serviceController;
     }
 
-    public static NativeProcessController buildJarProcessController(Path jarFile) {
+    public static NativeProcessController getJarProcessController(Path jarFile) {
+        String[] command = JavaCommandLine.builder()
+                .jarFile(jarFile)
+                .build()
+                .getCommand();
+
         return NativeProcessController.builder()
-                .command(buildJavaJarCommand(jarFile))
+                .command(command)
                 .build();
     }
 
-    public static String[] buildJavaJarCommand(Path jarFile, String... extraArgs) {
-        String[] cmdArray = {
-                "java",
-                "-jar", jarFile.toAbsolutePath().toString()
-        };
-        String[] result = ArrayUtils.addAll(cmdArray, extraArgs);
-        return result;
-    }
 }

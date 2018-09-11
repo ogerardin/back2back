@@ -4,7 +4,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
-import org.ogerardin.update.action.UpdateContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +25,7 @@ public class UpdatePerformer implements Runnable {
             for (int i = 0; i < steps.size(); i++) {
                 UpdateAction step = steps.get(i);
 
-                // store rollback action if we ever need it
+                // store rollback action if there is one
                 UpdateAction rollbackStep = step.getRollbackStep();
                 if (rollbackStep != null) {
                     rollbackSteps.add(rollbackStep);
@@ -34,12 +33,12 @@ public class UpdatePerformer implements Runnable {
 
                 log.info("Performing update step {}/{}: {}", i+1, steps.size(), step);
                 step.perform(context);
-                log.info("...done performing update step {}", i);
+                log.info("...done performing update step {}", i+1);
             }
         } catch (UpdateException e) {
             log.error("Update step failed", e);
             try {
-                log.error("Attempting rollback");
+                log.info("Attempting rollback");
                 rollback(rollbackSteps);
             } catch (UpdateException ue) {
                 throw new RuntimeException("Rollback failed, giving up", ue);
@@ -51,10 +50,10 @@ public class UpdatePerformer implements Runnable {
         try {
             for (int i = 0; i < rollbackSteps.size(); i++) {
                 // rollback steps
-                UpdateAction rollbackStep = steps.get(rollbackSteps.size() - i - 1);
-                log.info("Performing rollback step {}/{}: {}", i, rollbackSteps.size(), rollbackStep);
+                UpdateAction rollbackStep = rollbackSteps.get(rollbackSteps.size() - i - 1);
+                log.info("Performing rollback step {}/{}: {}", i+1, rollbackSteps.size(), rollbackStep);
                 rollbackStep.perform(context);
-                log.info("...done performing rollback step {}", i);
+                log.info("...done performing rollback step {}", i+1);
             }
         } catch (UpdateException e) {
             throw new UpdateException("Rollback step failed", e);

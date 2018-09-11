@@ -3,8 +3,8 @@ package org.ogerardin.update;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.ogerardin.process.execute.ExecResults;
+import org.ogerardin.process.execute.JavaCommandLine;
 import org.ogerardin.process.execute.ProcessExecutor;
-import org.ogerardin.process.control.ControlHelper;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -80,13 +80,20 @@ public class UpdateManager {
             throw new UpdateException("updater not found in downloaded artefact " + downloadedFile.getFileName());
         }
 
-        // we pass the folder where the artefact has been unzipped as argument; the rest is up to the updater.
-        String arg1 = extractDir.normalize().toAbsolutePath().toString();
-        String arg2 = homeDir.normalize().toAbsolutePath().toString();
-        String[] updateCommand = ControlHelper.buildJavaJarCommand(updater, arg1, arg2);
+        // the update context is passed as Java system properties on the command line
+        String extractDirValue = extractDir.normalize().toAbsolutePath().toString();
+        String homeDirValue = homeDir.normalize().toAbsolutePath().toString();
+        String[] updateCommand = JavaCommandLine.builder()
+                .jarFile(updater)
+                .property(UpdateContext.SOURCE_DIR_PROPERTY, extractDirValue)
+                .property(UpdateContext.TARGET_DIR_PROPERTY, homeDirValue)
+                .build()
+                .getCommand();
+
         ProcessExecutor processExecutor = ProcessExecutor.builder()
                 .cmdarray(updateCommand)
                 .build();
+
         ExecResults execResults = processExecutor.performExec();
 
         if (execResults.getExitValue() != 0) {

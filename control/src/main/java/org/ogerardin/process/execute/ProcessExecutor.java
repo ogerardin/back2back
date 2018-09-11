@@ -1,6 +1,7 @@
 package org.ogerardin.process.execute;
 
 import lombok.Builder;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
@@ -14,6 +15,7 @@ import java.nio.file.Paths;
  * Appropriate for short-lived commands only.
  */
 @Slf4j
+@ToString
 @Builder
 public class ProcessExecutor {
 

@@ -4,7 +4,7 @@ import org.ogerardin.update.UpdatePerformer;
 import org.ogerardin.update.action.ReplaceFileAction;
 import org.ogerardin.update.action.StartServiceAction;
 import org.ogerardin.update.action.StopServiceAction;
-import org.ogerardin.update.action.UpdateContext;
+import org.ogerardin.update.UpdateContext;
 
 @Slf4j
 @Data

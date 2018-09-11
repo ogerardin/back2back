@@ -3,6 +3,7 @@ package org.ogerardin.update.action;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.ogerardin.update.UpdateAction;
+import org.ogerardin.update.UpdateContext;
 import org.ogerardin.update.UpdateException;
 
 import java.io.IOException;

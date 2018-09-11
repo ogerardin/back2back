@@ -20,6 +20,10 @@ public abstract class ProcessControllerTest {
         controller.stop();
         assertFalse(controller.isRunning());
         System.out.println("process stopped");
+
+        Path pidFile = ((NativeProcessController) controller).getPidFile();
+        assertFalse(Files.exists(pidFile));
+
     }
 
     @Test
@@ -55,12 +59,4 @@ public abstract class ProcessControllerTest {
         System.out.println("process stopped");
     }
 
-    @Test
-    public void stop() throws ControlException {
-        assertFalse(controller.isRunning());
-        controller.stop();
-
-        Path pidFile = ((NativeProcessController) controller).getPidFile();
-        assertFalse(Files.exists(pidFile));
-    }
 }

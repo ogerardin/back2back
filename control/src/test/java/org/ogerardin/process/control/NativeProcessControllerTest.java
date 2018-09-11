@@ -2,6 +2,7 @@ package org.ogerardin.process.control;
 
 import nop.Nop;
 import org.junit.jupiter.api.BeforeEach;
+import org.ogerardin.process.execute.JavaCommandLine;
 
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -26,13 +27,23 @@ public class NativeProcessControllerTest extends ProcessControllerTest {
                 .getParent() // one level up because class is in package "nop"
                 ;
 
+        String[] command = JavaCommandLine.builder()
+                .className("nop.Nop")
+                .classpathItem(".")
+                .build()
+                .getCommand();
+
+/*
+        String[] command = {
+                "java",
+                "-cp", ".",
+                "nop.Nop"
+        };
+*/
+
         return NativeProcessController.builder()
                 .workDirectory(path)
-                .command(new String[]{
-                        "java",
-                        "-cp", ".",
-                        "nop.Nop"
-                })
+                .command(command)
                 .pidFileName(PIDFILE)
                 .build();
     }

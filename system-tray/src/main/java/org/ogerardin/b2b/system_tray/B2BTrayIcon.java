@@ -72,7 +72,7 @@ public class B2BTrayIcon {
 
         // initialize process controller. Used for manual start/stop when service controller is not available
         Path coreJarPath = Config.getHomeDirectory().resolve(Config.getCoreJar());
-        processController = ControlHelper.buildJarProcessController(coreJarPath);
+        processController = ControlHelper.getJarProcessController(coreJarPath);
 
         // initialize update manager
         Path jar = Config.getHomeDirectory().resolve(Config.getCoreJar());
