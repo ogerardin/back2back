@@ -7,8 +7,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,10 +23,10 @@ public class JavaCommandLine {
     private String javaCommand = "java";
     private String className;
     private Path jarFile;
-    @Builder.Default
-    private List<ImmutablePair<String,String>> properties = new ArrayList<>();
-    @Builder.Default
-    private List<Path> classSearchPath = new ArrayList<>();
+    @Singular
+    private List<ImmutablePair<String,String>> properties;
+    @Singular("classPathItem")
+    private List<Path> classSearchPath;
     @Singular
     private List<String> args;
 
@@ -41,11 +39,6 @@ public class JavaCommandLine {
         }
 
         String[] cmdArray = {javaCommand};
-        if (jarFile != null) {
-            cmdArray = ArrayUtils.addAll(cmdArray,"-jar", jarFile.toString());
-        } else {
-            cmdArray = ArrayUtils.addAll(cmdArray,className);
-        }
 
         // append classpath (if specified)
         if (! classSearchPath.isEmpty()) {
@@ -62,31 +55,15 @@ public class JavaCommandLine {
             cmdArray = ArrayUtils.addAll(cmdArray, def);
         }
 
+        if (jarFile != null) {
+            cmdArray = ArrayUtils.addAll(cmdArray,"-jar", jarFile.toString());
+        } else {
+            cmdArray = ArrayUtils.addAll(cmdArray,className);
+        }
+
         // append args
         cmdArray = ArrayUtils.addAll(cmdArray, args.toArray(new String[0]));
 
         return cmdArray;
-    }
-
-
-    // Lombok generates this builder automatically, we just want to provide some shortcuts
-    public static class JavaCommandLineBuilder {
-        public JavaCommandLineBuilder property(String property, String value) {
-            if (properties == null) {
-                properties = new ArrayList<>();
-            }
-            properties.add(new ImmutablePair<>(property, value));
-            return this;
-        }
-        public JavaCommandLineBuilder classpathItem(Path path) {
-            if (classSearchPath == null) {
-                classSearchPath = new ArrayList<>();
-            }
-            classSearchPath.add(path);
-            return this;
-        }
-        public JavaCommandLineBuilder classpathItem(String item) {
-            return classpathItem(Paths.get(item));
-        }
     }
 }

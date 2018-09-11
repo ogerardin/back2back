@@ -2,6 +2,7 @@ package org.ogerardin.update;
 
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.ogerardin.process.execute.ExecResults;
 import org.ogerardin.process.execute.JavaCommandLine;
 import org.ogerardin.process.execute.ProcessExecutor;
@@ -85,8 +86,8 @@ public class UpdateManager {
         String homeDirValue = homeDir.normalize().toAbsolutePath().toString();
         String[] updateCommand = JavaCommandLine.builder()
                 .jarFile(updater)
-                .property(UpdateContext.SOURCE_DIR_PROPERTY, extractDirValue)
-                .property(UpdateContext.TARGET_DIR_PROPERTY, homeDirValue)
+                .property(new ImmutablePair<>(UpdateContext.SOURCE_DIR_PROPERTY, extractDirValue))
+                .property(new ImmutablePair<>(UpdateContext.TARGET_DIR_PROPERTY, homeDirValue))
                 .build()
                 .getCommand();
 

@@ -13,6 +13,7 @@ import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 
 /**
  * Controls the execution lifecycle of a process instance. A single instance of the process is allowed.
@@ -23,6 +24,7 @@ import java.nio.file.Paths;
 @Builder
 @AllArgsConstructor
 public class NativeProcessController implements ProcessController {
+    //FIXME we should really have a specialzed class per platform. This class tries to do all in one but it's awkward.
 
     private static final String OSNAME = System.getProperty("os.name").toLowerCase();
 
@@ -38,7 +40,7 @@ public class NativeProcessController implements ProcessController {
     /** Optional path of a file to use for redirecting process output */
     @Builder.Default private Path logFile = null;
 
-    @Builder.Default ProcessListenet processListener = null;
+    @Builder.Default ProcessListener processListener = null;
 
 
     public NativeProcessController(String[] command) {
@@ -65,22 +67,31 @@ public class NativeProcessController implements ProcessController {
     private boolean isRunning(long pid) throws ControlException {
         try {
             String cmd = "ps -p " + pid;
-            Process p = Runtime.getRuntime().exec(cmd);
-            p.waitFor();
-            return p.exitValue() == 0;
-        } catch (IOException | InterruptedException ignored) {
+            int exitValue = exec(cmd);
+            return exitValue == 0;
+        } catch (IOException | InterruptedException e) {
+            log.debug("failed: {}", e.toString());
         }
 
         try {
             //findstr exit code 0 if found pid, 1 if it doesn't
             String cmd = "cmd /c \"tasklist /FI \"PID eq " + pid + "\" | findstr " + pid + "\"";
-            Process p = Runtime.getRuntime().exec(cmd);
-            p.waitFor();
-            return p.exitValue() == 0;
-        } catch (IOException | InterruptedException ignored) {
+            int exitValue = exec(cmd);
+            return exitValue == 0;
+        } catch (IOException | InterruptedException e) {
+            log.debug("failed: {}", e.toString());
         }
 
         throw new ControlException("Failed to check status of pid " + pid);
+    }
+
+    private int exec(String cmd) throws IOException, InterruptedException {
+        log.debug("trying: {}", cmd);
+        Process p = Runtime.getRuntime().exec(cmd);
+        p.waitFor();
+        int exitValue = p.exitValue();
+        log.debug("returned: {}", exitValue);
+        return exitValue;
     }
 
     public long readPid() throws FileNotFoundException, ControlException {
@@ -107,14 +118,18 @@ public class NativeProcessController implements ProcessController {
 
     @Override
     public void stop() throws ControlException {
+        log.debug("stopping process");
         long pid;
         try {
             pid = readPid();
+            log.debug("read pid={}", pid);
         } catch (FileNotFoundException e) {
+            log.debug("no pid file, assuming process already stopped");
             return;
         }
 
         if (!isRunning(pid)) {
+            log.debug("invalid pid, deleting stale pid file");
             // stale pid file
             deletePidFile();
             return;
@@ -122,20 +137,20 @@ public class NativeProcessController implements ProcessController {
 
         try {
             String cmd = "kill -9 " + pid;
-            Process p = Runtime.getRuntime().exec(cmd);
-            p.waitFor();
+            exec(cmd);
             deletePidFile();
             return;
-        } catch (IOException | InterruptedException ignored) {
+        } catch (IOException | InterruptedException e) {
+            log.debug("failed: {}", e.toString());
         }
 
         try {
             String cmd = "cmd /c \"taskkill /F /PID " + pid + "\"";
-            Process p = Runtime.getRuntime().exec(cmd);
-            p.waitFor();
+            exec(cmd);
             deletePidFile();
             return;
-        } catch (IOException | InterruptedException ignored) {
+        } catch (IOException | InterruptedException e) {
+            log.debug("failed: {}", e.toString());
         }
 
         throw new ControlException("Failed to stop process with pid " + pid);
@@ -143,7 +158,9 @@ public class NativeProcessController implements ProcessController {
 
     private void deletePidFile() {
         try {
-            Files.delete(getPidFile());
+            Path pidFile = getPidFile();
+            log.debug("removing pid file {}", pidFile);
+            Files.delete(pidFile);
         } catch (IOException ignored) {
         }
     }
@@ -154,11 +171,13 @@ public class NativeProcessController implements ProcessController {
             throw new ControlException("already running");
         }
 
+        log.info("starting {}", Arrays.toString(command));
         ProcessBuilder processBuilder = new ProcessBuilder(command);
         processBuilder.directory(workDirectory.toFile());
         processBuilder.redirectErrorStream(true);
 
         if (logFile != null) {
+            log.debug("output redirected to {}", logFile);
             processBuilder.redirectOutput(ProcessBuilder.Redirect.appendTo(logFile.toFile()));
         }
         else {
@@ -167,8 +186,8 @@ public class NativeProcessController implements ProcessController {
 
         Process process;
         try {
-            log.debug(processBuilder.toString());
             process = processBuilder.start();
+            log.debug("process started: {}", process);
         } catch (IOException e) {
             throw new ControlException("failed to start process", e);
         }
@@ -176,6 +195,7 @@ public class NativeProcessController implements ProcessController {
         long pid;
         try {
             pid = getPid(process);
+            log.debug("pid={}", pid);
         } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new ControlException("Failed to get pid of launched process", e);
         }
@@ -205,6 +225,7 @@ public class NativeProcessController implements ProcessController {
 
     private void writePid(long pid) throws IOException {
         Path pidFile = getPidFile();
+        log.debug("writing pid to {}", pidFile);
         try (PrintStream ps = new PrintStream(new FileOutputStream(pidFile.toFile()))) {
             ps.print(pid);
         }
@@ -251,7 +272,7 @@ public class NativeProcessController implements ProcessController {
         return value;
     }
 
-    public interface ProcessListenet {
+    public interface ProcessListener {
         void processTerminated(ProcessEvent processEvent);
     }
 
