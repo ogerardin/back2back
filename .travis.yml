@@ -19,3 +19,4 @@ deploy:
   skip_cleanup: true
   on:
     repo: ogerardin/back2back
+    all_branches: true
