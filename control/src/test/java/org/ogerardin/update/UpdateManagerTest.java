@@ -1,6 +1,7 @@
 package org.ogerardin.update;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import org.ogerardin.update.channel.GithubReleaseChannel;
 
 import java.util.Comparator;
@@ -17,6 +18,8 @@ import static org.mockito.Mockito.when;
 public class UpdateManagerTest {
 
     @Test
+    // for some reason access to github API from Travis CI gives a 403 error
+    @DisabledIfEnvironmentVariable(named = "TRAVIS", matches = "true")
     public void getAvailableUpdateGithub() {
         GithubReleaseChannel channel = new GithubReleaseChannel("edvin", "fxlauncher");
 
