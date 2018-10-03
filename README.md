@@ -33,19 +33,16 @@ Status
 Very preliminary stage: can backup files from a directory to GridFS and to the local peer through HTTP. Basic and 
 incomplete GUI. 
 
- Installing back2back
-
-
+Installing back2back
+====================
 Back2back is composed of 2 parts:
 * a daemon that runs in the background, performs the backup operations and provides a web GUI.
 * a system tray icon app that allows quick access to the GUI and provides control over the daemon.
 
-Automatic Installation
-======================
-Automatic installation through an installer or a package management system is not yet available.
+Note: Automatic installation through an installer or a package management system is not yet available.
 
 Manual Installation
-===================
+-------------------
 Download the archive (zip or tgz).
 
 Unzip the archive into a directory of your choice. This will be Back2back's home directory.
@@ -102,7 +99,7 @@ To uninstall type:
     removeService.bat
 
 
-Configuring as a maxOS Global Daemon
+Configuring as a macOS Global Daemon
 ------------------------------------
 To install back2back daemon as a macOS "global daemon" using launchtl, just run:
 
