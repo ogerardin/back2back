@@ -30,8 +30,8 @@ Architecture
 
 Status
 ------
-Very preliminary stage: can backup files from a directory to GridFS and to the local peer through HTTP. Basic and 
-incomplete GUI. 
+Very preliminary stage: can backup files from a directory to GridFS and to the local peer through HTTP. Very 
+incomplete GUI.  
 
 Installing back2back
 ====================
@@ -39,37 +39,43 @@ Back2back is composed of 2 parts:
 * a daemon that runs in the background, performs the backup operations and provides a web GUI.
 * a system tray icon app that allows quick access to the GUI and provides control over the daemon.
 
-Note: Automatic installation through an installer or a package management system is not yet available.
+Automatic installation through an installer or a package management system is not yet available. Following are 
+instructions for manual installation of the daemon.
 
 Manual Installation
 -------------------
 Download the archive (zip or tgz).
 
-Unzip the archive into a directory of your choice. This will be Back2back's home directory.
+Ectract the archive into a directory of your choice. This will be Back2back's home directory.
 * Under Windows, it is recommended to use a directory at the root of the disk, such as C:\back2back
 * Under macOS, a common choice is /Applications/back2back
 
 Starting the daemon
 -------------------
 The daemon consists of a standalone executable jar named back2back-bundle-repackaged.jar. If Java is is correctly 
-configured on your system, you can start the daemon by double-clicking on the jar file's icon in the file explorer, but 
+configured on your system, you could start the daemon by double-clicking on the jar file's icon in the file explorer, but 
 it is not the recommended way because it doesn't have a proper GUI and you will not get feedback.
 
-To start it the first time and check that it starts correctly, open a command prompt, cd into the directory where the
-jar file resides, and type:
+To check that it starts correctly, open a command prompt, cd into the directory where the jar file resides, and type:
 
-    java -jar @back2back.core.jar@
+    java -jar back2back-bundle-repackaged
 
 The daemon will start up and begin displaying log messages to the screen.
 During the first start, you need an internet connection because the daemon will download a copy of MongoDB, the database
 it uses to store configuration and backup files.
 When the log displays the message "Started Main in x.xxxx seconds", the daemon is ready and you can use the GUI.
 
+The daemon listens to port 8080 by default. If there is already a process bound to this port on your computer, create
+a file named `application.properties` in back2back's home directory and add a line similar to the following:
+
+    server.port = 8081 //or whatever free port you wish to use
+
 Accessing the GUI
 -----------------
 Back2back's GUI is a web application; when the daemon is ready you can access it by opening a web browser and typing
-the address: http://localhost:8080
+the address: http://localhost:8080 (of course if you've changed from the default port 8080, use the actual port).
 A web page with Back2back's logo should open.
+
 
 Stopping the daemon
 -------------------
