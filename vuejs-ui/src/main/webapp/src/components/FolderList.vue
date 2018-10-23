@@ -1,11 +1,11 @@
 <template>
 
   <b-container>
-    <b-list-group
+    <b-list-group>
     <b-list-group-item v-for="p in paths" :key="p">
       &#x1f4c1; {{p}}
     </b-list-group-item>
-    </b-list-view>
+    </b-list-group>
     {{totalFiles}} files / {{totalBytes}}
   </b-container>
 
@@ -24,9 +24,9 @@
     mounted() {
       this.getSources();
     },
-    updated() {
-      this.getSources();
-    },
+    // updated() {
+    //   this.getSources();
+    // },
     methods: {
       getSources: function () {
         let paths = [];

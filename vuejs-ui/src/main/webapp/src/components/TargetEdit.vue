@@ -4,7 +4,7 @@
       <h2>Edit Target</h2>
     </slot>
 
-    <b-form v-on:submit="updateTarget">
+    <b-form v-on:submit.prevent="updateTarget">
 
       <b-form-group label="ID:" label-for="id">
         <b-form-input id="id" v-model="target.id" readonly></b-form-input>
@@ -69,12 +69,14 @@
         this.$http.put('http://localhost:8080/api/targets/' + target.id, target).then(response => {
           this.target = response.data;
           this.$router.go(-1);
+          // this.$router.push({name: 'target-list'});
         }, error => {
           console.log(error)
         });
       },
       cancel() {
         this.$router.go(-1);
+        // this.$router.push({name: 'target-list'});
       },
     }
   }

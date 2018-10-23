@@ -74,9 +74,9 @@
     mounted() {
       this.getSources();
     },
-    updated() {
-      this.getSources();
-    },
+    // updated() {
+    //   this.getSources();
+    // },
     watch: {
         '$route' (to, from) {
           // show the modal edit dialog if the matched route is 'source-edit'

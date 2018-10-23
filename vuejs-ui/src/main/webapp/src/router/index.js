@@ -44,6 +44,7 @@ export default new Router({
         { path: '', name: 'source-list', component: SourceList },
         // { path: 'add', name: 'source-add', component: SourceAdd },
         { path: ':id/edit', name: 'source-edit', component: SourceEdit },
+        //EXPERIMENTAL modal edit version: the SourceList component also handles the route 'source-edit'
         // { path: ':id/edit', name: 'source-edit', component: SourceList, props: true },
         { path: ':id/add-folder', name: 'source-path-select', component: SourceAddFolder },
       ]
@@ -52,7 +53,7 @@ export default new Router({
       path: '/targets',
       component: Targets,
       children: [
-        { path: '', component: TargetList },
+        { path: '', name: 'target-list', component: TargetList },
         { path: 'add', name: 'target-add', component: TargetAdd },
         { path: ':id/edit', name: 'target-edit', component: TargetEdit },
       ]

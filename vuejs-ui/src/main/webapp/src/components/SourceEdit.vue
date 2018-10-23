@@ -4,7 +4,7 @@
       <h2>Edit source</h2>
     </slot>
 
-    <b-form v-on:submit="updateSource">
+    <b-form v-on:submit.prevent="updateSource">
       <b-form-group label="ID" label-for="id">
         <b-form-input id="id" v-model="source.id" readonly></b-form-input>
       </b-form-group>
@@ -73,6 +73,7 @@
         this.$http.put('http://localhost:8080/api/sources/' + source.id, source).then(response => {
           this.source = response.data;
           this.$router.go(-1);
+          // this.$router.push({name: 'source-list'});
         }, error => {
           console.log(error)
         });
@@ -86,6 +87,7 @@
       },
       cancel() {
         this.$router.go(-1);
+        // this.$router.push({name: 'source-list'});
       },
     }
   }

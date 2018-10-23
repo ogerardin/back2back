@@ -59,9 +59,9 @@
     mounted() {
       this.getTargets();
     },
-    updated() {
-      this.getTargets();
-    },
+    // updated() {
+    //   this.getTargets();
+    // },
     methods: {
       getTargets() {
         this.$http.get('http://localhost:8080/api/targets').then(response => {

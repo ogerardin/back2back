@@ -4,7 +4,7 @@
       <h2>Add Target</h2>
     </slot>
 
-    <b-form @submit="addTarget">
+    <b-form v-on:submit.prevent="addTarget">
 
       <b-form-group label="Type:" label-for="type">
         <b-form-select id="type" required v-model="target._class" :options="options" />
@@ -67,12 +67,14 @@
         this.$http.post('http://localhost:8080/api/targets', target).then(response => {
           this.target = response.data;
           this.$router.go(-1);
+          // this.$router.push({name: 'target-list'});
         }, error => {
           console.log(error)
         });
       },
       cancel() {
         this.$router.go(-1);
+        // this.$router.push({name: 'target-list'});
       },
     }
   }
