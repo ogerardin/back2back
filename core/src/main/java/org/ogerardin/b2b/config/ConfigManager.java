@@ -23,7 +23,7 @@ public class ConfigManager {
 
     public void init() {
         // get the stored computerId, if we don't have one assign a random one and sotre it
-        machineInfo = (ConfigItem.MachineInfo) configItemRepository.findOne(KEY_MACHINE_INFO);
+        machineInfo = (ConfigItem.MachineInfo) configItemRepository.findById(KEY_MACHINE_INFO).orElse(null);
         if (machineInfo == null) {
             UUID uuid = UUID.randomUUID();
             machineInfo = new ConfigItem.MachineInfo(KEY_MACHINE_INFO, uuid.toString());

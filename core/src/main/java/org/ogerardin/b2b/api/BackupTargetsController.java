@@ -8,6 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/targets")
@@ -31,8 +32,9 @@ public class BackupTargetsController {
     }
 
     @GetMapping("/{id}")
-    public BackupTarget get(@PathVariable String id) {
-        return targetRepository.findOne(id);
+    public BackupTarget get(@PathVariable String id) throws NotFoundException {
+        Optional<BackupTarget> backupTarget = targetRepository.findById(id);
+        return backupTarget.orElseThrow(() -> new NotFoundException(id));
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -59,13 +61,13 @@ public class BackupTargetsController {
     @DeleteMapping("/{id}")
     public void delete(@PathVariable String id) throws NotFoundException {
         assertExists(id);
-        targetRepository.delete(id);
+        targetRepository.deleteById(id);
         //TODO: use change streams? (requires Spring data MongoDB 2.1) https://docs.spring.io/spring-data/mongodb/docs/2.1.0.M3/reference/html/#change-streams
         jobStarter.syncJobs();
     }
 
     private void assertExists(@PathVariable String id) throws NotFoundException {
-        if (!targetRepository.exists(id)) {
+        if (!targetRepository.existsById(id)) {
             throw new NotFoundException(id);
         }
     }

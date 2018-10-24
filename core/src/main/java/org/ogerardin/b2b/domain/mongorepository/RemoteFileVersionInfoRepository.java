@@ -1,7 +1,8 @@
 package org.ogerardin.b2b.domain.mongorepository;
 
 import com.mongodb.BasicDBObject;
-import com.mongodb.DBCollection;
+import com.mongodb.client.MongoCollection;
+import org.bson.Document;
 import org.ogerardin.b2b.domain.StoredFileVersionInfoProvider;
 import org.ogerardin.b2b.domain.entity.StoredFileVersionInfo;
 import org.springframework.data.mongodb.core.MongoOperations;
@@ -30,14 +31,13 @@ public class RemoteFileVersionInfoRepository
 
     @Override
     public Optional<StoredFileVersionInfo> getStoredFileVersionInfo(String path) {
-        StoredFileVersionInfo info = findOne(path);
-        return Optional.ofNullable(info);
+        return findById(path);
     }
 
     @Override
     public void untouchAll() {
-        DBCollection collection = mongoOperations.getCollection(entityInformation.getCollectionName());
-        collection.updateMulti(new BasicDBObject(), BasicDBObject.parse("{ \"$set\": {\"deleted\": \"true\"}}"));
+        MongoCollection<Document> collection = mongoOperations.getCollection(entityInformation.getCollectionName());
+        collection.updateMany(new BasicDBObject(), BasicDBObject.parse("{ \"$set\": {\"deleted\": \"true\"}}"));
     }
 
     @Override

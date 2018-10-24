@@ -1,10 +1,14 @@
 package org.ogerardin.b2b.storage.gridfs;
 
 import com.mongodb.BasicDBObject;
-import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
-import com.mongodb.gridfs.GridFSDBFile;
-import com.mongodb.gridfs.GridFSFile;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.gridfs.GridFSBucket;
+import com.mongodb.client.gridfs.GridFSBuckets;
+import com.mongodb.client.gridfs.model.GridFSFile;
+import org.bson.Document;
+import org.bson.types.ObjectId;
 import org.ogerardin.b2b.storage.*;
 import org.ogerardin.b2b.util.CipherHelper;
 import org.springframework.core.io.InputStreamResource;
@@ -29,6 +33,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.security.Key;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -49,17 +54,17 @@ public class GridFsStorageService implements StorageService {
     private final GridFsTemplate gridFsTemplate;
     private final MongoTemplate mongoTemplate;
     private final MongoConverter mongoConverter;
-    private final String bucket;
+    private final String bucketName;
 
     public GridFsStorageService(MongoDbFactory mongoDbFactory, MongoConverter mongoConverter, MongoTemplate mongoTemplate, MongoOperations mongoOperations) {
         this(mongoDbFactory, mongoConverter, mongoTemplate, DEFAULT_BUCKET);
     }
 
-    public GridFsStorageService(MongoDbFactory mongoDbFactory, MongoConverter mongoConverter, MongoTemplate mongoTemplate, String bucket) {
-        this.gridFsTemplate = new GridFsTemplate(mongoDbFactory, mongoConverter, bucket);
+    public GridFsStorageService(MongoDbFactory mongoDbFactory, MongoConverter mongoConverter, MongoTemplate mongoTemplate, String bucketName) {
+        this.gridFsTemplate = new GridFsTemplate(mongoDbFactory, mongoConverter, bucketName);
         this.mongoTemplate = mongoTemplate;
         this.mongoConverter = mongoConverter;
-        this.bucket = bucket;
+        this.bucketName = bucketName;
     }
 
     private static Path asPath(String f) {
@@ -94,7 +99,8 @@ public class GridFsStorageService implements StorageService {
 
     @Override
     public Stream<FileInfo> getAllFiles(boolean includeDeleted) {
-        Stream<FileInfo> stream = gridFsTemplate.find(new Query()).stream()
+
+        Stream<FileInfo> stream = _allFiles()
                 // group by filename and map to the latest GridFSFile
                 .collect(Collectors.groupingBy(
                         GridFSFile::getFilename,
@@ -112,44 +118,52 @@ public class GridFsStorageService implements StorageService {
         return stream;
     }
 
-    private FileInfo asFileInfo(GridFSDBFile gridFSDBFile) {
-        Path path = asPath(gridFSDBFile.getFilename());
-        Metadata metadata = this.getMetadata(gridFSDBFile);
+    // returns a Stream of all GridFSFiles in the collection
+    private Stream<GridFSFile> _allFiles() {
+        List<GridFSFile> allFiles = new ArrayList<>();
+        gridFsTemplate.find(new Query()).into(allFiles);
+        return allFiles.stream();
+    }
+
+    private FileInfo asFileInfo(GridFSFile gridFSFile) {
+        Path path = asPath(gridFSFile.getFilename());
+        Metadata metadata = this.getMetadata(gridFSFile);
         return new FileInfo(path, metadata.isDeleted());
     }
 
-    private Metadata getMetadata(GridFSDBFile f) {
-        return mongoConverter.read(Metadata.class, f.getMetaData());
+    private Metadata getMetadata(GridFSFile f) {
+        return mongoConverter.read(Metadata.class, f.getMetadata());
     }
 
     @Override
     public Stream<FileVersion> getAllFileVersions() {
-        return gridFsTemplate.find(new Query()).stream()
+        return _allFiles()
                 .map(this::getFileVersion);
     }
 
     @Override
     public InputStream getAsInputStream(String filename) throws StorageFileNotFoundException {
-        GridFSDBFile fsdbFile = getLatestGridFSDBFile(filename);
-        return fsdbFile.getInputStream();
+        GridFSFile fsdbFile = getLatestGridFSFile(filename);
+        return getInputStream(fsdbFile);
     }
+
 
     @Override
     public InputStream getAsInputStream(String filename, Key key) throws StorageFileNotFoundException, EncryptionException {
-        GridFSDBFile fsdbFile = getLatestGridFSDBFile(filename);
-        return getDecryptedInputStream(fsdbFile, key);
+        GridFSFile fsFile = getLatestGridFSFile(filename);
+        return getDecryptedInputStream(fsFile, key);
     }
 
     /**
      * An attempt to implement getGridFSDBFile using Mongo sorting, by querying the GridFS collection directly.
      * !!! UNRELIABLE !!!
      */
-    private GridFSDBFile getGridFSDBFile_(String filename) throws StorageFileNotFoundException {
+    private GridFSFile getGridFSDBFile_(String filename) throws StorageFileNotFoundException {
         // 1) perform a standard MongoTemplate query on the file bucket.
         Query query = new Query(GridFsCriteria.whereFilename().is(filename))
                 .with(new Sort(Sort.Direction.DESC, "uploadDate"))
                 .limit(1);
-        List<BasicDBObject> gridFsFiles = mongoTemplate.find(query, BasicDBObject.class, bucket + ".files");
+        List<BasicDBObject> gridFsFiles = mongoTemplate.find(query, BasicDBObject.class, bucketName + ".files");
         if (gridFsFiles.isEmpty()) {
             throw new StorageFileNotFoundException(filename);
         }
@@ -157,17 +171,19 @@ public class GridFsStorageService implements StorageService {
         Object fileId = file.get("_id");
 
         // 2) perfom a gridFsTemplate query with the ID obtained previously. This returns a true GridFSDBFile
-        GridFSDBFile fsdbFile = gridFsTemplate.findOne(
+        GridFSFile fsdbFile = gridFsTemplate.findOne(
                 new Query(GridFsCriteria.where("_id").is(fileId)));
         return fsdbFile;
     }
 
     /**
-     * Returns all the {@link GridFSDBFile} corresponding to the specified file.
+     * Returns all the {@link GridFSFile} corresponding to the specified file.
      */
-    private List<GridFSDBFile> getGridFSDBFiles(String filename) {
+    private List<GridFSFile> getGridFSFiles(String filename) {
         // we do the sorting in the stream pipeline as GridFsTemplate doesn't support sorted queries
-        return gridFsTemplate.find(new Query(GridFsCriteria.whereFilename().is(filename)));
+        List<GridFSFile> allVersions = new ArrayList<>();
+        gridFsTemplate.find(new Query(GridFsCriteria.whereFilename().is(filename))).into(allVersions);
+        return allVersions;
     }
 
     @Override
@@ -211,8 +227,8 @@ public class GridFsStorageService implements StorageService {
 
     @Override
     public String store(InputStream inputStream, String filename)  {
-        GridFSFile gridFSFile = gridFsTemplate.store(inputStream, filename, new Metadata());
-        return gridFSFile.getId().toString();
+        ObjectId objectId = gridFsTemplate.store(inputStream, filename, new Metadata());
+        return objectId.toString();
     }
 
     @Override
@@ -223,9 +239,9 @@ public class GridFsStorageService implements StorageService {
             CipherInputStream cipherInputStream = new CipherInputStream(inputStream, aes);
             Metadata metadata = new Metadata();
             metadata.setEncrypted(true);
-            GridFSFile gridFSFile = gridFsTemplate.store(cipherInputStream, filename, metadata);
+            ObjectId objectId = gridFsTemplate.store(cipherInputStream, filename, metadata);
             cipherInputStream.close();
-            return gridFSFile.getId().toString();
+            return objectId.toString();
         } catch (IOException e) {
             throw new StorageException("Exception while trying to store CipherInputStream as " + filename, e);
         }
@@ -234,18 +250,20 @@ public class GridFsStorageService implements StorageService {
 
     @Override
     public FileVersion[] getFileVersions(String filename) {
-        List<GridFSDBFile> fsdbFiles = getGridFSDBFiles(filename);
+        List<GridFSFile> fsdbFiles = getGridFSFiles(filename);
         return fsdbFiles.stream()
                 .map(this::getFileVersion)
                 .toArray(FileVersion[]::new);
     }
 
     /**
-     * Returns the {@link GridFSDBFile} corresponding to the most recent version of the specified file stored.
+     * Returns the {@link GridFSFile} corresponding to the most recent version of the specified file stored.
      */
-    private GridFSDBFile getLatestGridFSDBFile(String filename) throws StorageFileNotFoundException {
+    private GridFSFile getLatestGridFSFile(String filename) throws StorageFileNotFoundException {
         // we do the sorting in the stream pipeline as GridFs doesn't support sorted queries
-        GridFSDBFile fsdbFile = gridFsTemplate.find(new Query(GridFsCriteria.whereFilename().is(filename))).stream()
+        List<GridFSFile> allVersions = new ArrayList<>();
+        gridFsTemplate.find(new Query(GridFsCriteria.whereFilename().is(filename))).into(allVersions);
+        GridFSFile fsdbFile = allVersions.stream()
                 .max(Comparator.comparing(GridFSFile::getUploadDate))
                 .orElseThrow(() -> new StorageFileNotFoundException(filename));
         return fsdbFile;
@@ -261,7 +279,7 @@ public class GridFsStorageService implements StorageService {
         return canonicalPath;
     }
 
-    private FileVersion getFileVersion(GridFSDBFile fsdbFile) {
+    private FileVersion getFileVersion(GridFSFile fsdbFile) {
         FileVersion info = FileVersion.builder()
                 .id(fsdbFile.getId().toString())
                 .filename(fsdbFile.getFilename())
@@ -286,36 +304,46 @@ public class GridFsStorageService implements StorageService {
 
     @Override
     public FileVersion getLatestFileVersion(String filename) throws StorageFileNotFoundException {
-        GridFSDBFile fsdbFile = getLatestGridFSDBFile(filename);
-        return getFileVersion(fsdbFile);
+        GridFSFile fsFile = getLatestGridFSFile(filename);
+        return getFileVersion(fsFile);
     }
 
     @Override
     public FileVersion getFileVersion(String versionId) throws StorageFileVersionNotFoundException {
-        GridFSDBFile fsdbFile = getGridFSDBFileById(versionId);
-        return getFileVersion(fsdbFile);
+        GridFSFile fsFile = getGridFSFileById(versionId);
+        return getFileVersion(fsFile);
     }
 
     @Override
     public InputStream getFileVersionAsInputStream(String versionId) throws StorageFileVersionNotFoundException {
-        GridFSDBFile fsdbFile = getGridFSDBFileById(versionId);
-        return fsdbFile.getInputStream();
+        GridFSFile fsFile = getGridFSFileById(versionId);
+        return getInputStream(fsFile);
     }
 
     @Override
     public InputStream getFileVersionAsInputStream(String versionId, Key key) throws StorageFileVersionNotFoundException, EncryptionException {
-        GridFSDBFile fsdbFile = getGridFSDBFileById(versionId);
-        return getDecryptedInputStream(fsdbFile, key);
+        GridFSFile fsFile = getGridFSFileById(versionId);
+        return getDecryptedInputStream(fsFile, key);
     }
 
-    private InputStream getDecryptedInputStream(GridFSDBFile fsdbFile, Key key) throws EncryptionException {
-        Metadata metadata = getMetadata(fsdbFile);
+    private InputStream getInputStream(GridFSFile fsdbFile) {
+        ObjectId objectId = fsdbFile.getObjectId();
+        return getGridFs().openDownloadStream(objectId);
+    }
+
+    private GridFSBucket getGridFs() {
+        MongoDatabase db = mongoTemplate.getDb();
+        return GridFSBuckets.create(db, bucketName);
+    }
+
+    private InputStream getDecryptedInputStream(GridFSFile fsFile, Key key) throws EncryptionException {
+        Metadata metadata = getMetadata(fsFile);
         if (! metadata.isEncrypted()) {
             throw new EncryptionException("File is not encrypted");
         }
 
         Cipher cipher = CipherHelper.getAesCipher(key, Cipher.DECRYPT_MODE);
-        InputStream inputStream = fsdbFile.getInputStream();
+        InputStream inputStream = getInputStream(fsFile);
         CipherInputStream cipherInputStream = new CipherInputStream(inputStream, cipher);
         return cipherInputStream;
     }
@@ -325,27 +353,27 @@ public class GridFsStorageService implements StorageService {
         return new InputStreamResource(getFileVersionAsInputStream(versionId));
     }
 
-    private GridFSDBFile getGridFSDBFileById(String versionId) throws StorageFileVersionNotFoundException {
-        GridFSDBFile fsdbFile = gridFsTemplate.findOne(new Query(Criteria.where("_id").is(versionId)));
-        if (fsdbFile == null) {
+    private GridFSFile getGridFSFileById(String versionId) throws StorageFileVersionNotFoundException {
+        GridFSFile fsFile = gridFsTemplate.findOne(new Query(Criteria.where("_id").is(versionId)));
+        if (fsFile == null) {
             throw new StorageFileVersionNotFoundException(versionId);
         }
-        return fsdbFile;
+        return fsFile;
     }
 
     @Override
     public void untouchAll() {
         getFilesCollection()
-                .updateMulti(new BasicDBObject(), BasicDBObject.parse("{ \"$set\": {\"metadata.deleted\": \"true\"}}"));
+                .updateMany(new BasicDBObject(), BasicDBObject.parse("{ \"$set\": {\"metadata.deleted\": \"true\"}}"));
     }
 
     @Override
     public boolean touch(Path path) {
         String canonicalPath = canonicalPath(path);
         try {
-            GridFSDBFile fsdbFile = getLatestGridFSDBFile(canonicalPath);
+            GridFSFile fsFile = getLatestGridFSFile(canonicalPath);
             getFilesCollection()
-                    .update(new BasicDBObject("_id", fsdbFile.getId()),
+                    .updateOne(new BasicDBObject("_id", fsFile.getId()),
                             BasicDBObject.parse("{ \"$set\": {\"metadata.deleted\": \"false\"}}"));
 
             return true;
@@ -362,8 +390,8 @@ public class GridFsStorageService implements StorageService {
     }
 
     // this should be exposed by GridFsTemplate
-    private DBCollection getFilesCollection() {
-        return mongoTemplate.getCollection(this.bucket + ".files");
+    private MongoCollection<Document> getFilesCollection() {
+        return mongoTemplate.getCollection(this.bucketName + ".files");
     }
 }
 

@@ -33,7 +33,7 @@ public class BackupSourcesController {
 
     @GetMapping("/{id}")
     public BackupSource get(@PathVariable String id) throws NotFoundException {
-        Optional<BackupSource> backupSource = Optional.ofNullable(sourceRepository.findOne(id));
+        Optional<BackupSource> backupSource = sourceRepository.findById(id);
         return backupSource.orElseThrow(() -> new NotFoundException(id));
     }
 
@@ -77,13 +77,13 @@ public class BackupSourcesController {
     @DeleteMapping("/{id}")
     public void delete(@PathVariable String id) throws NotFoundException {
         assertExists(id);
-        sourceRepository.delete(id);
+        sourceRepository.deleteById(id);
         //TODO: use change streams? (requires Spring data MongoDB 2.1) https://docs.spring.io/spring-data/mongodb/docs/2.1.0.M3/reference/html/#change-streams
         jobStarter.syncJobs();
     }
 
     private void assertExists(@PathVariable String id) throws NotFoundException {
-        if (!sourceRepository.exists(id)) {
+        if (!sourceRepository.existsById(id)) {
             throw new NotFoundException(id);
         }
     }

@@ -37,7 +37,7 @@ public class BackupSetsController {
 
     @GetMapping("/{id}")
     public BackupSet get(@PathVariable String id) {
-        return backupSetRepository.findOne(id);
+        return backupSetRepository.findById(id).get();
     }
 
     /**
@@ -49,7 +49,7 @@ public class BackupSetsController {
         if (includeDeleted == null) {
             includeDeleted = false;
         }
-        BackupSet backupSet = backupSetRepository.findOne(id);
+        BackupSet backupSet = backupSetRepository.findById(id).get();
         StorageService storageService = storageServiceFactory.getStorageService(backupSet.getId());
         return storageService.getAllFiles(includeDeleted).toArray(FileInfo[]::new);
     }
@@ -60,7 +60,7 @@ public class BackupSetsController {
      */
     @GetMapping("/{id}/versions")
     public FileVersion[] getVersions(@PathVariable String id, @RequestParam(required = false) String path) {
-        BackupSet backupSet = backupSetRepository.findOne(id);
+        BackupSet backupSet = backupSetRepository.findById(id).get();
         StorageService storageService = storageServiceFactory.getStorageService(backupSet.getId());
         if (path == null) {
             return storageService.getAllFileVersions().toArray(FileVersion[]::new);
@@ -72,7 +72,7 @@ public class BackupSetsController {
 
     @GetMapping("/{id}/versions/{versionId}")
     public FileVersion getItemInfo(@PathVariable String id, @PathVariable String versionId) throws StorageFileVersionNotFoundException {
-        BackupSet backupSet = backupSetRepository.findOne(id);
+        BackupSet backupSet = backupSetRepository.findById(id).get();
         StorageService storageService = storageServiceFactory.getStorageService(backupSet.getId());
         return storageService.getFileVersion(versionId);
     }
@@ -80,7 +80,7 @@ public class BackupSetsController {
     @GetMapping("/{id}/versions/{versionId}/contents")
     @ResponseBody
     public ResponseEntity<Resource> getItemContents(@PathVariable String id, @PathVariable String versionId) throws StorageFileVersionNotFoundException {
-        BackupSet backupSet = backupSetRepository.findOne(id);
+        BackupSet backupSet = backupSetRepository.findById(id).get();
         StorageService storageService = storageServiceFactory.getStorageService(backupSet.getId());
         FileVersion fileVersion = storageService.getFileVersion(versionId);
         String filename = Paths.get(fileVersion.getFilename()).getFileName().toString();

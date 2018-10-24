@@ -17,6 +17,6 @@ abstract class BackupSetAwareBean {
 
 
     protected BackupSet getBackupSet() {
-        return backupSetRepository.findOne(backupSetId);
+        return backupSetRepository.findById(backupSetId).get();
     }
 }
