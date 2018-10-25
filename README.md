@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/ogerardin/back2back.svg?branch=master)](https://travis-ci.org/ogerardin/back2back)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/b2e743252e2348efb0c159eddbddf6a3)](https://www.codacy.com/app/ogerardin/back2back)
 
 back2back
 =========
