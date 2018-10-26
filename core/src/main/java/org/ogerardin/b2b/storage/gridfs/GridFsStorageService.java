@@ -44,6 +44,7 @@ import java.util.stream.Stream;
  * Implementation of {@link StorageService} using MongoDB's GridFS.
  *
  * This implementation allows the storage of several versions of the same file (= same path).
+ * TODO: move to using "revisions"
  *
  * Unless otherwise specified, methods that take a path as parameter refer to the latest stored version.
  */
