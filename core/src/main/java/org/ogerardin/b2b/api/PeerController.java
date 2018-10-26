@@ -1,6 +1,7 @@
 package org.ogerardin.b2b.api;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.ogerardin.b2b.B2BException;
 import org.ogerardin.b2b.domain.entity.BackupSet;
 import org.ogerardin.b2b.domain.entity.LocalTarget;
@@ -54,15 +55,17 @@ public class PeerController {
     @PostMapping("/upload")
     public ResponseEntity<?> uploadFile(
             @RequestParam("computer-id") String computerId,
-//            @RequestParam("original-path") String originalPath,
             @RequestParam("file") MultipartFile file
             ) throws B2BException, IOException {
 
         String originalFilename = file.getOriginalFilename();
+        if (StringUtils.isBlank(originalFilename)) {
+            return new ResponseEntity<>("MultipartFile.originalFilename cannot be blank",
+                    new HttpHeaders(), HttpStatus.BAD_REQUEST);
+        }
 
         log.info("Single file upload from {}", computerId);
         log.debug("file.originalFilename = {}", originalFilename);
-//        log.debug("original-path = " + originalPath);
 
         //TODO check credentials for the remote computer
 
@@ -73,6 +76,7 @@ public class PeerController {
         // store the file in the local storage
         StorageService storageService = storageServiceFactory.getStorageService(backupSet.getId());
         storageService.store(file.getInputStream(), originalFilename);
+
 
         return new ResponseEntity<>(String.format("Successfully uploaded '%s'", originalFilename),
                 new HttpHeaders(), HttpStatus.OK);
