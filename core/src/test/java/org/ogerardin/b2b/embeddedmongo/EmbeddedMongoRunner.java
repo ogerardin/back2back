@@ -25,7 +25,7 @@ public class EmbeddedMongoRunner {
         Storage replication = new Storage("mongo-storage",null,0);
 
         IMongodConfig mongodConfig = new MongodConfigBuilder()
-                .version(Version.Main.PRODUCTION)
+                .version(Version.V3_5_5)
                 .net(new Net("localhost",27017, Network.localhostIsIPv6()))
                 .replication(replication)
                 .build();

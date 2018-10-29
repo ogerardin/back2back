@@ -23,17 +23,9 @@ enum ProxyHelper {
     static IProxyFactory detectProxyFactory() {
         // if the logger is enabled for debug, set an adapter to log debug output of proxy-vole
         if (log.isDebugEnabled()) {
-            com.github.markusbernhardt.proxy.util.Logger.setBackend(new com.github.markusbernhardt.proxy.util.Logger.LogBackEnd() {
-                @Override
-                public void log(Class<?> clazz, com.github.markusbernhardt.proxy.util.Logger.LogLevel loglevel, String msg, Object... params) {
-                    log.debug(MessageFormat.format(msg, params));
-                }
-
-                @Override
-                public boolean isLogginEnabled(com.github.markusbernhardt.proxy.util.Logger.LogLevel logLevel) {
-                    return true;
-                }
-            });
+            com.github.markusbernhardt.proxy.util.Logger.setBackend(
+                    (clazz, loglevel, msg, params) -> log.debug(MessageFormat.format(msg, params))
+            );
         }
 
         ProxySearch proxySearch = ProxySearch.getDefaultProxySearch();
