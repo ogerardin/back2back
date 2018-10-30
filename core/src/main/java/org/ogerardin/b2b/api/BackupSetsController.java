@@ -58,33 +58,33 @@ public class BackupSetsController {
      * @param path the path of the file to query; must be url-encoded. We use a request parameter rather than a
      *             path variable because it's awkward to handle slashes inside a path variable.
      */
-    @GetMapping("/{id}/versions")
-    public FileVersion[] getVersions(@PathVariable String id, @RequestParam(required = false) String path) {
+    @GetMapping("/{id}/revisions")
+    public RevisionInfo[] getVersions(@PathVariable String id, @RequestParam(required = false) String path) {
         BackupSet backupSet = backupSetRepository.findById(id).get();
         StorageService storageService = storageServiceFactory.getStorageService(backupSet.getId());
         if (path == null) {
-            return storageService.getAllFileVersions().toArray(FileVersion[]::new);
+            return storageService.getAllRevisions().toArray(RevisionInfo[]::new);
         }
         else {
-            return storageService.getFileVersions(path);
+            return storageService.getRevisions(path);
         }
     }
 
-    @GetMapping("/{id}/versions/{versionId}")
-    public FileVersion getItemInfo(@PathVariable String id, @PathVariable String versionId) throws StorageFileVersionNotFoundException {
+    @GetMapping("/{id}/revisions/{versionId}")
+    public RevisionInfo getItemInfo(@PathVariable String id, @PathVariable String versionId) throws StorageFileVersionNotFoundException {
         BackupSet backupSet = backupSetRepository.findById(id).get();
         StorageService storageService = storageServiceFactory.getStorageService(backupSet.getId());
-        return storageService.getFileVersion(versionId);
+        return storageService.getRevisionInfo(versionId);
     }
 
-    @GetMapping("/{id}/versions/{versionId}/contents")
+    @GetMapping("/{id}/revisions/{versionId}/contents")
     @ResponseBody
     public ResponseEntity<Resource> getItemContents(@PathVariable String id, @PathVariable String versionId) throws StorageFileVersionNotFoundException {
         BackupSet backupSet = backupSetRepository.findById(id).get();
         StorageService storageService = storageServiceFactory.getStorageService(backupSet.getId());
-        FileVersion fileVersion = storageService.getFileVersion(versionId);
-        String filename = Paths.get(fileVersion.getFilename()).getFileName().toString();
-        Resource resource = storageService.getFileVersionAsResource(versionId);
+        RevisionInfo revisionInfo = storageService.getRevisionInfo(versionId);
+        String filename = Paths.get(revisionInfo.getFilename()).getFileName().toString();
+        Resource resource = storageService.getRevisionAsResource(versionId);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename=\"" + filename + "\"")
                 .body(resource);

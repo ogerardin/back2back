@@ -121,9 +121,9 @@ public class FileUploadTest {
         given(this.storageServiceFactory.getStorageService(any(String.class)))
                 .willReturn(storageService);
 
-        given(this.storageService.getFileVersion(any(String.class))).willThrow(new StorageFileVersionNotFoundException("mock"));
+        given(this.storageService.getRevisionInfo(any(String.class))).willThrow(new StorageFileVersionNotFoundException("mock"));
 
-        this.mvc.perform(get(String.format("/api/backupsets/%s/versions/1", backupSet.getId())))
+        this.mvc.perform(get(String.format("/api/backupsets/%s/revisions/1", backupSet.getId())))
                 .andExpect(status().isNotFound());
     }
 

@@ -1,14 +1,14 @@
 package org.ogerardin.b2b.domain.entity;
 
 import lombok.Data;
-import org.ogerardin.b2b.storage.FileVersion;
+import org.ogerardin.b2b.storage.RevisionInfo;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
  * Meta-data about a backed up file.
  */
-//TODO maybe merge this with org.ogerardin.b2b.storage.FileVersion ??
+//TODO maybe merge this with org.ogerardin.b2b.storage.RevisionInfo ??
 @Document
 @Data
 public class StoredFileVersionInfo {
@@ -34,11 +34,11 @@ public class StoredFileVersionInfo {
         this.deleted = deleted;
     }
 
-    public static StoredFileVersionInfo of(FileVersion fileVersion) {
+    public static StoredFileVersionInfo of(RevisionInfo revisionInfo) {
         return new StoredFileVersionInfo(
-                fileVersion.getFilename(),
-                fileVersion.getMd5hash(),
-                fileVersion.isDeleted()
+                revisionInfo.getFilename(),
+                revisionInfo.getMd5hash(),
+                revisionInfo.isDeleted()
         );
     }
 }

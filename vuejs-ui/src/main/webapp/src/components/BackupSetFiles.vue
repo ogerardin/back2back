@@ -9,7 +9,7 @@
         {{data.item.path}}
       </template>
       <template slot="actions" slot-scope="data">
-        <b-button size="sm" variant="secondary" :to="{name: 'backupset-fileversions', params: {id: id, file_path: data.item.path}}">
+        <b-button size="sm" variant="secondary" :to="{name: 'backupset-revisions', params: {id: id, file_path: data.item.path}}">
           Versions
         </b-button>
       </template>

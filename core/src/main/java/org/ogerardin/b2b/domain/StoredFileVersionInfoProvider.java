@@ -1,7 +1,7 @@
 package org.ogerardin.b2b.domain;
 
 import org.ogerardin.b2b.domain.entity.StoredFileVersionInfo;
-import org.ogerardin.b2b.storage.FileVersion;
+import org.ogerardin.b2b.storage.RevisionInfo;
 import org.ogerardin.b2b.storage.StorageFileNotFoundException;
 import org.ogerardin.b2b.storage.StorageService;
 import org.ogerardin.b2b.util.NotImplementedException;
@@ -55,8 +55,8 @@ public interface StoredFileVersionInfoProvider {
             @Override
             public Optional<StoredFileVersionInfo> getStoredFileVersionInfo(String path) {
                 try {
-                    FileVersion latestFileVersion = storageService.getLatestFileVersion(path);
-                    StoredFileVersionInfo storedFileVersionInfo = StoredFileVersionInfo.of(latestFileVersion);
+                    RevisionInfo latestRevisionInfo = storageService.getLatestRevision(path);
+                    StoredFileVersionInfo storedFileVersionInfo = StoredFileVersionInfo.of(latestRevisionInfo);
                     return Optional.of(storedFileVersionInfo);
                 } catch (StorageFileNotFoundException e) {
                     return Optional.empty();

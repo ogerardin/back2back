@@ -21,10 +21,10 @@ public interface StorageService {
     /** List all known files */
     Stream<FileInfo> getAllFiles(boolean includeDeleted);
 
-    /** List all known versions of all known files */
-    Stream<FileVersion> getAllFileVersions();
+    /** List all known revisions of all known files */
+    Stream<RevisionInfo> getAllRevisions();
 
-    /** Obtain an {@link java.io.InputStream} to read the contents of the latest version of the specified file */
+    /** Obtain an {@link java.io.InputStream} to read the contents of the latest revision of the specified file */
     InputStream getAsInputStream(String filename) throws StorageFileNotFoundException;
 
     /** Obtain an {@link java.io.InputStream} to read the unencrypted contents of the latest version of the specified file,
@@ -57,34 +57,34 @@ public interface StorageService {
     void deleteAll();
 
     /** Lists all the known versions of the specified file, passed as a String */
-    FileVersion[] getFileVersions(String filename);
+    RevisionInfo[] getRevisions(String filename);
 
     /** Lists all the known versions of the specified file, passed as a {@link Path} */
-    FileVersion[] getFileVersions(Path path);
+    RevisionInfo[] getRevisions(Path path);
 
     /** Returns information about the latest stored version of the specified file, passed as a {@link Path} */
-    FileVersion getLatestFileVersion(Path path) throws StorageFileNotFoundException;
+    RevisionInfo getLatestRevision(Path path) throws StorageFileNotFoundException;
 
     /** Returns information about the latest stored version of the specified file, passed as a String */
-    FileVersion getLatestFileVersion(String filename) throws StorageFileNotFoundException;
+    RevisionInfo getLatestRevision(String filename) throws StorageFileNotFoundException;
 
     /** Returns information about a file version, designated by its ID */
-    FileVersion getFileVersion(String versionId) throws StorageFileVersionNotFoundException;
+    RevisionInfo getRevisionInfo(String versionId) throws StorageFileVersionNotFoundException;
 
     /** Returns an {@link java.io.InputStream} to read the contents of a file version, designated by its ID */
-    InputStream getFileVersionAsInputStream(String versionId) throws StorageFileVersionNotFoundException;
+    InputStream getRevisionAsInputStream(String versionId) throws StorageFileVersionNotFoundException;
 
     /** Returns an {@link java.io.InputStream} to read the contents of a file version, designated by its ID,
      * in its unencrypted form using the specified key */
-    InputStream getFileVersionAsInputStream(String versionId, Key key) throws StorageFileVersionNotFoundException, EncryptionException;
+    InputStream getRevisionAsInputStream(String versionId, Key key) throws StorageFileVersionNotFoundException, EncryptionException;
 
     /** Returns a {@link Resource that corresponds to the file version, designated by the specified ID */
-    Resource getFileVersionAsResource(String versionId) throws StorageFileVersionNotFoundException;
+    Resource getRevisionAsResource(String versionId) throws StorageFileVersionNotFoundException;
 
-    /** Mark all files as "untouched" (potentially deleted) */
+    /** Mark all files as "untouched" (= potentially deleted) */
     void untouchAll();
 
-    /** Mark the specified file as "touched" (not deleted) */
+    /** Mark the specified file as "touched" (= not deleted) */
     boolean touch(Path path);
 
     long countDeleted();

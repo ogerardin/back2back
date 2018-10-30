@@ -52,6 +52,11 @@ public class GridFsStorageProviderTest extends StorageProviderTest<GridFsStorage
         super.testStoreAndRetrieveEncrypted();
     }
 
+    @Test
+    public void testMultipleRevisions() throws Exception {
+        super.testMultipleRevisions();
+    }
+
 
 
 }

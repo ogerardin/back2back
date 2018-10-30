@@ -9,11 +9,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.*;
 import java.security.Key;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -48,7 +47,15 @@ public abstract class StorageProviderTest<S extends StorageService> {
         );
     }
 
-    protected void storeRetrieveCompare(Storer storer, Lister lister, Retriever retriever) throws URISyntaxException, IOException {
+    protected void testMultipleRevisions() throws Exception {
+        storeMultipleRevisions(
+                this::storeUnencrypted,
+                this::listRevisions,
+                this::retrieveRevisionUnencrypted
+        );
+    }
+
+    private void storeRetrieveCompare(Storer storer, FileLister lister, Retriever retriever) throws URISyntaxException, IOException {
         // list all files in resource directory
         List<Path> paths0 = getSampleFilesPaths();
 
@@ -71,6 +78,41 @@ public abstract class StorageProviderTest<S extends StorageService> {
             assertStoredVersionMatchesFile(retriever, p0, p1);
         }
 
+    }
+
+    private void storeMultipleRevisions(Storer storer, RevisionLister lister, RevisionRetriever retriever) throws Exception {
+        // list all files in resource directory
+        List<Path> paths0 = getSampleFilesPaths();
+
+        Path tempDirectory = Files.createTempDirectory(this.getClass().getSimpleName());
+        Path tempFile = tempDirectory.resolve("data.bin");
+
+        // store each file as a revision of the same file
+        for (Path path : paths0) {
+            Files.copy(path, tempFile, StandardCopyOption.REPLACE_EXISTING);
+            storer.store(tempFile);
+        }
+
+        List<RevisionInfo> allRevisions = lister.getAllRevisions(tempFile);
+        allRevisions.sort(Comparator.comparing(RevisionInfo::getStoredDate));
+
+        Assert.assertEquals(paths0.size(), allRevisions.size());
+
+        // compare each file to the stored revision
+        for (int i = 0; i < paths0.size(); i++) {
+            Path path = paths0.get(i);
+            RevisionInfo revision = allRevisions.get(i);
+            String revisionId = revision.getId();
+            log.debug("revision={}", revision);
+            assertStoredRevisionMatchesFile(retriever, path, revisionId);
+        }
+
+    }
+
+    private void assertStoredRevisionMatchesFile(RevisionRetriever retriever, Path path, String revisionId) throws Exception {
+        InputStream inputStream0 = Files.newInputStream(path, StandardOpenOption.READ);
+        InputStream inputStream1 = retriever.getAsInputStream(revisionId);
+        Assert.assertTrue(IOUtils.contentEquals(inputStream0, inputStream1));
     }
 
     private void assertStoredVersionMatchesFile(Retriever retriever, Path p0, Path p1) throws IOException {
@@ -116,10 +158,18 @@ public abstract class StorageProviderTest<S extends StorageService> {
         }
     }
 
+    private InputStream retrieveRevisionUnencrypted(String revisionId) throws StorageFileVersionNotFoundException {
+        return storageService.getRevisionAsInputStream(revisionId);
+    }
+
     private List<Path> listFiles() {
         return storageService.getAllFiles(false)
                 .map(FileInfo::getPath)
                 .sorted()
                 .collect(Collectors.toList());
+    }
+
+    private List<RevisionInfo> listRevisions(Path path) {
+        return Arrays.asList(storageService.getRevisions(path));
     }
 }

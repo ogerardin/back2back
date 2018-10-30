@@ -78,7 +78,7 @@ public class FilesystemStorageService implements StorageService {
     }
 
     @Override
-    public Stream<FileVersion> getAllFileVersions() {
+    public Stream<RevisionInfo> getAllRevisions() {
         try {
             return Files.walk(baseDirectory)
                     .filter(p -> !Files.isDirectory(p))
@@ -171,51 +171,51 @@ public class FilesystemStorageService implements StorageService {
     }
 
     @Override
-    public FileVersion[] getFileVersions(String filename) {
+    public RevisionInfo[] getRevisions(String filename) {
         Path path = Paths.get(filename);
-        return getFileVersions(path);
+        return getRevisions(path);
     }
 
     @Override
-    public FileVersion[] getFileVersions(Path remotePath) {
+    public RevisionInfo[] getRevisions(Path remotePath) {
         try {
-            FileVersion fileInfo = getLatestFileVersion(remotePath);
-            return new FileVersion[]{ fileInfo };
+            RevisionInfo fileInfo = getLatestRevision(remotePath);
+            return new RevisionInfo[]{ fileInfo };
         }
         catch (StorageFileNotFoundException e) {
-            return new FileVersion[0];
+            return new RevisionInfo[0];
         }
     }
 
     @Override
-    public FileVersion getLatestFileVersion(Path path) throws StorageFileNotFoundException {
+    public RevisionInfo getLatestRevision(Path path) throws StorageFileNotFoundException {
         Path localPath = remoteToLocal(path);
-        FileVersion fileInfo = _getFileVersion(path, localPath);
+        RevisionInfo fileInfo = _getFileVersion(path, localPath);
         return fileInfo;
     }
 
     @Override
-    public FileVersion getLatestFileVersion(String filename) throws StorageFileNotFoundException {
+    public RevisionInfo getLatestRevision(String filename) throws StorageFileNotFoundException {
         Path remotePath = Paths.get(filename);
-        return getLatestFileVersion(remotePath);
+        return getLatestRevision(remotePath);
     }
 
     @Override
-    public FileVersion getFileVersion(String versionId) {
+    public RevisionInfo getRevisionInfo(String versionId) {
         throw new RuntimeException("Not implemented");
     }
 
     @Override
-    public InputStream getFileVersionAsInputStream(String versionId) {
+    public InputStream getRevisionAsInputStream(String versionId) {
         throw new RuntimeException("Not implemented");
     }
 
     @Override
-    public Resource getFileVersionAsResource(String versionId) {
+    public Resource getRevisionAsResource(String versionId) {
         throw new RuntimeException("Not implemented");
     }
 
-    private FileVersion _getFileVersion(Path remotePath, Path localPath) throws StorageFileNotFoundException {
+    private RevisionInfo _getFileVersion(Path remotePath, Path localPath) throws StorageFileNotFoundException {
         BasicFileAttributes fileAttributes;
         try {
             BasicFileAttributeView fileAttributeView = Files.getFileAttributeView(localPath, BasicFileAttributeView.class);
@@ -236,7 +236,7 @@ public class FilesystemStorageService implements StorageService {
             }
         }
 
-        FileVersion info = FileVersion.builder()
+        RevisionInfo info = RevisionInfo.builder()
                 .id(null) //no ID for FilesystemStorageService
                 .filename(remotePath.toString())
                 .size(fileAttributes.size())
@@ -246,7 +246,7 @@ public class FilesystemStorageService implements StorageService {
         return info;
     }
 
-    private FileVersion _getFileVersion(Path localPath) throws StorageFileNotFoundException {
+    private RevisionInfo _getFileVersion(Path localPath) throws StorageFileNotFoundException {
         return _getFileVersion(localToRemote(localPath), localPath);
     }
 
@@ -271,7 +271,7 @@ public class FilesystemStorageService implements StorageService {
     }
 
     @Override
-    public InputStream getFileVersionAsInputStream(String versionId, Key key) {
+    public InputStream getRevisionAsInputStream(String versionId, Key key) {
         throw new RuntimeException("not implemented");
     }
 

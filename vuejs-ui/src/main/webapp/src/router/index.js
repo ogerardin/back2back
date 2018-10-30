@@ -34,7 +34,7 @@ export default new Router({
       children: [
         {path: '', component: BackupSetList},
         {path: ':id/files', name:'backupset-files', component: BackupSetFiles},
-        {path: ':id/versions/:file_path', name:'backupset-fileversions', component: BackupSetFileVersions},
+        {path: ':id/revisions/:file_path', name:'backupset-revisions', component: BackupSetFileVersions},
       ]
     },
     {

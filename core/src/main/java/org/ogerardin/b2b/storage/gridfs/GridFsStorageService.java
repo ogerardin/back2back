@@ -137,7 +137,7 @@ public class GridFsStorageService implements StorageService {
     }
 
     @Override
-    public Stream<FileVersion> getAllFileVersions() {
+    public Stream<RevisionInfo> getAllRevisions() {
         return _allFiles()
                 .map(this::getFileVersion);
     }
@@ -250,11 +250,11 @@ public class GridFsStorageService implements StorageService {
     }
 
     @Override
-    public FileVersion[] getFileVersions(String filename) {
+    public RevisionInfo[] getRevisions(String filename) {
         List<GridFSFile> fsFiles = getGridFSFiles(filename);
         return fsFiles.stream()
                 .map(this::getFileVersion)
-                .toArray(FileVersion[]::new);
+                .toArray(RevisionInfo[]::new);
     }
 
     /**
@@ -280,8 +280,8 @@ public class GridFsStorageService implements StorageService {
         return canonicalPath;
     }
 
-    private FileVersion getFileVersion(GridFSFile fsdbFile) {
-        FileVersion info = FileVersion.builder()
+    private RevisionInfo getFileVersion(GridFSFile fsdbFile) {
+        RevisionInfo info = RevisionInfo.builder()
                 .id(fsdbFile.getObjectId().toString())
                 .filename(fsdbFile.getFilename())
                 .size(fsdbFile.getLength())
@@ -292,37 +292,37 @@ public class GridFsStorageService implements StorageService {
     }
 
     @Override
-    public FileVersion[] getFileVersions(Path path) {
+    public RevisionInfo[] getRevisions(Path path) {
         String canonicalPath = canonicalPath(path);
-        return getFileVersions(canonicalPath);
+        return getRevisions(canonicalPath);
     }
 
     @Override
-    public FileVersion getLatestFileVersion(Path path) throws StorageFileNotFoundException {
+    public RevisionInfo getLatestRevision(Path path) throws StorageFileNotFoundException {
         String canonicalPath = canonicalPath(path);
-        return getLatestFileVersion(canonicalPath);
+        return getLatestRevision(canonicalPath);
     }
 
     @Override
-    public FileVersion getLatestFileVersion(String filename) throws StorageFileNotFoundException {
+    public RevisionInfo getLatestRevision(String filename) throws StorageFileNotFoundException {
         GridFSFile fsFile = getLatestGridFSFile(filename);
         return getFileVersion(fsFile);
     }
 
     @Override
-    public FileVersion getFileVersion(String versionId) throws StorageFileVersionNotFoundException {
+    public RevisionInfo getRevisionInfo(String versionId) throws StorageFileVersionNotFoundException {
         GridFSFile fsFile = getGridFSFileById(versionId);
         return getFileVersion(fsFile);
     }
 
     @Override
-    public InputStream getFileVersionAsInputStream(String versionId) throws StorageFileVersionNotFoundException {
+    public InputStream getRevisionAsInputStream(String versionId) throws StorageFileVersionNotFoundException {
         GridFSFile fsFile = getGridFSFileById(versionId);
         return getInputStream(fsFile);
     }
 
     @Override
-    public InputStream getFileVersionAsInputStream(String versionId, Key key) throws StorageFileVersionNotFoundException, EncryptionException {
+    public InputStream getRevisionAsInputStream(String versionId, Key key) throws StorageFileVersionNotFoundException, EncryptionException {
         GridFSFile fsFile = getGridFSFileById(versionId);
         return getDecryptedInputStream(fsFile, key);
     }
@@ -350,8 +350,8 @@ public class GridFsStorageService implements StorageService {
     }
 
     @Override
-    public Resource getFileVersionAsResource(String versionId) throws StorageFileVersionNotFoundException {
-        return new InputStreamResource(getFileVersionAsInputStream(versionId));
+    public Resource getRevisionAsResource(String versionId) throws StorageFileVersionNotFoundException {
+        return new InputStreamResource(getRevisionAsInputStream(versionId));
     }
 
     private GridFSFile getGridFSFileById(String versionId) throws StorageFileVersionNotFoundException {

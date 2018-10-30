@@ -10,7 +10,7 @@ import java.time.Instant;
  */
 @Data
 @Builder
-public class FileVersion {
+public class RevisionInfo {
     /** The version id (possibly null if the implementation doesn't manage multiple versions) */
     String id;
 
