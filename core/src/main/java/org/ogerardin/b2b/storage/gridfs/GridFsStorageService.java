@@ -251,8 +251,8 @@ public class GridFsStorageService implements StorageService {
 
     @Override
     public FileVersion[] getFileVersions(String filename) {
-        List<GridFSFile> fsdbFiles = getGridFSFiles(filename);
-        return fsdbFiles.stream()
+        List<GridFSFile> fsFiles = getGridFSFiles(filename);
+        return fsFiles.stream()
                 .map(this::getFileVersion)
                 .toArray(FileVersion[]::new);
     }
@@ -282,7 +282,7 @@ public class GridFsStorageService implements StorageService {
 
     private FileVersion getFileVersion(GridFSFile fsdbFile) {
         FileVersion info = FileVersion.builder()
-                .id(fsdbFile.getId().toString())
+                .id(fsdbFile.getObjectId().toString())
                 .filename(fsdbFile.getFilename())
                 .size(fsdbFile.getLength())
                 .md5hash(fsdbFile.getMD5())

@@ -4,11 +4,12 @@ import org.hamcrest.Matchers;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.ogerardin.b2b.domain.entity.BackupSet;
 import org.ogerardin.b2b.domain.entity.LocalTarget;
+import org.ogerardin.b2b.domain.entity.PeerSource;
+import org.ogerardin.b2b.domain.mongorepository.BackupSetRepository;
 import org.ogerardin.b2b.domain.mongorepository.BackupTargetRepository;
-import org.ogerardin.b2b.storage.FileInfo;
-import org.ogerardin.b2b.storage.StorageService;
-import org.ogerardin.b2b.storage.StorageServiceFactory;
+import org.ogerardin.b2b.storage.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -19,7 +20,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.UUID;
@@ -44,6 +44,9 @@ public class FileUploadTest {
 
     @Autowired
     private BackupTargetRepository targetRepository;
+
+    @Autowired
+    private BackupSetRepository backupSetRepository;
 
     @MockBean
     private StorageService storageService;
@@ -105,12 +108,23 @@ public class FileUploadTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    @Ignore //FIXME need to mock BackupSetRepository
+    @Ignore //FIXME
     public void should404WhenMissingFile() throws Exception {
-        given(this.storageService.getAsResource("test.txt"))
-                .willThrow(FileNotFoundException.class);
+        UUID computerId = UUID.randomUUID();
+        BackupSet backupSet = new BackupSet();
+        backupSet.setBackupTarget(new LocalTarget());
+        PeerSource source = new PeerSource();
+        source.setRemoteComputerId(computerId);
+        backupSet.setBackupSource(source);
+        backupSet = backupSetRepository.save(backupSet);
 
-        this.mvc.perform(get("/api/files/test.txt")).andExpect(status().isNotFound());
+        given(this.storageServiceFactory.getStorageService(any(String.class)))
+                .willReturn(storageService);
+
+        given(this.storageService.getFileVersion(any(String.class))).willThrow(new StorageFileVersionNotFoundException("mock"));
+
+        this.mvc.perform(get(String.format("/api/backupsets/%s/versions/1", backupSet.getId())))
+                .andExpect(status().isNotFound());
     }
 
 }
