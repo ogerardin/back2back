@@ -70,21 +70,21 @@ public class BackupSetsController {
         }
     }
 
-    @GetMapping("/{id}/revisions/{versionId}")
-    public RevisionInfo getItemInfo(@PathVariable String id, @PathVariable String versionId) throws StorageFileVersionNotFoundException {
+    @GetMapping("/{id}/revisions/{revisionId}")
+    public RevisionInfo getItemInfo(@PathVariable String id, @PathVariable String revisionId) throws StorageFileVersionNotFoundException {
         BackupSet backupSet = backupSetRepository.findById(id).get();
         StorageService storageService = storageServiceFactory.getStorageService(backupSet.getId());
-        return storageService.getRevisionInfo(versionId);
+        return storageService.getRevisionInfo(revisionId);
     }
 
-    @GetMapping("/{id}/revisions/{versionId}/contents")
+    @GetMapping("/{id}/revisions/{revisionId}/contents")
     @ResponseBody
-    public ResponseEntity<Resource> getItemContents(@PathVariable String id, @PathVariable String versionId) throws StorageFileVersionNotFoundException {
+    public ResponseEntity<Resource> getItemContents(@PathVariable String id, @PathVariable String revisionId) throws StorageFileVersionNotFoundException {
         BackupSet backupSet = backupSetRepository.findById(id).get();
         StorageService storageService = storageServiceFactory.getStorageService(backupSet.getId());
-        RevisionInfo revisionInfo = storageService.getRevisionInfo(versionId);
+        RevisionInfo revisionInfo = storageService.getRevisionInfo(revisionId);
         String filename = Paths.get(revisionInfo.getFilename()).getFileName().toString();
-        Resource resource = storageService.getRevisionAsResource(versionId);
+        Resource resource = storageService.getRevisionAsResource(revisionId);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename=\"" + filename + "\"")
                 .body(resource);

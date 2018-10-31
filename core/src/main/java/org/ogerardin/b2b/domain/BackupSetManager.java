@@ -34,7 +34,7 @@ public class BackupSetManager {
             backupSourceRepository.insert(new FilesystemSource());
         }
 
-        // reset the stored status of all backup set
+        // reset the stored status of all backup sets
         backupSetRepository.findAll()
                 .forEach(s -> {
                     s.resetState();

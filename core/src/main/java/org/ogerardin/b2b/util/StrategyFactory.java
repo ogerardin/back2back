@@ -37,7 +37,7 @@ public class StrategyFactory<T> {
     public T newInstance(Object... args) throws InstantiationException {
         log.debug("Trying to instantiate for args: " + Arrays.toString(args));
         // get an array of argument classes
-        Class<?> argClasses[] = Arrays.stream(args).map(Object::getClass).toArray(Class[]::new);
+        Class<?>[] argClasses = Arrays.stream(args).map(Object::getClass).toArray(Class[]::new);
 
         log.debug("Arg classes: " + Arrays.toString(args));
         for (Class<? extends T> candidateClass : candidateClasses) {

@@ -22,12 +22,13 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.gridfs.GridFsCriteria;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
-import org.springframework.util.StringUtils;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -43,10 +44,8 @@ import java.util.stream.Stream;
 /**
  * Implementation of {@link StorageService} using MongoDB's GridFS.
  *
- * This implementation allows the storage of several versions of the same file (= same path).
- * TODO: move to using "revisions"
- *
- * Unless otherwise specified, methods that take a path as parameter refer to the latest stored version.
+ * This implementation allows the storage of several revisions of the same file (= same path).
+ * Unless otherwise specified, methods that take a path as parameter refer to the latest revision.
  */
 public class GridFsStorageService implements StorageService {
 
@@ -74,27 +73,6 @@ public class GridFsStorageService implements StorageService {
 
     @Override
     public void init() {
-    }
-
-    @Override
-    public void store(MultipartFile file) {
-        if (file.isEmpty()) {
-            throw new IllegalArgumentException("empty file " + file);
-        }
-        String filename = StringUtils.cleanPath(file.getOriginalFilename());
-        if (filename.contains("..")) {
-            // This is a security check
-            throw new StorageException("relative path outside current directory " + filename);
-        }
-        try {
-            InputStream is = new BufferedInputStream(file.getInputStream());
-            gridFsTemplate.store(is, filename);
-            is.close();
-        }
-        catch (Exception e) {
-            throw new StorageException("Failed to store file " + filename, e);
-        }
-
     }
 
 
@@ -310,20 +288,20 @@ public class GridFsStorageService implements StorageService {
     }
 
     @Override
-    public RevisionInfo getRevisionInfo(String versionId) throws StorageFileVersionNotFoundException {
-        GridFSFile fsFile = getGridFSFileById(versionId);
+    public RevisionInfo getRevisionInfo(String revisionId) throws StorageFileVersionNotFoundException {
+        GridFSFile fsFile = getGridFSFileById(revisionId);
         return getFileVersion(fsFile);
     }
 
     @Override
-    public InputStream getRevisionAsInputStream(String versionId) throws StorageFileVersionNotFoundException {
-        GridFSFile fsFile = getGridFSFileById(versionId);
+    public InputStream getRevisionAsInputStream(String revisionId) throws StorageFileVersionNotFoundException {
+        GridFSFile fsFile = getGridFSFileById(revisionId);
         return getInputStream(fsFile);
     }
 
     @Override
-    public InputStream getRevisionAsInputStream(String versionId, Key key) throws StorageFileVersionNotFoundException, EncryptionException {
-        GridFSFile fsFile = getGridFSFileById(versionId);
+    public InputStream getRevisionAsInputStream(String revisionId, Key key) throws StorageFileVersionNotFoundException, EncryptionException {
+        GridFSFile fsFile = getGridFSFileById(revisionId);
         return getDecryptedInputStream(fsFile, key);
     }
 
@@ -350,14 +328,14 @@ public class GridFsStorageService implements StorageService {
     }
 
     @Override
-    public Resource getRevisionAsResource(String versionId) throws StorageFileVersionNotFoundException {
-        return new InputStreamResource(getRevisionAsInputStream(versionId));
+    public Resource getRevisionAsResource(String revisionId) throws StorageFileVersionNotFoundException {
+        return new InputStreamResource(getRevisionAsInputStream(revisionId));
     }
 
-    private GridFSFile getGridFSFileById(String versionId) throws StorageFileVersionNotFoundException {
-        GridFSFile fsFile = gridFsTemplate.findOne(new Query(Criteria.where("_id").is(versionId)));
+    private GridFSFile getGridFSFileById(String revisionId) throws StorageFileVersionNotFoundException {
+        GridFSFile fsFile = gridFsTemplate.findOne(new Query(Criteria.where("_id").is(revisionId)));
         if (fsFile == null) {
-            throw new StorageFileVersionNotFoundException(versionId);
+            throw new StorageFileVersionNotFoundException(revisionId);
         }
         return fsFile;
     }

@@ -1,7 +1,6 @@
 package org.ogerardin.b2b.storage;
 
 import org.springframework.core.io.Resource;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.InputStream;
@@ -12,7 +11,7 @@ import java.util.stream.Stream;
 /**
  * Interface for a service that provides storage and retrieval of files.
  * Each file is identified by its filename which is the original filename (including path) at upload time.
- * If supported by the implementation, specific versions of a file are identified by an versionId (a String).
+ * If supported by the implementation, specific revisions of a file are identified by an revisionId (a String).
  */
 public interface StorageService {
 
@@ -33,9 +32,6 @@ public interface StorageService {
 
     /** Obtain a {@link Resource} that corresponds to the latest version of the specified file*/
     Resource getAsResource(String filename) throws StorageFileNotFoundException;
-
-    /** Store the file referenced by the specified {@link org.springframework.web.multipart.MultipartFile} */
-    void store(MultipartFile file);
 
     /** Store the file designated by the specified {@link java.io.File} */
     String store(File file);
@@ -69,17 +65,17 @@ public interface StorageService {
     RevisionInfo getLatestRevision(String filename) throws StorageFileNotFoundException;
 
     /** Returns information about a file version, designated by its ID */
-    RevisionInfo getRevisionInfo(String versionId) throws StorageFileVersionNotFoundException;
+    RevisionInfo getRevisionInfo(String revisionId) throws StorageFileVersionNotFoundException;
 
     /** Returns an {@link java.io.InputStream} to read the contents of a file version, designated by its ID */
-    InputStream getRevisionAsInputStream(String versionId) throws StorageFileVersionNotFoundException;
+    InputStream getRevisionAsInputStream(String revisionId) throws StorageFileVersionNotFoundException;
 
     /** Returns an {@link java.io.InputStream} to read the contents of a file version, designated by its ID,
      * in its unencrypted form using the specified key */
-    InputStream getRevisionAsInputStream(String versionId, Key key) throws StorageFileVersionNotFoundException, EncryptionException;
+    InputStream getRevisionAsInputStream(String revisionId, Key key) throws StorageFileVersionNotFoundException, EncryptionException;
 
     /** Returns a {@link Resource that corresponds to the file version, designated by the specified ID */
-    Resource getRevisionAsResource(String versionId) throws StorageFileVersionNotFoundException;
+    Resource getRevisionAsResource(String revisionId) throws StorageFileVersionNotFoundException;
 
     /** Mark all files as "untouched" (= potentially deleted) */
     void untouchAll();

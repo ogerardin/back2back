@@ -5,7 +5,6 @@ import org.ogerardin.b2b.storage.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -49,19 +48,6 @@ public class FilesystemStorageService implements StorageService {
         if (! Files.isWritable(baseDirectory)) {
             throw new StorageException("Base directory is not writable: " + baseDirectory);
         }
-    }
-
-    @Override
-    public void store(MultipartFile file) {
-        // get the original filename (which might be relative or absolute)
-        String originalFilename = file.getOriginalFilename();
-        InputStream inputStream;
-        try {
-            inputStream = file.getInputStream();
-        } catch (IOException e) {
-            throw new StorageException("Exception while get input stream from " + file, e);
-        }
-        store(inputStream, originalFilename);
     }
 
     @Override
@@ -201,17 +187,17 @@ public class FilesystemStorageService implements StorageService {
     }
 
     @Override
-    public RevisionInfo getRevisionInfo(String versionId) {
+    public RevisionInfo getRevisionInfo(String revisionId) {
         throw new RuntimeException("Not implemented");
     }
 
     @Override
-    public InputStream getRevisionAsInputStream(String versionId) {
+    public InputStream getRevisionAsInputStream(String revisionId) {
         throw new RuntimeException("Not implemented");
     }
 
     @Override
-    public Resource getRevisionAsResource(String versionId) {
+    public Resource getRevisionAsResource(String revisionId) {
         throw new RuntimeException("Not implemented");
     }
 
@@ -271,7 +257,7 @@ public class FilesystemStorageService implements StorageService {
     }
 
     @Override
-    public InputStream getRevisionAsInputStream(String versionId, Key key) {
+    public InputStream getRevisionAsInputStream(String revisionId, Key key) {
         throw new RuntimeException("not implemented");
     }
 
