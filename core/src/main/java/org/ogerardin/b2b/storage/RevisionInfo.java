@@ -6,12 +6,12 @@ import lombok.Data;
 import java.time.Instant;
 
 /**
- * Provides information about a specific version of a stored file.
+ * Provides information about a specific revision of a file.
  */
 @Data
 @Builder
 public class RevisionInfo {
-    /** The version id (possibly null if the implementation doesn't manage multiple versions) */
+    /** The revision id (possibly null if the implementation doesn't manage multiple revisions) */
     String id;
 
     /** The original file path */

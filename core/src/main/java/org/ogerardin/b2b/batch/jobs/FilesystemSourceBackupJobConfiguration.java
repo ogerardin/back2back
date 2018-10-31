@@ -1,7 +1,7 @@
 package org.ogerardin.b2b.batch.jobs;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import org.ogerardin.b2b.domain.StoredFileVersionInfoProvider;
+import org.ogerardin.b2b.domain.LatestStoredRevisionProvider;
 import org.ogerardin.b2b.domain.entity.FilesystemSource;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.scope.context.JobContext;
@@ -48,6 +48,6 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
     }
 
 
-    abstract StoredFileVersionInfoProvider getStoredFileVersionInfoProvider(String backupSetId);
+    abstract LatestStoredRevisionProvider getStoredFileVersionInfoProvider(String backupSetId);
 
 }

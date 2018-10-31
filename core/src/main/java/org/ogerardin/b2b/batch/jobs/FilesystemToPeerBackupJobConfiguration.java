@@ -2,11 +2,11 @@ package org.ogerardin.b2b.batch.jobs;
 
 import lombok.val;
 import org.ogerardin.b2b.batch.FileSetItemWriter;
-import org.ogerardin.b2b.domain.StoredFileVersionInfoProvider;
+import org.ogerardin.b2b.domain.LatestStoredRevisionProvider;
 import org.ogerardin.b2b.domain.entity.FilesystemSource;
 import org.ogerardin.b2b.domain.entity.PeerTarget;
-import org.ogerardin.b2b.domain.entity.StoredFileVersionInfo;
-import org.ogerardin.b2b.domain.mongorepository.RemoteFileVersionInfoRepository;
+import org.ogerardin.b2b.domain.entity.LatestStoredRevision;
+import org.ogerardin.b2b.domain.mongorepository.LatestStoredRevisionRepository;
 import org.ogerardin.b2b.files.md5.InputStreamMD5Calculator;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -152,18 +152,18 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
         return new PeerItemWriter(storedFileVersionInfoProvider, targetHostname, targetPort);
     }
 
-    protected StoredFileVersionInfoProvider getStoredFileVersionInfoProvider(String backupSetId) {
-        // The RemoteFileVersionInfoRepository used by the PeerItemWriter needs to be specific to this BackupSet,
+    protected LatestStoredRevisionProvider getStoredFileVersionInfoProvider(String backupSetId) {
+        // The LatestStoredRevisionRepository used by the PeerItemWriter needs to be specific to this BackupSet,
         // so we use a collection name derived from the backup set ID.
         String collectionName = backupSetId + ".peer";
 
         // to customize collection name we need to build a taylored MappingMongoEntityInformation
         val mappingContext = mongoOperations.getConverter().getMappingContext();
         //noinspection unchecked
-        val entity = (MongoPersistentEntity<StoredFileVersionInfo>) mappingContext.getPersistentEntity(StoredFileVersionInfo.class);
-        val entityInformation = new MappingMongoEntityInformation<StoredFileVersionInfo, String>(entity, collectionName);
+        val entity = (MongoPersistentEntity<LatestStoredRevision>) mappingContext.getPersistentEntity(LatestStoredRevision.class);
+        val entityInformation = new MappingMongoEntityInformation<LatestStoredRevision, String>(entity, collectionName);
 
-        return new RemoteFileVersionInfoRepository(entityInformation, mongoOperations);
+        return new LatestStoredRevisionRepository(entityInformation, mongoOperations);
     }
 
 

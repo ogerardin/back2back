@@ -2,7 +2,7 @@ package org.ogerardin.b2b.batch.jobs;
 
 import lombok.val;
 import org.ogerardin.b2b.batch.FileSetItemWriter;
-import org.ogerardin.b2b.domain.StoredFileVersionInfoProvider;
+import org.ogerardin.b2b.domain.LatestStoredRevisionProvider;
 import org.ogerardin.b2b.domain.entity.FilesystemSource;
 import org.ogerardin.b2b.domain.entity.LocalTarget;
 import org.ogerardin.b2b.files.md5.InputStreamMD5Calculator;
@@ -145,10 +145,9 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
         return new InternalStorageItemWriter(storageService, properties.getFileThrottleDelay());
     }
 
-    protected StoredFileVersionInfoProvider getStoredFileVersionInfoProvider(String backupSetId) {
+    protected LatestStoredRevisionProvider getStoredFileVersionInfoProvider(String backupSetId) {
         val storageService = storageServiceFactory.getStorageService(backupSetId);
-        val storedFileVersionInfoProvider = StoredFileVersionInfoProvider.of(storageService);
-        return storedFileVersionInfoProvider;
+        return new StorageServiceLatestStoredRevisionProviderAdapter(storageService);
     }
 
 
@@ -162,4 +161,5 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
                 .tasklet(new InitBatchTasklet(storedFileVersionInfoProvider, jobContext))
                 .build();
     }
+
 }

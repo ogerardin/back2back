@@ -25,7 +25,6 @@ import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -176,7 +175,7 @@ public class GridFsStorageService implements StorageService {
     }
 
     @Override
-    public String store(File file) {
+    public String store(java.io.File file) {
         try (FileInputStream inputStream = new FileInputStream(file)) {
             return store(inputStream, file.getCanonicalPath());
         } catch (IOException e) {
@@ -318,7 +317,7 @@ public class GridFsStorageService implements StorageService {
     private InputStream getDecryptedInputStream(GridFSFile fsFile, Key key) throws EncryptionException {
         Metadata metadata = getMetadata(fsFile);
         if (! metadata.isEncrypted()) {
-            throw new EncryptionException("File is not encrypted");
+            throw new EncryptionException("FileInfo is not encrypted");
         }
 
         Cipher cipher = CipherHelper.getAesCipher(key, Cipher.DECRYPT_MODE);

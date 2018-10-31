@@ -20,10 +20,9 @@ public class GridFsStorageServiceFactory implements StorageServiceFactory<GridFs
     private MongoTemplate mongoTemplate;
 
     @Override
-    public GridFsStorageService getStorageService(String backupSetId) {
-        // we use the backupSetId as the bucket name used by GridFS so that all the files backed up as part of a
-        // backupSet are stored in a distinct bucket
-        // TODO we should implement a maintenance job to delete buckets for which there is no backupSet
-        return new GridFsStorageService(mongoDbFactory, mongoConverter, mongoTemplate, backupSetId);
+    public GridFsStorageService getStorageService(String id) {
+        // The specified id is used as the GridFS bucket name so that all the files backed up as part of a
+        // backupSet are stored in a distinct bucket (see https://docs.mongodb.com/manual/core/gridfs/index.html#gridfs-collections)
+        return new GridFsStorageService(mongoDbFactory, mongoConverter, mongoTemplate, id);
     }
 }

@@ -2,8 +2,8 @@ package org.ogerardin.b2b.batch.jobs;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.ogerardin.b2b.domain.entity.StoredFileVersionInfo;
-import org.ogerardin.b2b.domain.StoredFileVersionInfoProvider;
+import org.ogerardin.b2b.domain.LatestStoredRevisionProvider;
+import org.ogerardin.b2b.domain.entity.LatestStoredRevision;
 import org.ogerardin.b2b.files.md5.ByteArrayMD5Calculator;
 import org.ogerardin.b2b.files.md5.InputStreamMD5Calculator;
 
@@ -15,14 +15,14 @@ import java.util.function.Predicate;
 
 /**
  * A {@link Predicate} that decides if a local file should be backep up based on its MD5 hash, compared to a stored
- * MD5 hash provided by a {@link StoredFileVersionInfoProvider}
+ * MD5 hash provided by a {@link LatestStoredRevisionProvider}
  */
 @Slf4j
 @Data
 public class Md5FilteringStrategy implements Predicate<Path> {
 
     /** Provides a way to query information (specifically MD5) abouth the stored file */
-    private final StoredFileVersionInfoProvider storedFileVersionInfoProvider;
+    private final LatestStoredRevisionProvider latestStoredRevisionProvider;
 
     /** The hash engine to use. See implementations of {@link ByteArrayMD5Calculator} */
     private final InputStreamMD5Calculator md5Calculator;
@@ -33,7 +33,7 @@ public class Md5FilteringStrategy implements Predicate<Path> {
     @Override
     public boolean test(Path path) {
         // retrieve MD5 of stored file version
-        Optional<StoredFileVersionInfo> info = storedFileVersionInfoProvider.getStoredFileVersionInfo(path);
+        Optional<LatestStoredRevision> info = latestStoredRevisionProvider.getLatestStoredRevision(path);
         if (!info.isPresent()) {
             // no stored information yet: the file is a new file
             log.debug("NEW FILE: " + path);

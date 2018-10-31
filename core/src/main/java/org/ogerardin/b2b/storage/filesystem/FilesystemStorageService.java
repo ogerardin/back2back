@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,7 +24,7 @@ import static org.ogerardin.b2b.util.LambdaExceptionUtil.rethrowFunction;
  * re-rooted at the base directory; for example if saving file /x/y/z and the base directory is /a/b/c, then the file
  * will be saved as /a/b/c/x/y/z.
  *
- * This implemetation does not manage multiple versions of a stored file, nor deleted files.
+ * This implemetation does not manage multiple revisions of a stored file, nor deleted files.
  */
 public class FilesystemStorageService implements StorageService {
 
@@ -112,20 +111,20 @@ public class FilesystemStorageService implements StorageService {
 
     @Override
     public void deleteAll() {
-        //noinspection ResultOfMethodCallIgnored
         try {
+            //noinspection ResultOfMethodCallIgnored
             Files.walk(baseDirectory)
                     .sorted(Comparator.reverseOrder())
                     .map(Path::toFile)
     //                .peek(System.out::println)
-                    .forEach(File::delete);
+                    .forEach(java.io.File::delete);
         } catch (IOException e) {
             throw new StorageException("Exception while trying to recursively delete " + baseDirectory, e);
         }
     }
 
     @Override
-    public String store(File file) {
+    public String store(java.io.File file) {
         Path path = Paths.get(file.toURI());
         store(path);
         return null;

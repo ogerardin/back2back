@@ -16,9 +16,10 @@ public class FilesystemStorageServiceFactory implements StorageServiceFactory<Fi
     }
 
     @Override
-    public FilesystemStorageService getStorageService(String name) {
+    public FilesystemStorageService getStorageService(String id) {
+        // The specified id is used as a subdirectory name under the configured base directory
         Path baseDirectory = properties.getBaseDirectory();
-        Path directory = baseDirectory.resolve(name);
+        Path directory = baseDirectory.resolve(id);
         return new FilesystemStorageService(directory);
     }
 }

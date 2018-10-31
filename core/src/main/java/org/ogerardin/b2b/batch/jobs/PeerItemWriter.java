@@ -4,9 +4,9 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.ogerardin.b2b.config.ConfigManager;
-import org.ogerardin.b2b.domain.StoredFileVersionInfoProvider;
-import org.ogerardin.b2b.domain.entity.StoredFileVersionInfo;
-import org.ogerardin.b2b.domain.mongorepository.RemoteFileVersionInfoRepository;
+import org.ogerardin.b2b.domain.LatestStoredRevisionProvider;
+import org.ogerardin.b2b.domain.entity.LatestStoredRevision;
+import org.ogerardin.b2b.domain.mongorepository.LatestStoredRevisionRepository;
 import org.ogerardin.b2b.storage.EncryptionException;
 import org.ogerardin.b2b.util.CipherHelper;
 import org.ogerardin.b2b.util.FormattingHelper;
@@ -40,7 +40,7 @@ import java.util.List;
  * ItemWriter implementation that uploads the file designated by the input {@link LocalFileInfo} to a remote
  * back2back peer instance using the REST API.
  * Files can be encrypted before transmission if a {@link Key} is provided.
- * Also stores locally the MD5 hash of uploaded files in a {@link RemoteFileVersionInfoRepository} to allow change detection.
+ * Also stores locally the MD5 hash of uploaded files in a {@link LatestStoredRevisionRepository} to allow change detection.
  */
 @Slf4j
 class PeerItemWriter implements ItemWriter<LocalFileInfo> {
@@ -49,7 +49,7 @@ class PeerItemWriter implements ItemWriter<LocalFileInfo> {
     private final Key key;
 
     /** repository to store the hash and ozher info of remotely stored files */
-    private final StoredFileVersionInfoProvider peerFileVersionInfoRepository;
+    private final LatestStoredRevisionProvider peerRevisionInfoRepository;
 
     /** URL of the peer instance */
     private final URL url;
@@ -59,19 +59,19 @@ class PeerItemWriter implements ItemWriter<LocalFileInfo> {
 
     private static final RestTemplate REST_TEMPLATE = new RestTemplate();
 
-    PeerItemWriter(@NonNull StoredFileVersionInfoProvider remoteFileVersionInfoRepository,
+    PeerItemWriter(@NonNull LatestStoredRevisionProvider remoteFileVersionInfoRepository,
                    @NonNull String targetHostname, int targetPort, Key key) throws MalformedURLException {
 
-        this.peerFileVersionInfoRepository = remoteFileVersionInfoRepository;
+        this.peerRevisionInfoRepository = remoteFileVersionInfoRepository;
         this.key = key;
 
         // construct URL of remote "peer" API
         this.url = new URL("http", targetHostname, targetPort, "/api/peer/upload");
     }
 
-    PeerItemWriter(StoredFileVersionInfoProvider peerFileVersionInfoRepository,
+    PeerItemWriter(LatestStoredRevisionProvider peerRevisionInfoRepository,
                    String targetHostname, int targetPort) throws MalformedURLException {
-        this(peerFileVersionInfoRepository, targetHostname, targetPort, null);
+        this(peerRevisionInfoRepository, targetHostname, targetPort, null);
     }
 
 
@@ -85,7 +85,7 @@ class PeerItemWriter implements ItemWriter<LocalFileInfo> {
             try (
                 // the original file's InputStream
                 InputStream fileInputStream = Files.newInputStream(path);
-                // the same stream, but also updates the hasher as it is read
+                // the same stream, but also updates a hasher as it is read
                 InputStream digestInputStream = new DigestInputStream(fileInputStream, messageDigest);
                 // InputStream that will be uploaded.
                 // If we have a key (encryption) we use it to wrap the stream in an encrypted stream,
@@ -99,11 +99,10 @@ class PeerItemWriter implements ItemWriter<LocalFileInfo> {
             byte[] md5Hash = messageDigest.digest();
             String hexMd5Hash = FormattingHelper.hex(md5Hash);
             log.debug("Updating local MD5 database for {} -> {}", path, md5Hash);
-            val peerFileVersion = new StoredFileVersionInfo(path.toString(), hexMd5Hash, false);
-            peerFileVersionInfoRepository.saveStoredFileVersionInfo(peerFileVersion);
+            val peerRevision = new LatestStoredRevision(path.toString(), hexMd5Hash, false);
+            peerRevisionInfoRepository.saveRevisionInfo(peerRevision);
 
         }
-
     }
 
     private static InputStream getCipherInputStream(InputStream is, Key key) throws EncryptionException {

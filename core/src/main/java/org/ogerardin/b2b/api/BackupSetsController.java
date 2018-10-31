@@ -50,8 +50,20 @@ public class BackupSetsController {
             includeDeleted = false;
         }
         BackupSet backupSet = backupSetRepository.findById(id).get();
-        StorageService storageService = storageServiceFactory.getStorageService(backupSet.getId());
+        StorageService storageService = getStorageService(backupSet);
         return storageService.getAllFiles(includeDeleted).toArray(FileInfo[]::new);
+    }
+
+    /**
+     * Returns a {@link StorageService} that is specific to the specified {@link BackupSet}.
+     */
+    private StorageService getStorageService(BackupSet backupSet) {
+        // We use the backup set ID as storage service name. How this will translate in terms of storage is
+        // dependent on the specific StorageService implementation; for example for GridFsStorageService
+        // it will be used as the GridFS bucket name.
+        return storageServiceFactory.getStorageService(backupSet.getId());
+        // TODO we should implement a maintenance job to delete StorageService resources for which there is no
+        //  more corresponding backupSet
     }
 
     /**
@@ -61,7 +73,7 @@ public class BackupSetsController {
     @GetMapping("/{id}/revisions")
     public RevisionInfo[] getVersions(@PathVariable String id, @RequestParam(required = false) String path) {
         BackupSet backupSet = backupSetRepository.findById(id).get();
-        StorageService storageService = storageServiceFactory.getStorageService(backupSet.getId());
+        StorageService storageService = getStorageService(backupSet);
         if (path == null) {
             return storageService.getAllRevisions().toArray(RevisionInfo[]::new);
         }
@@ -73,7 +85,7 @@ public class BackupSetsController {
     @GetMapping("/{id}/revisions/{revisionId}")
     public RevisionInfo getItemInfo(@PathVariable String id, @PathVariable String revisionId) throws StorageFileVersionNotFoundException {
         BackupSet backupSet = backupSetRepository.findById(id).get();
-        StorageService storageService = storageServiceFactory.getStorageService(backupSet.getId());
+        StorageService storageService = getStorageService(backupSet);
         return storageService.getRevisionInfo(revisionId);
     }
 
@@ -81,7 +93,7 @@ public class BackupSetsController {
     @ResponseBody
     public ResponseEntity<Resource> getItemContents(@PathVariable String id, @PathVariable String revisionId) throws StorageFileVersionNotFoundException {
         BackupSet backupSet = backupSetRepository.findById(id).get();
-        StorageService storageService = storageServiceFactory.getStorageService(backupSet.getId());
+        StorageService storageService = getStorageService(backupSet);
         RevisionInfo revisionInfo = storageService.getRevisionInfo(revisionId);
         String filename = Paths.get(revisionInfo.getFilename()).getFileName().toString();
         Resource resource = storageService.getRevisionAsResource(revisionId);

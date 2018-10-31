@@ -3,8 +3,8 @@ package org.ogerardin.b2b.domain.mongorepository;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.MongoCollection;
 import org.bson.Document;
-import org.ogerardin.b2b.domain.StoredFileVersionInfoProvider;
-import org.ogerardin.b2b.domain.entity.StoredFileVersionInfo;
+import org.ogerardin.b2b.domain.LatestStoredRevisionProvider;
+import org.ogerardin.b2b.domain.entity.LatestStoredRevision;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.repository.query.MongoEntityInformation;
 import org.springframework.data.mongodb.repository.support.SimpleMongoRepository;
@@ -14,23 +14,24 @@ import java.util.Optional;
 
 /**
  * A local Mongo repository used to store metadata about remotely backed up files.
+ * Since we only care about the last hash, we use the file path as ID.
  */
-public class RemoteFileVersionInfoRepository
-        extends SimpleMongoRepository<StoredFileVersionInfo, String>
-    implements StoredFileVersionInfoProvider
+public class LatestStoredRevisionRepository
+        extends SimpleMongoRepository<LatestStoredRevision, String>
+    implements LatestStoredRevisionProvider
 {
 
     private final MongoOperations mongoOperations;
-    private final MongoEntityInformation<StoredFileVersionInfo, String> entityInformation;
+    private final MongoEntityInformation<LatestStoredRevision, String> entityInformation;
 
-    public RemoteFileVersionInfoRepository(MongoEntityInformation<StoredFileVersionInfo, String> metadata, MongoOperations mongoOperations) {
+    public LatestStoredRevisionRepository(MongoEntityInformation<LatestStoredRevision, String> metadata, MongoOperations mongoOperations) {
         super(metadata, mongoOperations);
         this.mongoOperations = mongoOperations;
         this.entityInformation = metadata;
     }
 
     @Override
-    public Optional<StoredFileVersionInfo> getStoredFileVersionInfo(String path) {
+    public Optional<LatestStoredRevision> getLatestStoredRevision(String path) {
         return findById(path);
     }
 
@@ -42,26 +43,26 @@ public class RemoteFileVersionInfoRepository
 
     @Override
     public boolean touch(Path path) {
-        Optional<StoredFileVersionInfo> maybeVersionInfo = getStoredFileVersionInfo(path);
+        Optional<LatestStoredRevision> maybeVersionInfo = getLatestStoredRevision(path);
         if (! maybeVersionInfo.isPresent()) {
             return false;
         }
-        StoredFileVersionInfo versionInfo = maybeVersionInfo.get();
+        LatestStoredRevision versionInfo = maybeVersionInfo.get();
         versionInfo.setDeleted(false);
-        save(versionInfo);
+        saveRevisionInfo(versionInfo);
         return true;
     }
 
     @Override
-    public void saveStoredFileVersionInfo(StoredFileVersionInfo storedFileVersionInfo) {
-        super.save(storedFileVersionInfo);
+    public void saveRevisionInfo(LatestStoredRevision revision) {
+        super.save(revision);
     }
 
     @Override
     public long deletedCount() {
         //FIXME poor implementation
         return findAll().stream()
-                .filter(StoredFileVersionInfo::isDeleted)
+                .filter(LatestStoredRevision::isDeleted)
                 .count();
     }
 

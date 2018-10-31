@@ -2,7 +2,7 @@ package org.ogerardin.b2b.batch.jobs;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.ogerardin.b2b.domain.StoredFileVersionInfoProvider;
+import org.ogerardin.b2b.domain.LatestStoredRevisionProvider;
 import org.springframework.batch.item.ItemProcessor;
 
 import java.nio.file.Path;
@@ -21,14 +21,14 @@ class FilteringPathItemProcessor implements ItemProcessor<LocalFileInfo, LocalFi
     private final FileSetStats filteredFilesStats = new FileSetStats();
 
     private final Predicate<Path> filter;
-    private final StoredFileVersionInfoProvider storedFileVersionInfoProvider;
+    private final LatestStoredRevisionProvider latestStoredRevisionProvider;
 
     /**
      * @param filter a {@link Predicate} that filters out files that don't need backup
      */
-    public FilteringPathItemProcessor(StoredFileVersionInfoProvider storedFileVersionInfoProvider, Predicate<Path> filter) {
+    public FilteringPathItemProcessor(LatestStoredRevisionProvider latestStoredRevisionProvider, Predicate<Path> filter) {
         this.filter = filter;
-        this.storedFileVersionInfoProvider = storedFileVersionInfoProvider;
+        this.latestStoredRevisionProvider = latestStoredRevisionProvider;
     }
 
     @Override
@@ -40,7 +40,7 @@ class FilteringPathItemProcessor implements ItemProcessor<LocalFileInfo, LocalFi
         Path path = item.getPath();
 
         // mark the file as "not deleted"
-        boolean knownFile = storedFileVersionInfoProvider.touch(path);
+        boolean knownFile = latestStoredRevisionProvider.touch(path);
 
         if (! knownFile || filter.test(path)) {
             filteredFilesStats.addFile(item.getFileAttributes().size());

@@ -33,7 +33,7 @@ public interface StorageService {
     /** Obtain a {@link Resource} that corresponds to the latest version of the specified file*/
     Resource getAsResource(String filename) throws StorageFileNotFoundException;
 
-    /** Store the file designated by the specified {@link java.io.File} */
+    /** Store the file designated by the specified {@link File} */
     String store(File file);
 
     /** Store the file designated by the specified {@link Path} */
