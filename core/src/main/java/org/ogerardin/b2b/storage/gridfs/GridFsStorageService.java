@@ -6,6 +6,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.gridfs.GridFSBucket;
 import com.mongodb.client.gridfs.GridFSBuckets;
+import com.mongodb.client.gridfs.GridFSFindIterable;
 import com.mongodb.client.gridfs.model.GridFSFile;
 import org.bson.Document;
 import org.bson.types.ObjectId;
@@ -22,6 +23,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.gridfs.GridFsCriteria;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
+import org.springframework.data.util.StreamUtils;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
@@ -66,10 +68,6 @@ public class GridFsStorageService implements StorageService {
         this.bucketName = bucketName;
     }
 
-    private static Path asPath(String f) {
-        return Paths.get(f);
-    }
-
     @Override
     public void init() {
     }
@@ -78,7 +76,7 @@ public class GridFsStorageService implements StorageService {
     @Override
     public Stream<FileInfo> getAllFiles(boolean includeDeleted) {
 
-        Stream<FileInfo> stream = _allFiles()
+        Stream<FileInfo> stream = getAllGridFSFiles()
                 // group by filename and map to the latest GridFSFile
                 .collect(Collectors.groupingBy(
                         GridFSFile::getFilename,
@@ -97,14 +95,14 @@ public class GridFsStorageService implements StorageService {
     }
 
     // returns a Stream of all GridFSFiles in the collection
-    private Stream<GridFSFile> _allFiles() {
-        List<GridFSFile> allFiles = new ArrayList<>();
-        gridFsTemplate.find(new Query()).into(allFiles);
-        return allFiles.stream();
+    private Stream<GridFSFile> getAllGridFSFiles() {
+        GridFSFindIterable fsFindIterable = gridFsTemplate.find(new Query());
+        Stream<GridFSFile> stream = StreamUtils.createStreamFromIterator(fsFindIterable.iterator());
+        return stream;
     }
 
     private FileInfo asFileInfo(GridFSFile gridFSFile) {
-        Path path = asPath(gridFSFile.getFilename());
+        Path path = Paths.get(gridFSFile.getFilename());
         Metadata metadata = this.getMetadata(gridFSFile);
         return new FileInfo(path, metadata.isDeleted());
     }
@@ -115,8 +113,8 @@ public class GridFsStorageService implements StorageService {
 
     @Override
     public Stream<RevisionInfo> getAllRevisions() {
-        return _allFiles()
-                .map(this::getFileVersion);
+        return getAllGridFSFiles()
+                .map(this::getRevisionInfo);
     }
 
     @Override
@@ -157,11 +155,10 @@ public class GridFsStorageService implements StorageService {
     /**
      * Returns all the {@link GridFSFile} corresponding to the specified file.
      */
-    private List<GridFSFile> getGridFSFiles(String filename) {
-        // we do the sorting in the stream pipeline as GridFsTemplate doesn't support sorted queries
-        List<GridFSFile> allVersions = new ArrayList<>();
-        gridFsTemplate.find(new Query(GridFsCriteria.whereFilename().is(filename))).into(allVersions);
-        return allVersions;
+    private Stream<GridFSFile> getGridFSFiles(String filename) {
+        GridFSFindIterable fsFindIterable = gridFsTemplate.find(new Query(GridFsCriteria.whereFilename().is(filename)));
+        Stream<GridFSFile> stream = StreamUtils.createStreamFromIterator(fsFindIterable.iterator());
+        return stream;
     }
 
     @Override
@@ -228,9 +225,8 @@ public class GridFsStorageService implements StorageService {
 
     @Override
     public RevisionInfo[] getRevisions(String filename) {
-        List<GridFSFile> fsFiles = getGridFSFiles(filename);
-        return fsFiles.stream()
-                .map(this::getFileVersion)
+        return getGridFSFiles(filename)
+                .map(this::getRevisionInfo)
                 .toArray(RevisionInfo[]::new);
     }
 
@@ -238,13 +234,13 @@ public class GridFsStorageService implements StorageService {
      * Returns the {@link GridFSFile} corresponding to the most recent version of the specified file stored.
      */
     private GridFSFile getLatestGridFSFile(String filename) throws StorageFileNotFoundException {
-        // we do the sorting in the stream pipeline as GridFs doesn't support sorted queries
-        List<GridFSFile> allVersions = new ArrayList<>();
-        gridFsTemplate.find(new Query(GridFsCriteria.whereFilename().is(filename))).into(allVersions);
-        GridFSFile fsdbFile = allVersions.stream()
+        // we do the sorting in the stream pipeline as GridFS doesn't support sorted queries
+        List<GridFSFile> revisions = new ArrayList<>();
+        gridFsTemplate.find(new Query(GridFsCriteria.whereFilename().is(filename))).into(revisions);
+        GridFSFile fsFile = revisions.stream()
                 .max(Comparator.comparing(GridFSFile::getUploadDate))
                 .orElseThrow(() -> new StorageFileNotFoundException(filename));
-        return fsdbFile;
+        return fsFile;
     }
 
     private String canonicalPath(Path path) {
@@ -257,7 +253,7 @@ public class GridFsStorageService implements StorageService {
         return canonicalPath;
     }
 
-    private RevisionInfo getFileVersion(GridFSFile fsdbFile) {
+    private RevisionInfo getRevisionInfo(GridFSFile fsdbFile) {
         RevisionInfo info = RevisionInfo.builder()
                 .id(fsdbFile.getObjectId().toString())
                 .filename(fsdbFile.getFilename())
@@ -283,13 +279,13 @@ public class GridFsStorageService implements StorageService {
     @Override
     public RevisionInfo getLatestRevision(String filename) throws StorageFileNotFoundException {
         GridFSFile fsFile = getLatestGridFSFile(filename);
-        return getFileVersion(fsFile);
+        return getRevisionInfo(fsFile);
     }
 
     @Override
     public RevisionInfo getRevisionInfo(String revisionId) throws StorageFileVersionNotFoundException {
         GridFSFile fsFile = getGridFSFileById(revisionId);
-        return getFileVersion(fsFile);
+        return getRevisionInfo(fsFile);
     }
 
     @Override
