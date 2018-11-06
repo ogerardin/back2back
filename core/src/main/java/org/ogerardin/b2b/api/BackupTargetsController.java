@@ -1,17 +1,22 @@
 package org.ogerardin.b2b.api;
 
+import lombok.extern.slf4j.Slf4j;
 import org.ogerardin.b2b.batch.JobStarter;
 import org.ogerardin.b2b.domain.entity.BackupTarget;
 import org.ogerardin.b2b.domain.mongorepository.BackupTargetRepository;
+import org.ogerardin.b2b.util.CandidateClassScanner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/targets")
+@Slf4j
 public class BackupTargetsController {
 
     private final BackupTargetRepository targetRepository;
@@ -71,4 +76,26 @@ public class BackupTargetsController {
             throw new NotFoundException(id);
         }
     }
+
+    /**
+     * @return an array of sample instances of BackupTargets, one for each concrete implementation of {@link BackupTarget}
+     * This might be used to dynamically construct the UI.
+     */
+    @GetMapping("/types")
+    public BackupTarget[] getTypes() {
+        Collection<Class<? extends BackupTarget>> backuptargetClasses =
+                CandidateClassScanner.getAssignableClasses(BackupTarget.class, "org.ogerardin.b2b.domain.entity");
+        List<BackupTarget> backupTargets = new ArrayList<>();
+        for (Class<? extends BackupTarget> backuptargetClass : backuptargetClasses) {
+            BackupTarget newInstance = null;
+            try {
+                newInstance = backuptargetClass.newInstance();
+            } catch (InstantiationException | IllegalAccessException e) {
+                log.warn("Failed to instantiate {}", backuptargetClass);
+            }
+            backupTargets.add(newInstance);
+        }
+        return backupTargets.toArray(new BackupTarget[0]);
+    }
+
 }

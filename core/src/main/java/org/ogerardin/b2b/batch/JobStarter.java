@@ -34,6 +34,8 @@ import java.util.stream.Collectors;
  * -a {@link JobParameters} is populated from this BackupSet
  * -each configured {@link Job} is examined, if the JobParameters is valid for this job, then it is started with
  * these params
+ *
+ * TODO: instead of creating a job for each source/target combination, the jobs should be configurable individually
  */
 @Component
 @Slf4j

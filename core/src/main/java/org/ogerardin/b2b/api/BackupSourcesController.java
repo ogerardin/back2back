@@ -1,17 +1,22 @@
 package org.ogerardin.b2b.api;
 
+import lombok.extern.slf4j.Slf4j;
 import org.ogerardin.b2b.batch.JobStarter;
 import org.ogerardin.b2b.domain.entity.BackupSource;
 import org.ogerardin.b2b.domain.mongorepository.BackupSourceRepository;
+import org.ogerardin.b2b.util.CandidateClassScanner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/sources")
+@Slf4j
 public class BackupSourcesController {
 
     private final BackupSourceRepository sourceRepository;
@@ -58,22 +63,6 @@ public class BackupSourcesController {
         return savedSource;
     }
 
-/*
-    @PostMapping("/{id}/path")
-    public void setPath(@PathVariable String id, String path) {
-        BackupSource source = sourceRepository.findOne(id);
-        if (source == null) {
-            throw new RuntimeException("Failed to find id " + id);
-        }
-        if (! (source instanceof FilesystemSource)) {
-            throw new RuntimeException("Source is not a " + FilesystemSource.class.getSimpleName() + ", id " + id);
-        }
-        FilesystemSource filesystemSource = (FilesystemSource) source;
-        filesystemSource.setPath(Paths.get(path));
-        sourceRepository.save(filesystemSource);
-    }
-*/
-
     @DeleteMapping("/{id}")
     public void delete(@PathVariable String id) throws NotFoundException {
         assertExists(id);
@@ -87,5 +76,27 @@ public class BackupSourcesController {
             throw new NotFoundException(id);
         }
     }
+
+    /**
+     * @return an array of sample instances of BackupSources, one for each concrete implementation of {@link BackupSource}
+     * This might be used to dynamically construct the UI.
+     */
+    @GetMapping("/types")
+    public BackupSource[] getTypes() {
+        Collection<Class<? extends BackupSource>> backupSourceClasses =
+                CandidateClassScanner.getAssignableClasses(BackupSource.class, "org.ogerardin.b2b.domain.entity");
+        List<BackupSource> backupTargets = new ArrayList<>();
+        for (Class<? extends BackupSource> backupSourceClass : backupSourceClasses) {
+            BackupSource backupSource = null;
+            try {
+                backupSource = backupSourceClass.newInstance();
+            } catch (InstantiationException | IllegalAccessException e) {
+                log.warn("Failed to instantiate {}", backupSourceClass);
+            }
+            backupTargets.add(backupSource);
+        }
+        return backupTargets.toArray(new BackupSource[0]);
+    }
+
 
 }
