@@ -19,6 +19,9 @@
 </template>
 
 <script>
+  import SockJS from 'sockjs-client'
+  import Stomp from "webstomp-client"
+
   export default {
     name: 'BackupSetProgress',
     props: [
@@ -27,10 +30,14 @@
     data() {
       return {
         backupSets: [],
+        received_messages: [],
       };
     },
     created() {
       this.getbackupSets(this.sourceClassFilter);
+    },
+    mounted() {
+      this.connect();
     },
     methods: {
       getbackupSets(sourceClassFilter) {
@@ -43,7 +50,48 @@
           console.log(error)
         });
 
-      }
+      },
+      send() {
+        if (this.stompClient && this.stompClient.connected) {
+          console.log("Send message");
+          const msg = {
+            message: "TEST",
+          };
+          this.stompClient.send("/hello", JSON.stringify(msg), {});
+        }
+      },
+      connect() {
+        if (this.stompClient && this.stompClient.connected) {
+          return;
+        }
+        this.socket = new SockJS("http://localhost:8080/websocket");
+        this.stompClient = Stomp.over(this.socket, { debug: false, heartbeat: false, protocols: ['v12.stomp'] } );
+        this.stompClient.connect(
+          {},
+          frame => {
+            console.log("Received frame");
+            console.log(frame);
+            this.stompClient.subscribe("/topic/message", msg => {
+              console.log("Received message on topic /topic/message");
+              console.log(msg);
+              this.received_messages.push(JSON.parse(msg.body).content);
+            });
+          },
+          error => {
+            console.log(error);
+          }
+        );
+      },
+      disconnect() {
+        if (this.stompClient) {
+          this.stompClient.disconnect();
+        }
+      },
+      /*
+            tickleConnection() {
+              this.connected ? this.disconnect() : this.connect();
+            },
+      */
     }
   }
 </script>

@@ -5,6 +5,7 @@ import org.springframework.batch.core.configuration.annotation.EnableBatchProces
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.support.SimpleJobLauncher;
 import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.stereotype.Component;
@@ -21,7 +22,7 @@ public class InMemoryBatchConfigurer extends DefaultBatchConfigurer {
 
     private final AsyncTaskExecutor asyncTaskExecutor;
 
-    public InMemoryBatchConfigurer(AsyncTaskExecutor asyncTaskExecutor) {
+    public InMemoryBatchConfigurer(@Qualifier("taskExecutor") AsyncTaskExecutor asyncTaskExecutor) {
         this.asyncTaskExecutor = asyncTaskExecutor;
     }
 
