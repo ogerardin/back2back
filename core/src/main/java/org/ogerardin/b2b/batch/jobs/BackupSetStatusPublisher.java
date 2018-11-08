@@ -14,6 +14,7 @@ public class BackupSetStatusPublisher {
     private SimpMessagingTemplate simpMessagingTemplate;
 
     void publishStatus(BackupSet backupSet) {
+        //TODO post a spcific status change message instead of the full BackupSet
         simpMessagingTemplate.convertAndSend(PUBLISH_TOPIC, backupSet);
     }
 

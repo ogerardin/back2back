@@ -132,7 +132,8 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
     @JobScope
     protected Step backupToPeerStep(
             BackupJobContext jobContext,
-            PeerItemWriter peerWriter
+            PeerItemWriter peerWriter,
+            FileBackupListener fileBackupListener
     ) {
         return stepBuilderFactory
                 .get("backupToPeerStep")
@@ -143,6 +144,8 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
                 .processor(new PassThroughItemProcessor<>())
                 // store them to the remote peer
                 .writer(peerWriter)
+                // monitor progress
+                .listener(fileBackupListener)
                 .build();
     }
 

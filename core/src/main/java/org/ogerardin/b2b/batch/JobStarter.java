@@ -248,7 +248,7 @@ public class JobStarter {
      * i.e. for which calling the validator doesn't throw a {@link JobParametersInvalidException}. The first job to
      * match is returned.
      *
-     * @return The Job, or Optional#empty() if not found
+     * @return The Job, or {@link Optional#empty()} if not found
      */
     private Optional<Job> findApplicableJob(JobParameters jobParameters) {
         for (Job job : allJobs) {

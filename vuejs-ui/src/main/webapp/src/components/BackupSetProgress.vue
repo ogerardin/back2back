@@ -7,7 +7,7 @@
       <div v-if="b.batchCount!=0">
         to do: {{b.toDoCount}} / {{b.batchCount}}
         <b-progress :max="b.batchCount" :value="b.batchCount - b.toDoCount"
-                    variant="info" striped :animated="animate" class="mb-2"></b-progress>
+                    variant="info" striped animated class="mb-2"></b-progress>
       </div>
       <div v-else>
         <b-progress :max="b.fileCount" :value="b.fileCount"
@@ -30,7 +30,6 @@
     data() {
       return {
         backupSets: [],
-        received_messages: [],
       };
     },
     created() {
@@ -51,6 +50,7 @@
         });
 
       },
+/*
       send() {
         if (this.stompClient && this.stompClient.connected) {
           console.log("Send message");
@@ -60,6 +60,7 @@
           this.stompClient.send("/hello", JSON.stringify(msg), {});
         }
       },
+*/
       connect() {
         if (this.stompClient && this.stompClient.connected) {
           return;
@@ -68,13 +69,26 @@
         this.stompClient = Stomp.over(this.socket, { debug: false, heartbeat: false, protocols: ['v12.stomp'] } );
         this.stompClient.connect(
           {},
-          frame => {
-            console.log("Received frame");
-            console.log(frame);
-            this.stompClient.subscribe("/topic/message", msg => {
-              console.log("Received message on topic /topic/message");
-              console.log(msg);
-              this.received_messages.push(JSON.parse(msg.body).content);
+          connectFrame => {
+            console.log(connectFrame);
+            this.stompClient.subscribe("/topic/message", messageFrame => {
+              // console.log("Received message on topic /topic/message");
+              console.log(messageFrame);
+              // this.received_messages.push(JSON.parse(messageFrame.body).content);
+              var bsu = JSON.parse(messageFrame.body);
+              // console.log(bsu.id);
+
+              for (const bs of this.backupSets) {
+                if (bs.id === bsu.id) {
+                  console.log("updating " + bs.id);
+                  bs.status = bsu.status;
+                  bs.size = bsu.size;
+                  bs.batchCount = bsu.batchCount;
+                  bs.batchSize = bsu.batchSize;
+                  bs.toDoCount = bsu.toDoCount;
+                  bs.toDoSize = bsu.toDoSize;
+                }
+              }
             });
           },
           error => {

@@ -129,7 +129,8 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
     @JobScope
     protected Step backupToInternalStorageStep(
             BackupJobContext jobContext,
-            InternalStorageItemWriter internalStorageWriter
+            InternalStorageItemWriter internalStorageWriter,
+            FileBackupListener fileBackupListener
     ) {
         return stepBuilderFactory
                 .get("backupToInternalStorageStep")
@@ -140,6 +141,8 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
                 .processor(new PassThroughItemProcessor<>())
                 // store them to the internal storage
                 .writer(internalStorageWriter)
+                // monitor progress
+                .listener(fileBackupListener)
                 .build();
     }
 
