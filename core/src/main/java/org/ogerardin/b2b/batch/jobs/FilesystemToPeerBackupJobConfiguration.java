@@ -4,8 +4,8 @@ import lombok.val;
 import org.ogerardin.b2b.batch.FileSetItemWriter;
 import org.ogerardin.b2b.domain.LatestStoredRevisionProvider;
 import org.ogerardin.b2b.domain.entity.FilesystemSource;
-import org.ogerardin.b2b.domain.entity.PeerTarget;
 import org.ogerardin.b2b.domain.entity.LatestStoredRevision;
+import org.ogerardin.b2b.domain.entity.PeerTarget;
 import org.ogerardin.b2b.domain.mongorepository.LatestStoredRevisionRepository;
 import org.ogerardin.b2b.files.md5.InputStreamMD5Calculator;
 import org.springframework.batch.core.Job;
@@ -14,6 +14,7 @@ import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemWriter;
+import org.springframework.batch.item.support.CompositeItemProcessor;
 import org.springframework.batch.item.support.IteratorItemReader;
 import org.springframework.batch.item.support.PassThroughItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,7 @@ import org.springframework.data.mongodb.repository.support.MappingMongoEntityInf
 
 import java.net.MalformedURLException;
 import java.nio.file.Path;
+import java.util.Arrays;
 
 /**
  * Job configuration for a backup job that processes a source of type {@link FilesystemSource}
@@ -63,7 +65,7 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
     }
 
     /**
-     * Provides a {@link Step} that computes the backup batch using peer information
+     * A {@link Step} that computes the backup batch using peer information
      * and stores it into the context
      */
     @Bean
@@ -71,24 +73,24 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
     protected Step peerComputeBatchStep(
             BackupJobContext jobContext,
             FilesystemItemReader filesystemItemReader,
-            FilteringPathItemProcessor peerFilteringPathItemProcessor,
-            ComputeBatchStepExecutionListener peerComputeBatchStepExecutionListener) {
+            ItemProcessor<LocalFileInfo, LocalFileInfo> peerCountingAndFilteringItemProcessor,
+            ComputeBatchStepExecutionListener computeBatchStepExecutionListener) {
         return stepBuilderFactory
                 .get("peerComputeBatchStep")
                 .<LocalFileInfo, LocalFileInfo> chunk(10)
                 // read files from local filesystem
                 .reader(filesystemItemReader)
                 // filter out files that don't need backup
-                .processor(peerFilteringPathItemProcessor)
+                .processor(peerCountingAndFilteringItemProcessor)
                 // store them in the context
                 .writer(new FileSetItemWriter(jobContext.getBackupBatch()))
                 // update BackupSet with stats
-                .listener(peerComputeBatchStepExecutionListener)
+                .listener(computeBatchStepExecutionListener)
                 .build();
     }
 
     /**
-     * Provides a job-scoped {@link ItemProcessor} that filters out {@link Path} items
+     * A job-scoped {@link ItemProcessor} that filters out {@link LocalFileInfo} items
      * corresponding to a file that isn't different from the latest stored version, base on MD5 hashes.
      */
     @Bean
@@ -102,14 +104,25 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
         return new FilteringPathItemProcessor(storedFileVersionInfoProvider, filteringStrategy);
     }
 
+    /**
+     * A job-scoped composite {@link ItemProcessor} that does the following:
+     * - increment this job's total file and byte count using {@link #countingProcessor}
+     * - filter out unchanged files using {@link #peerFilteringPathItemProcessor}
+     */
     @Bean
     @JobScope
-    protected ComputeBatchStepExecutionListener peerComputeBatchStepExecutionListener(
-            BackupJobContext backupJobContext,
+    protected ItemProcessor<LocalFileInfo, LocalFileInfo> peerCountingAndFilteringItemProcessor(
+            ItemProcessor<LocalFileInfo, LocalFileInfo> countingProcessor,
             FilteringPathItemProcessor peerFilteringPathItemProcessor) {
-        return new ComputeBatchStepExecutionListener(backupJobContext, peerFilteringPathItemProcessor);
+        return new CompositeItemProcessor<LocalFileInfo, LocalFileInfo>() {
+            {
+                setDelegates(Arrays.asList(
+                        countingProcessor,
+                        peerFilteringPathItemProcessor
+                ));
+            }
+        };
     }
-
 
 
     /**

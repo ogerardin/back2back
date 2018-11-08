@@ -3,24 +3,13 @@ package org.ogerardin.b2b.batch.jobs;
 import lombok.extern.slf4j.Slf4j;
 import org.ogerardin.b2b.B2BProperties;
 import org.ogerardin.b2b.domain.entity.BackupSet;
-import org.springframework.batch.core.*;
-import org.springframework.batch.core.configuration.JobLocator;
+import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.configuration.annotation.JobScope;
-import org.springframework.batch.core.launch.JobLauncher;
-import org.springframework.batch.core.launch.NoSuchJobException;
-import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
-import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
-import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
-
-import static java.util.concurrent.TimeUnit.*;
 
 /**
  * Execution listener that updates corresponding {@link BackupSet}
@@ -34,20 +23,16 @@ public class BackupJobExecutionListener extends BackupSetAwareBean implements Jo
     B2BProperties properties;
 
     @Autowired
-    private JobLauncher jobLauncher;
-    @Autowired
-    private JobLocator jobLocator;
-
-    @Qualifier("taskExecutor")
-    @Autowired
-    private AsyncTaskExecutor asyncTaskExecutor;
+    BackupSetStatusPublisher backupSetStatusPublisher;
 
     @Override
     public void beforeJob(JobExecution jobExecution) {
 //        logger.debug("beforeJob, jobExecution=" + jobExecution);
         BackupSet backupSet = getBackupSet();
         backupSet.setCurrentBackupStartTime(jobExecution.getStartTime().toInstant());
+
         backupSetRepository.save(backupSet);
+        backupSetStatusPublisher.publishStatus(backupSet);
     }
 
     @Override
@@ -68,40 +53,7 @@ public class BackupJobExecutionListener extends BackupSetAwareBean implements Jo
         backupSet.setStatus(status);
 
         backupSetRepository.save(backupSet);
+        backupSetStatusPublisher.publishStatus(backupSet);
     }
 
-    private void scheduleDelayedRestart(JobExecution jobExecution, long delay) {
-        asyncTaskExecutor.submit(() -> {
-            String jobName = jobExecution.getJobInstance().getJobName();
-            JobParameters jobParameters = jobExecution.getJobParameters();
-            // pause
-            try {
-                log.info("Pausing for " + msToHumanDuration(delay));
-                Thread.sleep(delay);
-            } catch (InterruptedException e) {
-                log.warn("Restart task interrupted during pause: " + e.toString());
-            }
-            // restart job
-            try {
-                Job job = jobLocator.getJob(jobName);
-                JobParameters nextJobParameters = job.getJobParametersIncrementer().getNext(jobParameters);
-                log.info("Attempting to restart job {}", jobName);
-                jobLauncher.run(job, nextJobParameters);
-            } catch (NoSuchJobException | JobExecutionAlreadyRunningException | JobParametersInvalidException | JobInstanceAlreadyCompleteException | JobRestartException e) {
-                log.error("Failed to restart job", e);
-            }
-        });
-    }
-
-    private String msToHumanDuration(long duration) {
-        StringBuilder sb = new StringBuilder();
-        for (TimeUnit tu : Arrays.asList(DAYS, HOURS, MINUTES, SECONDS)) {
-            long count = tu.convert(duration, MILLISECONDS);
-            duration -= tu.toMillis(count);
-            if (count > 0) {
-                sb.append(String.format("%d %s ", count, tu.toString().substring(0,1).toLowerCase()));
-            }
-        }
-        return sb.toString();
-    }
 }

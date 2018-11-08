@@ -5,6 +5,8 @@ import org.ogerardin.b2b.domain.LatestStoredRevisionProvider;
 import org.ogerardin.b2b.domain.entity.FilesystemSource;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.scope.context.JobContext;
+import org.springframework.batch.item.ItemProcessor;
+import org.springframework.batch.item.ItemReader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 
@@ -22,12 +24,10 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
         addMandatoryParameter("source.roots");
     }
 
-
     /**
-     * Provides a job-scoped context that contains contextual data for the current job, including the list of files
+     * A job-scoped object that contains contextual data for the current job, most notably the list of files
      * to backup.
-     * We do not use {@link JobContext} because it has limitations on
-     * size (and we don't want to persist it anyway)
+     * We do not use {@link JobContext} because it has limitations on size (and we don't want to persist it anyway)
      */
     @Bean
     @JobScope
@@ -38,6 +38,10 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
     }
 
 
+    /**
+     * An {@link ItemReader} that generates a list of {@link LocalFileInfo}, each corresponding to a local file
+     * obtained by walking the source roots specified in this job's "source.roots" parameter.
+     */
     @Bean
     @JobScope
     protected FilesystemItemReader filesystemItemReader(
@@ -47,6 +51,18 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
         return new FilesystemItemReader(roots);
     }
 
+    /**
+     * A job-scoped pass-through {@link ItemProcessor} that updates this job's total file and byte cound
+     */
+    @Bean
+    @JobScope
+    protected ItemProcessor<LocalFileInfo, LocalFileInfo> countingProcessor(BackupJobContext jobContext) {
+        return item -> {
+            long fileSize = item.getFileAttributes().size();
+            jobContext.getTotalFileStats().addFile(fileSize);
+            return item;
+        };
+    }
 
     abstract LatestStoredRevisionProvider getStoredFileVersionInfoProvider(String backupSetId);
 

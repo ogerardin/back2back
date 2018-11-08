@@ -1,8 +1,12 @@
 package org.ogerardin.b2b.util;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import static java.util.concurrent.TimeUnit.*;
 
 public enum FormattingHelper {
     ;
@@ -25,5 +29,17 @@ public enum FormattingHelper {
                 .map(b -> (0xFF & b)) //as unsigned byte
                 .mapToObj(i -> String.format("%02x", i)) //format to hex (0-padded)
                 .collect(Collectors.joining()); // join
+    }
+
+    private static String msToHumanDuration(long duration) {
+        StringBuilder sb = new StringBuilder();
+        for (TimeUnit tu : Arrays.asList(DAYS, HOURS, MINUTES, SECONDS)) {
+            long count = tu.convert(duration, MILLISECONDS);
+            duration -= tu.toMillis(count);
+            if (count > 0) {
+                sb.append(String.format("%d %s ", count, tu.toString().substring(0,1).toLowerCase()));
+            }
+        }
+        return sb.toString();
     }
 }

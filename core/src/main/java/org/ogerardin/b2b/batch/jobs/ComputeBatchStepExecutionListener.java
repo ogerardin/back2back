@@ -8,29 +8,32 @@ import org.ogerardin.b2b.util.FormattingHelper;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
+import org.springframework.batch.core.configuration.annotation.JobScope;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * A {@link StepExecutionListener} that updates the backupSet with the total file stats and batch file stats
  * Intended to be attached to the "compute batch" step of the backup job.
  */
+@Component
+@JobScope
 @Slf4j
 public class ComputeBatchStepExecutionListener extends BackupSetAwareBean implements StepExecutionListener {
 
-    final BackupJobContext backupJobContext;
+    @Autowired
+    private BackupJobContext backupJobContext;
 
-    final FilteringPathItemProcessor filteringPathItemProcessor;
-
-    public ComputeBatchStepExecutionListener(BackupJobContext backupJobContext, FilteringPathItemProcessor filteringPathItemProcessor) {
-        this.backupJobContext = backupJobContext;
-        this.filteringPathItemProcessor = filteringPathItemProcessor;
-    }
-
+    @Autowired
+    private BackupSetStatusPublisher backupSetStatusPublisher;
 
     @Override
     public void beforeStep(StepExecution stepExecution) {
         BackupSet backupSet = getBackupSet();
         backupSet.setStatus("Collecting and filtering files...");
+
         backupSetRepository.save(backupSet);
+        backupSetStatusPublisher.publishStatus(backupSet);
     }
 
     @Override
@@ -40,13 +43,14 @@ public class ComputeBatchStepExecutionListener extends BackupSetAwareBean implem
 
         if (exitCode.equals(ExitStatus.COMPLETED.getExitCode())) {
             // total files stats are obtained from the filteringPathItemProcessor
-            updateTotalFilesStats(backupSet, filteringPathItemProcessor.getProcessedFilesStats());
+//            updateTotalFilesStats(backupSet, filteringPathItemProcessor.getProcessedFilesStats());
+            updateTotalFilesStats(backupSet, backupJobContext.getTotalFileStats());
 
             // deleted files
-            long deletedCount = filteringPathItemProcessor.getLatestStoredRevisionProvider().deletedCount();
-            backupJobContext.setDeletedNow(deletedCount);
-            long deletedBefore = backupJobContext.getDeletedBefore();
-            log.info("Deleted file count was {}, now {}", deletedBefore, deletedCount);
+//            long deletedCount = filteringPathItemProcessor.getLatestStoredRevisionProvider().deletedCount();
+//            backupJobContext.setDeletedNow(deletedCount);
+//            long deletedBefore = backupJobContext.getDeletedBefore();
+//            log.info("Deleted file count was {}, now {}", deletedBefore, deletedCount);
 
             // batch stats are obtained from the current job context
             updateBatchStats(backupSet, backupJobContext.getBackupBatch().getStats());
@@ -57,7 +61,9 @@ public class ComputeBatchStepExecutionListener extends BackupSetAwareBean implem
             log.error(status);
             backupSet.setStatus(status);
         }
+
         backupSetRepository.save(backupSet);
+        backupSetStatusPublisher.publishStatus(backupSet);
         return null; //don't change exit status
     }
 

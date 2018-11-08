@@ -22,7 +22,7 @@ public class InMemoryBatchConfigurer extends DefaultBatchConfigurer {
 
     private final AsyncTaskExecutor asyncTaskExecutor;
 
-    public InMemoryBatchConfigurer(@Qualifier("taskExecutor") AsyncTaskExecutor asyncTaskExecutor) {
+    public InMemoryBatchConfigurer(@Qualifier("commonAsyncTaskExecutor") AsyncTaskExecutor asyncTaskExecutor) {
         this.asyncTaskExecutor = asyncTaskExecutor;
     }
 
