@@ -58,12 +58,12 @@ public class LatestStoredRevisionRepository
         super.save(revision);
     }
 
-    @Override
-    public long deletedCount() {
-        //FIXME poor implementation
-        return findAll().stream()
-                .filter(LatestStoredRevision::isDeleted)
-                .count();
-    }
+//    @Override
+//    public long deletedCount() {
+//        //FIXME poor implementation
+//        return findAll().stream()
+//                .filter(LatestStoredRevision::isDeleted)
+//                .count();
+//    }
 
 }

@@ -1,6 +1,6 @@
 package org.ogerardin.b2b.storage.filesystem;
 
-import org.ogerardin.b2b.files.md5.ByteArrayMD5Calculator;
+import org.ogerardin.b2b.hash.md5.ByteArrayMD5Calculator;
 import org.ogerardin.b2b.storage.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;

@@ -40,6 +40,6 @@ public interface LatestStoredRevisionProvider {
      */
     void saveRevisionInfo(LatestStoredRevision revision);
 
-    long deletedCount();
+//    long deletedCount();
 
 }

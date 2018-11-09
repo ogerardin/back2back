@@ -2,6 +2,8 @@ package org.ogerardin.b2b.batch.jobs;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.ogerardin.b2b.batch.jobs.support.FileSetStats;
+import org.ogerardin.b2b.batch.jobs.support.LocalFileInfo;
 import org.ogerardin.b2b.domain.LatestStoredRevisionProvider;
 import org.springframework.batch.item.ItemProcessor;
 

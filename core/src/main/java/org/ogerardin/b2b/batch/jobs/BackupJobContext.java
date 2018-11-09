@@ -1,6 +1,8 @@
 package org.ogerardin.b2b.batch.jobs;
 
 import lombok.Data;
+import org.ogerardin.b2b.batch.jobs.support.FileSet;
+import org.ogerardin.b2b.batch.jobs.support.FileSetStats;
 
 /**
  * Holds the context of a running backup job.

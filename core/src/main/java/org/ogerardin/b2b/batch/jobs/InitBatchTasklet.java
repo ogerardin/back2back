@@ -19,7 +19,7 @@ public class InitBatchTasklet implements Tasklet  {
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
 
-        long deletedCount = latestStoredRevisionProvider.deletedCount();
+//        long deletedCount = latestStoredRevisionProvider.deletedCount();
 //        backupJobContext.setDeletedBefore(deletedCount);
 
         log.debug("Setting deleted flag");

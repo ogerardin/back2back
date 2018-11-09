@@ -1,6 +1,7 @@
 package org.ogerardin.b2b.batch.jobs;
 
 import lombok.extern.slf4j.Slf4j;
+import org.ogerardin.b2b.batch.jobs.support.LocalFileInfo;
 import org.ogerardin.b2b.storage.StorageService;
 import org.springframework.batch.item.ItemWriter;
 
