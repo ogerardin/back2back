@@ -45,12 +45,9 @@
             <artifactId>spring-boot-configuration-processor</artifactId>
             <optional>true</optional>
         </dependency>
-
-        <!-- TEMPORARY for Spring Boot 2 migration -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-properties-migrator</artifactId>
-            <scope>runtime</scope>
+            <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
         <!-- hot swapping, disable cache for template, enable live reload -->

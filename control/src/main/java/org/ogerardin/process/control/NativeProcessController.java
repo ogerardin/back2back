@@ -239,6 +239,8 @@ public class NativeProcessController implements ProcessController {
      * @return the OS specific PID number identiying the specified {@link Process}
      */
     private long getPid(Process process) throws NoSuchFieldException, IllegalAccessException {
+        //FIXME access to private fields triggers "illegal reflective access operation" warning with Java 9+
+
         // try "pid" field (works on Unixes)
         try {
             long pid = getLongField(process, "pid");

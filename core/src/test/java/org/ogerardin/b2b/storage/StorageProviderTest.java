@@ -89,10 +89,13 @@ public abstract class StorageProviderTest<S extends StorageService> {
 
         // store each file as a revision of the same file
         for (Path path : paths0) {
+            log.info("Copying {} to {}", path, tempFile);
             Files.copy(path, tempFile, StandardCopyOption.REPLACE_EXISTING);
+            log.info("Storing as new revision");
             storer.store(tempFile);
         }
 
+        log.info("Retrieving all revisions for {}", tempFile);
         List<RevisionInfo> allRevisions = lister.getAllRevisions(tempFile);
         allRevisions.sort(Comparator.comparing(RevisionInfo::getStoredDate));
 
@@ -103,7 +106,7 @@ public abstract class StorageProviderTest<S extends StorageService> {
             Path path = paths0.get(i);
             RevisionInfo revision = allRevisions.get(i);
             String revisionId = revision.getId();
-            log.debug("revision={}", revision);
+            log.debug("revision = {}", revision);
             assertStoredRevisionMatchesFile(retriever, path, revisionId);
         }
 
@@ -152,13 +155,13 @@ public abstract class StorageProviderTest<S extends StorageService> {
 
     private InputStream retrieveUnencrypted(Path path) {
         try {
-            return storageService.getAsInputStream(path.toString());
+            return storageService.getAsInputStream(path);
         } catch (StorageFileNotFoundException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private InputStream retrieveRevisionUnencrypted(String revisionId) throws StorageFileVersionNotFoundException {
+    private InputStream retrieveRevisionUnencrypted(String revisionId) throws StorageFileVersionNotFoundException, IOException, StorageFileNotFoundException {
         return storageService.getRevisionAsInputStream(revisionId);
     }
 

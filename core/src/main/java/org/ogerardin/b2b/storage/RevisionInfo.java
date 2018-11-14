@@ -3,6 +3,7 @@ package org.ogerardin.b2b.storage;
 import lombok.Builder;
 import lombok.Data;
 
+import java.nio.file.Paths;
 import java.time.Instant;
 
 /**
@@ -28,4 +29,8 @@ public class RevisionInfo {
 
     /** has the file been deleted since? */
     boolean deleted;
+
+    public FileInfo getFileInfo() {
+        return new FileInfo(Paths.get(filename), deleted);
+    }
 }

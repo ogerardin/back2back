@@ -9,6 +9,9 @@ import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
 
+/**
+ * Implements the mechanism that handles @{@link CascadeSave} annotations on @{@link DBRef} fields.
+ */
 public class CascadeSaveMongoEventListener extends AbstractMongoEventListener<Object> {
 
     @Autowired

@@ -12,8 +12,6 @@ import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.ogerardin.b2b.storage.*;
 import org.ogerardin.b2b.util.CipherHelper;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.MongoOperations;
@@ -27,13 +25,10 @@ import org.springframework.data.util.StreamUtils;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.security.Key;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -101,7 +96,7 @@ public class GridFsStorageService implements StorageService {
         return stream;
     }
 
-    private FileInfo asFileInfo(GridFSFile gridFSFile) {
+    protected FileInfo asFileInfo(GridFSFile gridFSFile) {
         Path path = Paths.get(gridFSFile.getFilename());
         Metadata metadata = this.getMetadata(gridFSFile);
         return new FileInfo(path, metadata.isDeleted());
@@ -114,7 +109,7 @@ public class GridFsStorageService implements StorageService {
     @Override
     public Stream<RevisionInfo> getAllRevisions() {
         return getAllGridFSFiles()
-                .map(this::getRevisionInfo);
+                .map(this::buildRevisionInfo);
     }
 
     @Override
@@ -161,43 +156,10 @@ public class GridFsStorageService implements StorageService {
         return stream;
     }
 
-    @Override
-    public Resource getAsResource(String filename) throws StorageFileNotFoundException {
-        return new InputStreamResource(getAsInputStream(filename));
-    }
 
     @Override
     public void deleteAll() {
         gridFsTemplate.delete(new Query());
-    }
-
-    @Override
-    public String store(java.io.File file) {
-        try (FileInputStream inputStream = new FileInputStream(file)) {
-            return store(inputStream, file.getCanonicalPath());
-        } catch (IOException e) {
-            throw new StorageException("Exception while trying to store " + file, e);
-        }
-    }
-
-    @Override
-    public String store(Path path) {
-        String canonicalPath = canonicalPath(path);
-        try (InputStream inputStream = Files.newInputStream(path, StandardOpenOption.READ)) {
-            return store(inputStream, canonicalPath);
-        } catch (IOException e) {
-            throw new StorageException("Exception while trying to store " + path, e);
-        }
-    }
-
-    @Override
-    public String store(Path path, Key key) throws EncryptionException {
-        String canonicalPath = canonicalPath(path);
-        try (InputStream inputStream = Files.newInputStream(path, StandardOpenOption.READ)) {
-            return store(inputStream, canonicalPath, key);
-        } catch (IOException e) {
-            throw new StorageException("Exception while trying to store " + path, e);
-        }
     }
 
     @Override
@@ -226,7 +188,7 @@ public class GridFsStorageService implements StorageService {
     @Override
     public RevisionInfo[] getRevisions(String filename) {
         return getGridFSFiles(filename)
-                .map(this::getRevisionInfo)
+                .map(this::buildRevisionInfo)
                 .toArray(RevisionInfo[]::new);
     }
 
@@ -243,17 +205,7 @@ public class GridFsStorageService implements StorageService {
         return fsFile;
     }
 
-    private String canonicalPath(Path path) {
-        String canonicalPath;
-        try {
-            canonicalPath = path.toFile().getCanonicalPath();
-        } catch (IOException e) {
-            throw new StorageException("Exception while trying to get canonical path for " + path, e);
-        }
-        return canonicalPath;
-    }
-
-    private RevisionInfo getRevisionInfo(GridFSFile fsdbFile) {
+    private RevisionInfo buildRevisionInfo(GridFSFile fsdbFile) {
         RevisionInfo info = RevisionInfo.builder()
                 .id(fsdbFile.getObjectId().toString())
                 .filename(fsdbFile.getFilename())
@@ -265,27 +217,15 @@ public class GridFsStorageService implements StorageService {
     }
 
     @Override
-    public RevisionInfo[] getRevisions(Path path) {
-        String canonicalPath = canonicalPath(path);
-        return getRevisions(canonicalPath);
-    }
-
-    @Override
-    public RevisionInfo getLatestRevision(Path path) throws StorageFileNotFoundException {
-        String canonicalPath = canonicalPath(path);
-        return getLatestRevision(canonicalPath);
-    }
-
-    @Override
     public RevisionInfo getLatestRevision(String filename) throws StorageFileNotFoundException {
         GridFSFile fsFile = getLatestGridFSFile(filename);
-        return getRevisionInfo(fsFile);
+        return buildRevisionInfo(fsFile);
     }
 
     @Override
     public RevisionInfo getRevisionInfo(String revisionId) throws StorageFileVersionNotFoundException {
         GridFSFile fsFile = getGridFSFileById(revisionId);
-        return getRevisionInfo(fsFile);
+        return buildRevisionInfo(fsFile);
     }
 
     @Override
@@ -320,11 +260,6 @@ public class GridFsStorageService implements StorageService {
         InputStream inputStream = getInputStream(fsFile);
         CipherInputStream cipherInputStream = new CipherInputStream(inputStream, cipher);
         return cipherInputStream;
-    }
-
-    @Override
-    public Resource getRevisionAsResource(String revisionId) throws StorageFileVersionNotFoundException {
-        return new InputStreamResource(getRevisionAsInputStream(revisionId));
     }
 
     private GridFSFile getGridFSFileById(String revisionId) throws StorageFileVersionNotFoundException {

@@ -3,13 +3,14 @@ package org.ogerardin.b2b.storage.filesystem;
 import org.ogerardin.b2b.hash.md5.ByteArrayMD5Calculator;
 import org.ogerardin.b2b.storage.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.Resource;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.security.Key;
@@ -29,9 +30,9 @@ import static org.ogerardin.b2b.util.LambdaExceptionUtil.rethrowFunction;
 public class FilesystemStorageService implements StorageService {
 
     @Autowired
-    ByteArrayMD5Calculator md5Calculator;
+    protected ByteArrayMD5Calculator md5Calculator;
 
-    private final Path baseDirectory;
+    protected final Path baseDirectory;
 
     public FilesystemStorageService(Path baseDirectory) {
         this.baseDirectory = baseDirectory;
@@ -67,13 +68,13 @@ public class FilesystemStorageService implements StorageService {
         try {
             return Files.walk(baseDirectory)
                     .filter(p -> !Files.isDirectory(p))
-                    .map(rethrowFunction(this::_getFileVersion));
+                    .map(rethrowFunction(this::buildRevisionInfo));
         } catch (Exception e) {
             throw new StorageException("Exception while listing local files", e);
         }
     }
 
-    private Path remoteToLocal(Path remotePath) {
+    protected Path remoteToLocal(Path remotePath) {
         // turn into a relative path, e.g. C:\xxxx\yyy will become xxx\yyy
         Path root = remotePath.getRoot();
         Path relativePath = (root != null) ? root.relativize(remotePath) : remotePath;
@@ -86,8 +87,13 @@ public class FilesystemStorageService implements StorageService {
      * Returns the remote path (external) corresponding to the specified local path.
      * The remote path is the local path relative to the storage base directory.
      */
-    private Path localToRemote(Path localPath) {
-        return baseDirectory.relativize(localPath);
+    protected Path localToRemote(Path localPath) {
+        // the remote file path is relative to the base directory
+        Path relativePath = baseDirectory.relativize(localPath);
+        // to rebuilt the original absolute remote file, we need a root Path
+        //FIXME this will only work on single-root filesystems
+        Path root = baseDirectory.getFileSystem().getRootDirectories().iterator().next();
+        return root.resolve(relativePath);
     }
 
     @Override
@@ -96,17 +102,12 @@ public class FilesystemStorageService implements StorageService {
         Path localPath = remoteToLocal(remotePath);
 
         try {
-            return Files.newInputStream(localPath, StandardOpenOption.READ);
+            return Files.newInputStream(localPath);
         } catch (FileNotFoundException e) {
             throw new StorageFileNotFoundException(e);
         } catch (IOException e) {
             throw new StorageException("Exception while trying to get InputStream for " + filename, e);
         }
-    }
-
-    @Override
-    public Resource getAsResource(String filename) throws StorageFileNotFoundException {
-        return new InputStreamResource(getAsInputStream(filename));
     }
 
     @Override
@@ -117,29 +118,10 @@ public class FilesystemStorageService implements StorageService {
                     .sorted(Comparator.reverseOrder())
                     .map(Path::toFile)
     //                .peek(System.out::println)
-                    .forEach(java.io.File::delete);
+                    .forEach(File::delete);
         } catch (IOException e) {
             throw new StorageException("Exception while trying to recursively delete " + baseDirectory, e);
         }
-    }
-
-    @Override
-    public String store(java.io.File file) {
-        Path path = Paths.get(file.toURI());
-        store(path);
-        return null;
-    }
-
-    @Override
-    public String store(Path remotePath) {
-        Path localPath = remoteToLocal(remotePath);
-        try {
-            Files.createDirectories(localPath.getParent());
-            Files.copy(remotePath, localPath, StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e) {
-            throw new StorageException("Exception while trying to copy file " + remotePath + " to " + localPath, e);
-        }
-        return null;
     }
 
     @Override
@@ -157,56 +139,42 @@ public class FilesystemStorageService implements StorageService {
 
     @Override
     public RevisionInfo[] getRevisions(String filename) {
-        Path path = Paths.get(filename);
-        return getRevisions(path);
-    }
-
-    @Override
-    public RevisionInfo[] getRevisions(Path remotePath) {
         try {
-            RevisionInfo fileInfo = getLatestRevision(remotePath);
-            return new RevisionInfo[]{ fileInfo };
+            RevisionInfo revisionInfo = getLatestRevision(filename);
+            return new RevisionInfo[]{ revisionInfo };
         }
         catch (StorageFileNotFoundException e) {
             return new RevisionInfo[0];
         }
     }
 
-    @Override
-    public RevisionInfo getLatestRevision(Path path) throws StorageFileNotFoundException {
-        Path localPath = remoteToLocal(path);
-        RevisionInfo fileInfo = _getFileVersion(path, localPath);
-        return fileInfo;
-    }
 
     @Override
     public RevisionInfo getLatestRevision(String filename) throws StorageFileNotFoundException {
         Path remotePath = Paths.get(filename);
-        return getLatestRevision(remotePath);
+        Path localPath = remoteToLocal(remotePath);
+        if (! Files.exists(localPath)) {
+            throw new StorageFileNotFoundException(remotePath.toString());
+        }
+        RevisionInfo fileInfo = buildRevisionInfo(remotePath, localPath);
+        return fileInfo;
     }
 
     @Override
-    public RevisionInfo getRevisionInfo(String revisionId) {
+    public RevisionInfo getRevisionInfo(String revisionId) throws StorageFileNotFoundException {
         throw new RuntimeException("Not implemented");
     }
 
     @Override
-    public InputStream getRevisionAsInputStream(String revisionId) {
+    public InputStream getRevisionAsInputStream(String revisionId) throws IOException, StorageFileNotFoundException {
         throw new RuntimeException("Not implemented");
     }
 
-    @Override
-    public Resource getRevisionAsResource(String revisionId) {
-        throw new RuntimeException("Not implemented");
-    }
-
-    private RevisionInfo _getFileVersion(Path remotePath, Path localPath) throws StorageFileNotFoundException {
+    protected RevisionInfo buildRevisionInfo(Path remotePath, Path localPath) {
         BasicFileAttributes fileAttributes;
         try {
             BasicFileAttributeView fileAttributeView = Files.getFileAttributeView(localPath, BasicFileAttributeView.class);
             fileAttributes = fileAttributeView.readAttributes();
-        } catch (FileNotFoundException e) {
-            throw new StorageFileNotFoundException(e);
         } catch (IOException e) {
             throw new StorageException("Failed to get file attributes for file " + localPath, e);
         }
@@ -231,8 +199,8 @@ public class FilesystemStorageService implements StorageService {
         return info;
     }
 
-    private RevisionInfo _getFileVersion(Path localPath) throws StorageFileNotFoundException {
-        return _getFileVersion(localToRemote(localPath), localPath);
+    protected RevisionInfo buildRevisionInfo(Path localPath) {
+        return buildRevisionInfo(localToRemote(localPath), localPath);
     }
 
     @Override

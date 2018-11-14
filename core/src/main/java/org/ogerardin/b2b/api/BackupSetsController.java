@@ -10,6 +10,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -91,7 +92,7 @@ public class BackupSetsController {
 
     @GetMapping("/{id}/revisions/{revisionId}/contents")
     @ResponseBody
-    public ResponseEntity<Resource> getItemContents(@PathVariable String id, @PathVariable String revisionId) throws StorageFileVersionNotFoundException {
+    public ResponseEntity<Resource> getItemContents(@PathVariable String id, @PathVariable String revisionId) throws StorageFileVersionNotFoundException, IOException {
         BackupSet backupSet = backupSetRepository.findById(id).get();
         StorageService storageService = getStorageService(backupSet);
         RevisionInfo revisionInfo = storageService.getRevisionInfo(revisionId);
