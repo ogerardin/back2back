@@ -6,11 +6,11 @@ import org.ogerardin.b2b.storage.StorageProviderTest;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class FileSystemStorageProviderTest extends StorageProviderTest<FilesystemStorageService> {
+public class FilesystemStorageProviderTest extends StorageProviderTest<FilesystemStorageService> {
 
-    private static final Path BASE_DIRECTORY = Paths.get("target/test-filesystem-storage-provider");
+    private static final Path BASE_DIRECTORY = Paths.get("target/tmp-storage");
 
-    public FileSystemStorageProviderTest() {
+    public FilesystemStorageProviderTest() {
         FilesystemStorageService storageService = new FilesystemStorageService(BASE_DIRECTORY);
         storageService.init();
         storageService.deleteAll();

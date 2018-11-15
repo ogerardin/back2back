@@ -1,5 +1,7 @@
 package org.ogerardin.b2b.storage.filesystem;
 
+import com.google.common.escape.Escaper;
+import com.google.common.net.PercentEscaper;
 import org.ogerardin.b2b.hash.md5.ByteArrayMD5Calculator;
 import org.ogerardin.b2b.storage.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +35,8 @@ public class FilesystemStorageService implements StorageService {
     protected ByteArrayMD5Calculator md5Calculator;
 
     protected final Path baseDirectory;
+
+    private static final Escaper ROOT_ESCAPER = new PercentEscaper("", true);
 
     public FilesystemStorageService(Path baseDirectory) {
         this.baseDirectory = baseDirectory;
@@ -74,12 +78,24 @@ public class FilesystemStorageService implements StorageService {
         }
     }
 
+    /**
+     *  Returns the path for a file that can be used to store the contents of the speficied remote path.
+     *  The result path is built by re-rooting the specified path to {@link #baseDirectory}.
+     *  If the specified file is absolute, its root is converted to a regular path component by escaping its name,
+     *  e.g. C:\xxxx\yyy will become C%3A%5C\xxx\yyy
+    */
     protected Path remoteToLocal(Path remotePath) {
-        // turn into a relative path, e.g. C:\xxxx\yyy will become xxx\yyy
         Path root = remotePath.getRoot();
-        Path relativePath = (root != null) ? root.relativize(remotePath) : remotePath;
+        Path relativePath;
+        if (root != null) {
+            String rootName = root.toString();
+            String escapedRoot = ROOT_ESCAPER.escape(rootName);
+            Path relativeRoot = Paths.get(escapedRoot);
+            relativePath = relativeRoot.resolve(root.relativize(remotePath));
+        } else {
+            relativePath = remotePath;
+        }
 
-        // local path is relative to the directory
         return baseDirectory.resolve(relativePath);
     }
 
@@ -90,10 +106,19 @@ public class FilesystemStorageService implements StorageService {
     protected Path localToRemote(Path localPath) {
         // the remote file path is relative to the base directory
         Path relativePath = baseDirectory.relativize(localPath);
-        // to rebuilt the original absolute remote file, we need a root Path
-        //FIXME this will only work on single-root filesystems
-        Path root = baseDirectory.getFileSystem().getRootDirectories().iterator().next();
-        return root.resolve(relativePath);
+        // check if the first path component is an escaped root, which means the remote file is absolute
+        //FIXME this will only work if the localPath and the remotePath have the same filesystem
+        String pathComponent0 = relativePath.getName(0).toString();
+        for (Path root : baseDirectory.getFileSystem().getRootDirectories()) {
+            String rootName = root.toString();
+            String escapedRoot = ROOT_ESCAPER.escape(rootName);
+            if (escapedRoot.equals(pathComponent0)) {
+                Path subpath = relativePath.subpath(1, relativePath.getNameCount());
+                return root.resolve(subpath);
+            }
+        }
+        // no root matches the first path component, assume the file is relative
+        return relativePath;
     }
 
     @Override
@@ -161,12 +186,12 @@ public class FilesystemStorageService implements StorageService {
     }
 
     @Override
-    public RevisionInfo getRevisionInfo(String revisionId) throws StorageFileNotFoundException {
+    public RevisionInfo getRevisionInfo(String revisionId) {
         throw new RuntimeException("Not implemented");
     }
 
     @Override
-    public InputStream getRevisionAsInputStream(String revisionId) throws IOException, StorageFileNotFoundException {
+    public InputStream getRevisionAsInputStream(String revisionId) throws IOException {
         throw new RuntimeException("Not implemented");
     }
 
@@ -229,12 +254,12 @@ public class FilesystemStorageService implements StorageService {
     }
 
     @Override
-    public String store(Path path, Key key) throws EncryptionException {
+    public String store(Path path, Key key) {
         throw new RuntimeException("not implemented");
     }
 
     @Override
-    public InputStream getAsInputStream(String filename, Key key) throws StorageFileNotFoundException, EncryptionException {
+    public InputStream getAsInputStream(String filename, Key key) {
         throw new RuntimeException("not implemented");
     }
 }

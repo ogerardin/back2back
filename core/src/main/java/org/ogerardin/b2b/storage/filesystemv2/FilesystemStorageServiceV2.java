@@ -16,14 +16,14 @@ import java.util.stream.Stream;
 
 /**
  * Implementation of {@link StorageService} using the filesystem.
- * The mapping from remote path to local path is identical to {@link FilesystemStorageService}, but this
- * class manages file revisions by adding a revision number to the file name; e.g. the first revision of a file
+ * The mapping from remote path to local path is identical to {@link FilesystemStorageService}, with the addition of
+ * a revision number to the file name; e.g. the first revision of a file
  * named test.txt will be saved as text.txt#0, the second as text.txt#1, etc.
  */
 @Slf4j
-public class FilesystemV2StorageService extends FilesystemStorageService implements StorageService {
+public class FilesystemStorageServiceV2 extends FilesystemStorageService implements StorageService {
 
-    public FilesystemV2StorageService(Path baseDirectory) {
+    public FilesystemStorageServiceV2(Path baseDirectory) {
         super(baseDirectory);
     }
 
@@ -148,7 +148,7 @@ public class FilesystemV2StorageService extends FilesystemStorageService impleme
         Path remotePath = Paths.get(filename);
         RevisionInfo revisionInfo = Arrays.stream(getRevisions(remotePath))
                 .max(Comparator.comparing(RevisionInfo::getStoredDate))
-                .orElseThrow(() -> new StorageFileNotFoundException(remotePath.toString()));
+                .orElseThrow(() -> new StorageFileNotFoundException(filename));
         return revisionInfo;
     }
 

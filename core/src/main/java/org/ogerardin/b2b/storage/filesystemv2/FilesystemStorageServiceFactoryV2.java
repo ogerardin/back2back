@@ -8,19 +8,19 @@ import org.springframework.stereotype.Component;
 import java.nio.file.Path;
 
 @Component
-public class FilesystemV2StorageServiceFactory implements StorageServiceFactory<FilesystemV2StorageService> {
+public class FilesystemStorageServiceFactoryV2 implements StorageServiceFactory<FilesystemStorageServiceV2> {
 
     @Autowired
     FilesystemStorageProperties properties;
 
-    public FilesystemV2StorageServiceFactory() {
+    public FilesystemStorageServiceFactoryV2() {
     }
 
     @Override
-    public FilesystemV2StorageService getStorageService(String id) {
+    public FilesystemStorageServiceV2 getStorageService(String id) {
         // The specified id is used as a subdirectory name under the configured base directory
         Path baseDirectory = properties.getBaseDirectory();
         Path directory = baseDirectory.resolve(id);
-        return new FilesystemV2StorageService(directory);
+        return new FilesystemStorageServiceV2(directory);
     }
 }

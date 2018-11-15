@@ -1,6 +1,6 @@
 /**
  * Implementation of {@link org.ogerardin.b2b.storage.StorageService} using only the filesystem
- * This implementation doesn't support versioning, i.e. every time a file is stored it overwrites any
- * existing version of that file.
+ * This is based on {@link org.ogerardin.b2b.storage.filesystem.FilesystemStorageService} but with a different naming
+ * scheme to manage multiple revisions for a file.
  */
 package org.ogerardin.b2b.storage.filesystem;
