@@ -80,21 +80,11 @@ public class FilesystemStorageService implements StorageService {
 
     /**
      *  Returns the path for a file that can be used to store the contents of the speficied remote path.
-     *  The result path is built by re-rooting the specified path to {@link #baseDirectory}.
-     *  If the specified file is absolute, its root is converted to a regular path component by escaping its name,
-     *  e.g. C:\xxxx\yyy will become C%3A%5C\xxx\yyy
+     *  If the specified file is absolute, it is converted to a relative path
     */
     protected Path remoteToLocal(Path remotePath) {
         Path root = remotePath.getRoot();
-        Path relativePath;
-        if (root != null) {
-            String rootName = root.toString();
-            String escapedRoot = ROOT_ESCAPER.escape(rootName);
-            Path relativeRoot = Paths.get(escapedRoot);
-            relativePath = relativeRoot.resolve(root.relativize(remotePath));
-        } else {
-            relativePath = remotePath;
-        }
+        Path relativePath = (root != null) ? root.relativize(remotePath) : remotePath;
 
         return baseDirectory.resolve(relativePath);
     }
@@ -126,6 +116,10 @@ public class FilesystemStorageService implements StorageService {
         Path remotePath = Paths.get(filename);
         Path localPath = remoteToLocal(remotePath);
 
+        return getInputStream(localPath, filename);
+    }
+
+    protected static InputStream getInputStream(Path localPath, String filename) throws StorageFileNotFoundException {
         try {
             return Files.newInputStream(localPath);
         } catch (FileNotFoundException e) {
@@ -234,7 +228,7 @@ public class FilesystemStorageService implements StorageService {
     }
 
     @Override
-    public boolean touch(Path path) {
+    public boolean touch(String filename) {
         throw new RuntimeException("not implemented");
     }
 

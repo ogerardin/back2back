@@ -1,10 +1,10 @@
 package org.ogerardin.b2b.storage;
 
+import lombok.val;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -31,8 +31,7 @@ public interface StorageService {
     InputStream getAsInputStream(String filename) throws StorageFileNotFoundException;
 
     default InputStream getAsInputStream(Path path) throws StorageFileNotFoundException {
-        String canonicalPath = canonicalPath(path);
-        return getAsInputStream(canonicalPath);
+        return getAsInputStream(normalizedPath(path));
     }
 
     /** Obtain an {@link java.io.InputStream} to read the unencrypted contents of the latest version of the specified file,
@@ -44,26 +43,22 @@ public interface StorageService {
     }
 
     default String store(File file) {
-        try (FileInputStream inputStream = new FileInputStream(file)) {
-            return store(inputStream, file.getCanonicalPath());
-        } catch (IOException e) {
-            throw new StorageException("Exception while trying to store " + file, e);
-        }
+        return store(file.toPath());
     }
 
     default String store(Path path) {
-        String canonicalPath = canonicalPath(path);
-        try (InputStream inputStream = Files.newInputStream(path)) {
-            return store(inputStream, canonicalPath);
+        String normalizedPath = normalizedPath(path);
+        try (val inputStream = Files.newInputStream(path)) {
+            return store(inputStream, normalizedPath);
         } catch (IOException e) {
             throw new StorageException("Exception while trying to store " + path, e);
         }
     }
 
     default String store(Path path, Key key) throws EncryptionException {
-        String canonicalPath = canonicalPath(path);
-        try (InputStream inputStream = Files.newInputStream(path)) {
-            return store(inputStream, canonicalPath, key);
+        String normalizedPath = normalizedPath(path);
+        try (val inputStream = Files.newInputStream(path)) {
+            return store(inputStream, normalizedPath, key);
         } catch (IOException e) {
             throw new StorageException("Exception while trying to store " + path, e);
         }
@@ -83,26 +78,20 @@ public interface StorageService {
     RevisionInfo[] getRevisions(String filename);
 
     default RevisionInfo[] getRevisions(Path path) {
-        String canonicalPath = canonicalPath(path);
-        return getRevisions(canonicalPath);
+        String normalizedPath = normalizedPath(path);
+        return getRevisions(normalizedPath);
     }
 
-    default String canonicalPath(Path path) {
-        String canonicalPath;
-        try {
-            canonicalPath = path.toFile().getCanonicalPath();
-        } catch (IOException e) {
-            throw new StorageException("Exception while trying to get canonical path for " + path, e);
-        }
-        return canonicalPath;
+    default String normalizedPath(Path path) {
+        return path.normalize().toString();
     }
 
     /** Returns information about the latest stored version of the specified file, passed as a String */
     RevisionInfo getLatestRevision(String filename) throws StorageFileNotFoundException;
 
     default RevisionInfo getLatestRevision(Path path) throws StorageFileNotFoundException {
-        String canonicalPath = canonicalPath(path);
-        return getLatestRevision(canonicalPath);
+        String normalizedPath = normalizedPath(path);
+        return getLatestRevision(normalizedPath);
     }
 
     /** Returns information about a file version, designated by its ID */
@@ -123,7 +112,7 @@ public interface StorageService {
     void untouchAll();
 
     /** Mark the specified file as "touched" (= not deleted) */
-    boolean touch(Path path);
+    boolean touch(String filename);
 
     long countDeleted();
 }

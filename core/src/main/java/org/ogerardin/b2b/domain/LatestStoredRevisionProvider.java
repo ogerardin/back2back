@@ -9,6 +9,8 @@ import java.util.Optional;
  * Interface of a service that provides meta-information about backed up files and some interaction with it.
  */
 public interface LatestStoredRevisionProvider {
+    //TODO the mechanism for marking deleted files (#untouchAll/#touch) is not very efficient
+    // and should be replaced with a better one
 
     /**
      * @return the {@link LatestStoredRevision} for the latest stored revision of the file corresponding to the

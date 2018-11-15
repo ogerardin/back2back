@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.ogerardin.b2b.storage.*;
 import org.ogerardin.b2b.storage.filesystem.FilesystemStorageService;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -62,7 +61,7 @@ public class FilesystemStorageServiceV2 extends FilesystemStorageService impleme
     @Override
     public String store(InputStream inputStream, String filename) {
         Path localPath = getLocalPathForNextRevision(Paths.get(filename));
-        log.debug("Writing new revision to {}", localPath);
+        log.debug("Writing revision to {}", localPath);
         try {
             Files.createDirectories(localPath.getParent());
             Files.copy(inputStream, localPath);
@@ -78,13 +77,7 @@ public class FilesystemStorageServiceV2 extends FilesystemStorageService impleme
         RevisionInfo latestRevision = getLatestRevision(filename);
         Path localPath = getLocalPath(latestRevision);
 
-        try {
-            return Files.newInputStream(localPath);
-        } catch (FileNotFoundException e) {
-            throw new StorageFileNotFoundException(e);
-        } catch (IOException e) {
-            throw new StorageException("Exception while trying to get InputStream for " + filename, e);
-        }
+        return getInputStream(localPath, filename);
     }
 
     @Override
@@ -120,7 +113,7 @@ public class FilesystemStorageServiceV2 extends FilesystemStorageService impleme
         Path remotePath = Paths.get(filename);
         log.debug("Getting all revisions for {}", remotePath);
         Path localBasePath = remoteToLocal(remotePath);
-        log.debug("Local path is {}", localBasePath);
+        log.debug("Local base path is {}", localBasePath);
         String basename = localBasePath.getFileName().toString();
 
         List<RevisionInfo> revisions = new ArrayList<>();
@@ -180,21 +173,6 @@ public class FilesystemStorageServiceV2 extends FilesystemStorageService impleme
         RevisionInfo revisionInfo = getRevisionInfo(revisionId);
         Path localPath = getLocalPath(revisionInfo);
         return Files.newInputStream(localPath);
-    }
-
-    @Override
-    public void untouchAll() {
-        throw new RuntimeException("not implemented");
-    }
-
-    @Override
-    public boolean touch(Path path) {
-        throw new RuntimeException("not implemented");
-    }
-
-    @Override
-    public long countDeleted() {
-        throw new RuntimeException("not implemented");
     }
 
 }

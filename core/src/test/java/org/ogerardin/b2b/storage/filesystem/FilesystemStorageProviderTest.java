@@ -1,17 +1,26 @@
 package org.ogerardin.b2b.storage.filesystem;
 
+import lombok.val;
 import org.junit.Test;
 import org.ogerardin.b2b.storage.StorageProviderTest;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 public class FilesystemStorageProviderTest extends StorageProviderTest<FilesystemStorageService> {
 
-    private static final Path BASE_DIRECTORY = Paths.get("target/tmp-storage");
+    private static final Path BASE_DIRECTORY;
+    static {
+        try {
+            BASE_DIRECTORY = Files.createTempDirectory(FilesystemStorageProviderTest.class.getSimpleName());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public FilesystemStorageProviderTest() {
-        FilesystemStorageService storageService = new FilesystemStorageService(BASE_DIRECTORY);
+        val storageService = new FilesystemStorageService(BASE_DIRECTORY);
         storageService.init();
         storageService.deleteAll();
         setStorageService(storageService);

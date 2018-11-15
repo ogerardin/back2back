@@ -171,7 +171,6 @@ public class GridFsStorageService implements StorageService {
     @Override
     public String store(InputStream inputStream, String filename, Key key) throws EncryptionException {
         Cipher aes = CipherHelper.getAesCipher(key, Cipher.ENCRYPT_MODE);
-
         try {
             CipherInputStream cipherInputStream = new CipherInputStream(inputStream, aes);
             Metadata metadata = new Metadata();
@@ -277,10 +276,9 @@ public class GridFsStorageService implements StorageService {
     }
 
     @Override
-    public boolean touch(Path path) {
-        String canonicalPath = canonicalPath(path);
+    public boolean touch(String filename) {
         try {
-            GridFSFile fsFile = getLatestGridFSFile(canonicalPath);
+            GridFSFile fsFile = getLatestGridFSFile(filename);
             getFilesCollection()
                     .updateOne(new BasicDBObject("_id", fsFile.getId()),
                             BasicDBObject.parse("{ \"$set\": {\"metadata.deleted\": \"false\"}}"));

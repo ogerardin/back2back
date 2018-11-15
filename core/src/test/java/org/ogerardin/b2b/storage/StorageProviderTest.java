@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public abstract class StorageProviderTest<S extends StorageService> {
 
+    /** Resource folder containing a set of files to use for testing */
     private static final String FILESET_RSC = "/fileset";
 
     private S storageService;
@@ -61,11 +62,13 @@ public abstract class StorageProviderTest<S extends StorageService> {
 
         // store each file in storage service
         for (Path path : paths0) {
+            log.info("Storing {}", path);
             storer.store(path);
         }
 
         // retrieve paths of stored files
         List<Path> paths1 = lister.getAllFiles();
+        log.info("Retrieved file list: {}", paths1);
 
         Assert.assertEquals(paths0.size(), paths1.size());
 
@@ -73,8 +76,7 @@ public abstract class StorageProviderTest<S extends StorageService> {
         for (int i = 0; i < paths0.size(); i++) {
             Path p0 = paths0.get(i);
             Path p1 = paths1.get(i);
-            log.debug("p0={}", p0);
-            log.debug("p1={}", p1);
+            log.debug("Verifying {}", p0);
             assertStoredVersionMatchesFile(retriever, p0, p1);
         }
 
@@ -84,20 +86,19 @@ public abstract class StorageProviderTest<S extends StorageService> {
         // list all files in resource directory
         List<Path> paths0 = getSampleFilesPaths();
 
-        Path tempDirectory = Files.createTempDirectory(this.getClass().getSimpleName());
-        Path tempFile = tempDirectory.resolve("data.bin");
+        Path tempFile = Files.createTempFile("", ".bin");
 
         // store each file as a revision of the same file
         for (Path path : paths0) {
-            log.info("Copying {} to {}", path, tempFile);
+//            log.info("Copying {} to {}", path, tempFile);
+            log.info("Creating new revision of {}", tempFile);
             Files.copy(path, tempFile, StandardCopyOption.REPLACE_EXISTING);
-            log.info("Storing as new revision");
             storer.store(tempFile);
         }
 
-        log.info("Retrieving all revisions for {}", tempFile);
         List<RevisionInfo> allRevisions = lister.getAllRevisions(tempFile);
         allRevisions.sort(Comparator.comparing(RevisionInfo::getStoredDate));
+        log.info("Retrieved revision list: {}", allRevisions);
 
         Assert.assertEquals(paths0.size(), allRevisions.size());
 
@@ -105,8 +106,8 @@ public abstract class StorageProviderTest<S extends StorageService> {
         for (int i = 0; i < paths0.size(); i++) {
             Path path = paths0.get(i);
             RevisionInfo revision = allRevisions.get(i);
+            log.info("Verifying {}", revision);
             String revisionId = revision.getId();
-            log.debug("revision = {}", revision);
             assertStoredRevisionMatchesFile(retriever, path, revisionId);
         }
 

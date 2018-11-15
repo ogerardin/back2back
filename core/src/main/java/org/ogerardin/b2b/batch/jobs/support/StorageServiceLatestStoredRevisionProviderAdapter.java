@@ -47,7 +47,7 @@ public class StorageServiceLatestStoredRevisionProviderAdapter implements Latest
 
     @Override
     public boolean touch(Path path) {
-        return storageService.touch(path);
+        return storageService.touch(path.toString());
     }
 
     @Override
