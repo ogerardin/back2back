@@ -252,7 +252,7 @@ public class GridFsStorageService implements StorageService {
     private InputStream getDecryptedInputStream(GridFSFile fsFile, Key key) throws EncryptionException {
         Metadata metadata = getMetadata(fsFile);
         if (! metadata.isEncrypted()) {
-            throw new EncryptionException("FileInfo is not encrypted");
+            throw new EncryptionException("File is not encrypted");
         }
 
         Cipher cipher = CipherHelper.getAesCipher(key, Cipher.DECRYPT_MODE);

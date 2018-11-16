@@ -18,7 +18,7 @@ import java.io.IOException;
  */
 public class EmbeddedMongoRunner {
 
-    private static final IRuntimeConfig RUNTIME_CONFIG = EmbeddedMongoConfiguration.runtimeConfig();
+    private static final IRuntimeConfig RUNTIME_CONFIG = CustomEmbeddedMongoConfiguration.runtimeConfig();
 
     public static void main(String[] args) throws IOException, InterruptedException {
 

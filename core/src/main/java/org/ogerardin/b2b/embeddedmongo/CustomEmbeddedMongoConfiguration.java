@@ -22,10 +22,10 @@ import org.springframework.context.annotation.Configuration;
 import java.util.Map;
 
 @Configuration
-public class EmbeddedMongoConfiguration {
+public class CustomEmbeddedMongoConfiguration {
 
     // custom logger for embedded Mongo
-    private static final Logger MONGO_LOGGER = LoggerFactory.getLogger(EmbeddedMongoConfiguration.class.getPackage().getName() + ".EmbeddedMongo");
+    private static final Logger MONGO_LOGGER = LoggerFactory.getLogger(CustomEmbeddedMongoConfiguration.class.getPackage().getName() + ".EmbeddedMongo");
 
     /**
      * Override default configuration provided by
@@ -62,7 +62,7 @@ public class EmbeddedMongoConfiguration {
                         .defaultsForCommand(Command.MongoD)
                         .proxyFactory(proxyFactory)
                         //TODO Mongo loading progress will have to be handled in the UI eventually
-                        //TODO unless we provide a bundled mongo executable
+                        //unless we provide a bundled mongo executable
                         .progressListener(new Slf4jProgressListener(logger))
                         .build());
     }
