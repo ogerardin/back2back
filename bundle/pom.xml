@@ -54,9 +54,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <executions>
                     <execution>
-                        <goals>
-                            <goal>repackage</goal>
-                        </goals>
+                        <id>repackage</id>
                         <configuration>
                             <!-- Specifying a classifier makes sure we keep the original jar alongside the repackaged one -->
                             <classifier>repackaged</classifier>
