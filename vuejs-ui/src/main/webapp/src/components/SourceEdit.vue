@@ -18,7 +18,7 @@
           <b-input-group prepend="Folder" v-for="p in source.paths" :key="p">
             <b-form-input readonly :value="p"></b-form-input>
             <b-input-group-append>
-              <b-btn variant="warning" v-on:click="removeFolder(p)">Remove</b-btn>
+              <b-btn variant="warning" v-on:click.prevent="removeFolder(p)">Remove</b-btn>
             </b-input-group-append>
           </b-input-group>
 
@@ -83,7 +83,12 @@
         if (index >= 0) {
           this.source.paths.splice(index, 1)
         }
-        this.updateSource();
+        const source = this.source;
+        this.$http.put('http://localhost:8080/api/sources/' + source.id, source).then(response => {
+          this.source = response.data;
+        }, error => {
+          console.log(error)
+        });
       },
       cancel() {
         this.$router.go(-1);

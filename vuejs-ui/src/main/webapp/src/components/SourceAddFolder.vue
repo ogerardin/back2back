@@ -4,7 +4,7 @@
         <h2>Add new source folder</h2>
       </slot>
 
-      <b-form v-on:submit="addFolder">
+      <b-form v-on:submit.prevent="addFolder">
         <b-form-group label="Selected Folder" label-for="path">
           <b-form-input id="path" v-model="path" readonly></b-form-input>
         </b-form-group>
