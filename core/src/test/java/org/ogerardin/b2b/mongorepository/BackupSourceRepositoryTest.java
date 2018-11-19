@@ -1,4 +1,4 @@
-package org.ogerardin.b2b.config;
+package org.ogerardin.b2b.mongorepository;
 
 import org.hamcrest.Matchers;
 import org.junit.Assert;
@@ -6,7 +6,6 @@ import org.junit.Test;
 import org.ogerardin.b2b.domain.entity.BackupSource;
 import org.ogerardin.b2b.domain.entity.FilesystemSource;
 import org.ogerardin.b2b.domain.mongorepository.BackupSourceRepository;
-import org.ogerardin.b2b.test.AbstractMongoTest;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
