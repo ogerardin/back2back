@@ -126,7 +126,6 @@
             <plugin>
                 <groupId>com.googlecode.maven-download-plugin</groupId>
                 <artifactId>download-maven-plugin</artifactId>
-                <version>1.4.0</version>
                 <executions>
                     <!-- Download NSSM from https://nssm.cc and unzip it.
                         If you are behind a proxy you may need to pass the corresponding options to maven:

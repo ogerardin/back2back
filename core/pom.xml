@@ -45,12 +45,12 @@
             <artifactId>spring-boot-configuration-processor</artifactId>
             <optional>true</optional>
         </dependency>
-<!--
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
-        </dependency>
--->
+        <!--
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-security</artifactId>
+                </dependency>
+        -->
 
         <!-- hot swapping, disable cache for template, enable live reload -->
         <dependency>
@@ -178,6 +178,34 @@
                 </plugins>
             </build>
 
+        </profile>
+
+        <profile>
+            <id>bundle-mongodb-win32-x86_64</id>
+            <build>
+                <plugins>
+
+                    <plugin>
+                        <groupId>com.googlecode.maven-download-plugin</groupId>
+                        <artifactId>download-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>download-mongodb</id>
+                                <phase>generate-resources</phase>
+                                <goals>
+                                    <goal>wget</goal>
+                                </goals>
+                                <configuration>
+                                    <url>http://downloads.mongodb.org/win32/mongodb-win32-x86_64-2008plus-ssl-4.0.4.zip</url>
+                                    <!--<md5>be7b3577c6e3a280e5106a9e9db5b3775931cefc</md5>-->
+                                    <outputDirectory>${project.build.outputDirectory}/bundled/mongodb/win32</outputDirectory>
+                                    <unpack>false</unpack>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
 
         </profile>
     </profiles>
