@@ -1,7 +1,6 @@
 package org.ogerardin.b2b.embeddedmongo;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodStarter;
 import de.flapdoodle.embed.mongo.config.IMongodConfig;
 import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
@@ -10,9 +9,9 @@ import de.flapdoodle.embed.mongo.distribution.Feature;
 import de.flapdoodle.embed.mongo.distribution.IFeatureAwareVersion;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.mongo.distribution.Versions;
-import de.flapdoodle.embed.process.config.IRuntimeConfig;
 import de.flapdoodle.embed.process.distribution.GenericVersion;
 import de.flapdoodle.embed.process.runtime.Network;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.webresources.TomcatURLStreamHandlerFactory;
 
 import java.io.IOException;
@@ -23,6 +22,7 @@ import java.util.Properties;
 /**
  * A simple app to start an embedded Mongo without all the Spring machinery.
  */
+@Slf4j
 public class EmbeddedMongoRunner {
 
     public static void main(String[] args) throws IOException, InterruptedException {
@@ -48,13 +48,18 @@ public class EmbeddedMongoRunner {
                 .replication(new Storage("mongo-storage",null,0))
                 .build();
 
-//        IRuntimeConfig runtimeConfig = new CustomEmbeddedMongoConfiguration.AlternateRuntimeConfigConfiguration().runtimeConfig();
-        IRuntimeConfig runtimeConfig = new CustomEmbeddedMongoConfiguration.BundledRuntimeConfigConfiguration().runtimeConfig();
+/*
+        IRuntimeConfig runtimeConfig = new CustomEmbeddedMongoConfiguration.RuntimeConfigBuilder()
+                .defaultsWithLogger(Command.MongoD, log)
+//                .defaultsWithBundledDownloader(Command.MongoD, log)
+                .build();
         MongodStarter runtime = MongodStarter.getInstance(runtimeConfig);
+*/
 
         MongodExecutable mongodExecutable = null;
         try {
-            mongodExecutable = runtime.prepare(mongodConfig);
+//            mongodExecutable = runtime.prepare(mongodConfig);
+            mongodExecutable =  CustomEmbeddedMongoConfiguration.embeddedMongoServer(mongodConfig);
             mongodExecutable.start();
 
             Thread.sleep(Long.MAX_VALUE);
