@@ -65,7 +65,56 @@
 
 
         </plugins>
+
     </build>
 
+    <profiles>
+        <!--
+            EXPERIMENTAL: Activate this profile to bundle the specified version of MongoDB as a resource in the final jar.
+            If this resource is present, it will be picked up by org.ogerardin.b2b.embeddedmongo.CustomEmbeddedMongoConfiguration.embeddedMongoServer
+            and avoid the need to download it from the Internet.
+
+            CAVEAT:
+            * The file name must match exactly the platform and MongoDB version and options as specified in application.properties
+            * This will add more than 200 Mb to the jar!
+
+            OTHER POSSIBILITIES:
+            * Bundle the MongoDB zip in the final distributable zip file (module dist). This would require
+                some changes so that it is picked up from the filesystem instead of the classpath.
+            * Perform the download at install time. This would allow a better user control over the operation.
+
+            Due to the size of the thing, a different bundled distributable should be generated for each target platform.
+            -->
+        <profile>
+            <id>bundle-mongodb-win32-x86_64</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.googlecode.maven-download-plugin</groupId>
+                        <artifactId>download-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>download-mongodb</id>
+                                <phase>generate-resources</phase>
+                                <goals>
+                                    <goal>wget</goal>
+                                </goals>
+                                <configuration>
+                                    <url>http://downloads.mongodb.org/win32/mongodb-win32-x86_64-2008plus-ssl-4.0.4.zip</url>
+                                    <!--<md5>be7b3577c6e3a280e5106a9e9db5b3775931cefc</md5>-->
+                                    <outputDirectory>${project.build.outputDirectory}/bundled/mongodb/win32</outputDirectory>
+                                    <unpack>false</unpack>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+    </profiles>
 
 </project>
