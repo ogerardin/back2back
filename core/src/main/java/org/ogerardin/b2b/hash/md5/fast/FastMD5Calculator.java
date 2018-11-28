@@ -1,10 +1,7 @@
 package org.ogerardin.b2b.hash.md5.fast;
 
 import com.twmacinta.util.MD5;
-import org.ogerardin.b2b.hash.DigestingInputStream;
-import org.ogerardin.b2b.hash.ByteArrayHashCalculator;
-import org.ogerardin.b2b.hash.DigestingInputStreamProvider;
-import org.ogerardin.b2b.hash.InputStreamHashCalculator;
+import org.ogerardin.b2b.hash.*;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -14,7 +11,12 @@ import java.io.InputStream;
  * MD5 hash calculator using http://www.twmacinta.com/myjava/fast_md5.php via https://github.com/joyent/java-fast-md5
  */
 @Component
-public class FastMD5Calculator implements ByteArrayHashCalculator, InputStreamHashCalculator, DigestingInputStreamProvider {
+public class FastMD5Calculator implements HashProvider {
+
+    @Override
+    public String name() {
+        return "MD5";
+    }
 
     private static final int BUFFER_SIZE = 1024;
 

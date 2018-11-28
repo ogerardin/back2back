@@ -4,10 +4,8 @@ import lombok.val;
 import org.ogerardin.b2b.batch.jobs.listeners.BackupJobExecutionListener;
 import org.ogerardin.b2b.batch.jobs.listeners.ComputeBatchStepExecutionListener;
 import org.ogerardin.b2b.batch.jobs.listeners.FileBackupListener;
-import org.ogerardin.b2b.batch.jobs.support.LocalFileInfo;
 import org.ogerardin.b2b.batch.jobs.support.HashFilteringStrategy;
-import org.ogerardin.b2b.batch.jobs.support.StorageServiceLatestStoredRevisionProviderAdapter;
-import org.ogerardin.b2b.domain.LatestStoredRevisionProvider;
+import org.ogerardin.b2b.batch.jobs.support.LocalFileInfo;
 import org.ogerardin.b2b.domain.entity.FilesystemSource;
 import org.ogerardin.b2b.domain.entity.LocalTarget;
 import org.ogerardin.b2b.hash.InputStreamHashCalculator;
@@ -99,7 +97,7 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
     @Bean
     @JobScope
     protected FilteringPathItemProcessor internalFilteringPathItemProcessor(
-            @Qualifier("springMD5Calculator") InputStreamHashCalculator hashCalculator,
+            @Qualifier("javaMD5Calculator") InputStreamHashCalculator hashCalculator,
             @Value("#{jobParameters['backupset.id']}") String backupSetId
     ) {
         val storedFileVersionInfoProvider = getStoredFileVersionInfoProvider(backupSetId);
@@ -162,14 +160,10 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
             @Value("#{jobParameters['backupset.id']}") String backupSetId
     )  {
         val storageService = storageServiceFactory.getStorageService(backupSetId);
-        return new InternalStorageItemWriter(storageService, properties.getFileThrottleDelay());
+        return new InternalStorageItemWriter(storageService,
+                getStoredFileVersionInfoProvider(backupSetId),
+                properties.getFileThrottleDelay());
     }
-
-    protected LatestStoredRevisionProvider getStoredFileVersionInfoProvider(String backupSetId) {
-        val storageService = storageServiceFactory.getStorageService(backupSetId);
-        return new StorageServiceLatestStoredRevisionProviderAdapter(storageService);
-    }
-
 
     @Bean
     @JobScope

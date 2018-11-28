@@ -4,13 +4,10 @@ import lombok.val;
 import org.ogerardin.b2b.batch.jobs.listeners.BackupJobExecutionListener;
 import org.ogerardin.b2b.batch.jobs.listeners.ComputeBatchStepExecutionListener;
 import org.ogerardin.b2b.batch.jobs.listeners.FileBackupListener;
-import org.ogerardin.b2b.batch.jobs.support.LocalFileInfo;
 import org.ogerardin.b2b.batch.jobs.support.HashFilteringStrategy;
-import org.ogerardin.b2b.domain.LatestStoredRevisionProvider;
+import org.ogerardin.b2b.batch.jobs.support.LocalFileInfo;
 import org.ogerardin.b2b.domain.entity.FilesystemSource;
-import org.ogerardin.b2b.domain.entity.LatestStoredRevision;
 import org.ogerardin.b2b.domain.entity.PeerTarget;
-import org.ogerardin.b2b.domain.mongorepository.LatestStoredRevisionRepository;
 import org.ogerardin.b2b.hash.InputStreamHashCalculator;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -21,17 +18,12 @@ import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.support.CompositeItemProcessor;
 import org.springframework.batch.item.support.IteratorItemReader;
 import org.springframework.batch.item.support.PassThroughItemProcessor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.mongodb.core.MongoOperations;
-import org.springframework.data.mongodb.core.mapping.MongoPersistentEntity;
-import org.springframework.data.mongodb.repository.support.MappingMongoEntityInformation;
 
 import java.net.MalformedURLException;
-import java.nio.file.Path;
 import java.util.Arrays;
 
 /**
@@ -40,9 +32,6 @@ import java.util.Arrays;
  */
 @Configuration
 public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBackupJobConfiguration {
-
-    @Autowired
-    private MongoOperations mongoOperations;
 
     public FilesystemToPeerBackupJobConfiguration() {
         addStaticParameter("target.type", PeerTarget.class.getName());
@@ -100,7 +89,7 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
     @Bean
     @JobScope
     protected FilteringPathItemProcessor peerFilteringPathItemProcessor(
-            @Qualifier("springMD5Calculator") InputStreamHashCalculator hashCalculator,
+            @Qualifier("javaMD5Calculator") InputStreamHashCalculator hashCalculator,
             @Value("#{jobParameters['backupset.id']}") String backupSetId
     ) {
         val storedFileVersionInfoProvider = getStoredFileVersionInfoProvider(backupSetId);
@@ -156,8 +145,7 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
 
 
     /**
-     * Provides a job-scoped {@link ItemWriter} that stores {@link Path} items to
-     * the remote peer
+     * Provides a job-scoped {@link ItemWriter} that local files (designated by {@link LocalFileInfo} to the remote peer.
      */
     @Bean
     @JobScope
@@ -170,20 +158,6 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
         }
         val storedFileVersionInfoProvider = getStoredFileVersionInfoProvider(backupSetId);
         return new PeerItemWriter(storedFileVersionInfoProvider, targetHostname, targetPort);
-    }
-
-    protected LatestStoredRevisionProvider getStoredFileVersionInfoProvider(String backupSetId) {
-        // The LatestStoredRevisionRepository used by the PeerItemWriter needs to be specific to this BackupSet,
-        // so we use a collection name derived from the backup set ID.
-        String collectionName = backupSetId + ".peer";
-
-        // to customize collection name we need to build a taylored MappingMongoEntityInformation
-        val mappingContext = mongoOperations.getConverter().getMappingContext();
-        //noinspection unchecked
-        val entity = (MongoPersistentEntity<LatestStoredRevision>) mappingContext.getPersistentEntity(LatestStoredRevision.class);
-        val entityInformation = new MappingMongoEntityInformation<LatestStoredRevision, String>(entity, collectionName);
-
-        return new LatestStoredRevisionRepository(entityInformation, mongoOperations);
     }
 
 

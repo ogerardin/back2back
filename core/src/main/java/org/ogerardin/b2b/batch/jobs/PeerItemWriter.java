@@ -52,8 +52,8 @@ class PeerItemWriter implements ItemWriter<LocalFileInfo> {
     /** Encyption key. If null, files are sent unencrypted */
     private final Key key;
 
-    /** repository to store the hash and ozher info of remotely stored files */
-    private final LatestStoredRevisionProvider peerRevisionInfoRepository;
+    /** repository to store the hash and ozher info of backed up files */
+    private final LatestStoredRevisionProvider latestStoredRevisionProvider;
 
     /** URL of the peer instance */
     private final URL url;
@@ -63,19 +63,19 @@ class PeerItemWriter implements ItemWriter<LocalFileInfo> {
 
     private static final RestTemplate REST_TEMPLATE = new RestTemplate();
 
-    PeerItemWriter(@NonNull LatestStoredRevisionProvider remoteFileVersionInfoRepository,
+    PeerItemWriter(@NonNull LatestStoredRevisionProvider latestStoredRevisionProvider,
                    @NonNull String targetHostname, int targetPort, Key key) throws MalformedURLException {
 
-        this.peerRevisionInfoRepository = remoteFileVersionInfoRepository;
+        this.latestStoredRevisionProvider = latestStoredRevisionProvider;
         this.key = key;
 
         // construct URL of remote "peer" API
         this.url = new URL("http", targetHostname, targetPort, "/api/peer/upload");
     }
 
-    PeerItemWriter(LatestStoredRevisionProvider peerRevisionInfoRepository,
+    PeerItemWriter(LatestStoredRevisionProvider latestStoredRevisionProvider,
                    String targetHostname, int targetPort) throws MalformedURLException {
-        this(peerRevisionInfoRepository, targetHostname, targetPort, null);
+        this(latestStoredRevisionProvider, targetHostname, targetPort, null);
     }
 
 
@@ -105,7 +105,7 @@ class PeerItemWriter implements ItemWriter<LocalFileInfo> {
             String hexHash = FormattingHelper.hex(hash);
             log.debug("Updating local hash for {} -> {}", path, hash);
             val peerRevision = new LatestStoredRevision(path.toString(), hexHash, false);
-            peerRevisionInfoRepository.saveRevisionInfo(peerRevision);
+            latestStoredRevisionProvider.saveRevisionInfo(peerRevision);
 
         }
     }

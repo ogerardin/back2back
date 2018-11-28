@@ -1,15 +1,22 @@
 package org.ogerardin.b2b.batch.jobs;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import lombok.val;
 import org.ogerardin.b2b.batch.jobs.support.LocalFileInfo;
 import org.ogerardin.b2b.domain.LatestStoredRevisionProvider;
 import org.ogerardin.b2b.domain.entity.FilesystemSource;
+import org.ogerardin.b2b.domain.entity.LatestStoredRevision;
+import org.ogerardin.b2b.domain.mongorepository.LatestStoredRevisionRepository;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.scope.context.JobContext;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.mongodb.core.MongoOperations;
+import org.springframework.data.mongodb.core.mapping.MongoPersistentEntity;
+import org.springframework.data.mongodb.repository.support.MappingMongoEntityInformation;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -19,6 +26,9 @@ import java.util.List;
  * Abstract superclass for jobs that accept a source of type {@link FilesystemSource}
  */
 public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobConfiguration {
+
+    @Autowired
+    private MongoOperations mongoOperations;
 
     public FilesystemSourceBackupJobConfiguration() {
         addStaticParameter("source.type", FilesystemSource.class.getName());
@@ -65,6 +75,17 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
         };
     }
 
-    abstract LatestStoredRevisionProvider getStoredFileVersionInfoProvider(String backupSetId);
+    protected LatestStoredRevisionProvider getStoredFileVersionInfoProvider(String backupSetId) {
+        // The repository needs to be specific to this BackupSet, so we use a collection name derived from the backup set ID.
+        String collectionName = backupSetId + ".hash";
+
+        // to customize collection name for an entity we need to build a taylored MappingMongoEntityInformation
+        val mappingContext = mongoOperations.getConverter().getMappingContext();
+        //noinspection unchecked
+        val entity = (MongoPersistentEntity<LatestStoredRevision>) mappingContext.getPersistentEntity(LatestStoredRevision.class);
+        val entityInformation = new MappingMongoEntityInformation<LatestStoredRevision, String>(entity, collectionName);
+
+        return new LatestStoredRevisionRepository(entityInformation, mongoOperations);
+    }
 
 }

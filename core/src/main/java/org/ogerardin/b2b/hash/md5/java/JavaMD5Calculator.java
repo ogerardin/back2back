@@ -1,9 +1,6 @@
 package org.ogerardin.b2b.hash.md5.java;
 
-import org.ogerardin.b2b.hash.DigestingInputStream;
-import org.ogerardin.b2b.hash.ByteArrayHashCalculator;
-import org.ogerardin.b2b.hash.InputStreamHashCalculator;
-import org.ogerardin.b2b.hash.DigestingInputStreamProvider;
+import org.ogerardin.b2b.hash.*;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -15,7 +12,12 @@ import java.security.NoSuchAlgorithmException;
  * MD5 hash calculator using native Java
  */
 @Component
-public class JavaMD5Calculator implements ByteArrayHashCalculator, InputStreamHashCalculator, DigestingInputStreamProvider {
+public class JavaMD5Calculator implements HashProvider {
+
+    @Override
+    public String name() {
+        return "MD5";
+    }
 
     private static final int BUFFER_SIZE = 1024;
 

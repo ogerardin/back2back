@@ -13,7 +13,11 @@ import java.util.Optional;
 
 /**
  * An adapter for {@link StorageService} to implement interface {@link LatestStoredRevisionProvider}.
+ *
+ * @deprecated This {@link LatestStoredRevisionProvider} relies on GridFS to provide the MD5 hash of a stored file;
+ *      this is deprecated and might go away, see {@link com.mongodb.client.gridfs.model.GridFSFile#getMD5()}
  */
+@Deprecated
 public class StorageServiceLatestStoredRevisionProviderAdapter implements LatestStoredRevisionProvider {
     private final StorageService storageService;
 

@@ -32,7 +32,7 @@ import static org.ogerardin.b2b.util.LambdaExceptionUtil.rethrowFunction;
 public class FilesystemStorageService implements StorageService {
 
     @Autowired
-    protected ByteArrayHashCalculator md5Calculator;
+    protected ByteArrayHashCalculator hashCalculator;
 
     protected final Path baseDirectory;
 
@@ -199,10 +199,10 @@ public class FilesystemStorageService implements StorageService {
         }
 
         String md5hash = null;
-        if (md5Calculator != null) {
+        if (hashCalculator != null) {
             try {
                 byte[] fileBytes = Files.readAllBytes(localPath);
-                md5hash = md5Calculator.hexHash(fileBytes);
+                md5hash = hashCalculator.hexHash(fileBytes);
             } catch (IOException e) {
                 throw new StorageException("Failed to read file " + localPath, e);
             }

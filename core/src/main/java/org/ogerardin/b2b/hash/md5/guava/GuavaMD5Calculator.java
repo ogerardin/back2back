@@ -2,10 +2,7 @@ package org.ogerardin.b2b.hash.md5.guava;
 
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
-import org.ogerardin.b2b.hash.DigestingInputStream;
-import org.ogerardin.b2b.hash.ByteArrayHashCalculator;
-import org.ogerardin.b2b.hash.DigestingInputStreamProvider;
-import org.ogerardin.b2b.hash.InputStreamHashCalculator;
+import org.ogerardin.b2b.hash.*;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -16,7 +13,12 @@ import java.io.InputStream;
  * MD5 hash calculator using native Guava
  */
 @Component
-public class GuavaMD5Calculator implements ByteArrayHashCalculator, InputStreamHashCalculator, DigestingInputStreamProvider {
+public class GuavaMD5Calculator implements HashProvider {
+
+    @Override
+    public String name() {
+        return "MD5";
+    }
 
     private static final int BUFFER_SIZE = 1024;
 
@@ -44,5 +46,4 @@ public class GuavaMD5Calculator implements ByteArrayHashCalculator, InputStreamH
     public DigestingInputStream digestingInputStream(InputStream inputStream) {
         return new GuavaMd5DigestInputStream(inputStream);
     }
-
 }

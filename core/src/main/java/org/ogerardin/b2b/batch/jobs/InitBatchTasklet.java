@@ -24,7 +24,7 @@ public class InitBatchTasklet implements Tasklet  {
 
         log.debug("Setting deleted flag");
         // Set the "deleted" flag to true for all stored files.
-        // Later as we examine each file, we will set this flag to false, whether the file is backed up or not.
+        // Later as we examine each existing file, we will set this flag to false (whether the file needs to be backed up or not).
         // At the end only the files that do not exist anymore in the source will still have their deleted flag set to true.
         latestStoredRevisionProvider.untouchAll();
 

@@ -43,9 +43,9 @@ public class JavaDigestInputStream extends DigestingInputStream<JavaDigestInputS
     }
 
 
-    static class Digester_MessageDigest extends Container<MessageDigest> implements Digester {
+    public static class Digester_MessageDigest extends Container<MessageDigest> implements Digester {
 
-        Digester_MessageDigest(MessageDigest messageDigest) {
+        public Digester_MessageDigest(MessageDigest messageDigest) {
             super(messageDigest);
         }
 
