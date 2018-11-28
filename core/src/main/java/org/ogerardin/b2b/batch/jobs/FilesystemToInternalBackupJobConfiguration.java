@@ -5,12 +5,12 @@ import org.ogerardin.b2b.batch.jobs.listeners.BackupJobExecutionListener;
 import org.ogerardin.b2b.batch.jobs.listeners.ComputeBatchStepExecutionListener;
 import org.ogerardin.b2b.batch.jobs.listeners.FileBackupListener;
 import org.ogerardin.b2b.batch.jobs.support.LocalFileInfo;
-import org.ogerardin.b2b.batch.jobs.support.Md5FilteringStrategy;
+import org.ogerardin.b2b.batch.jobs.support.HashFilteringStrategy;
 import org.ogerardin.b2b.batch.jobs.support.StorageServiceLatestStoredRevisionProviderAdapter;
 import org.ogerardin.b2b.domain.LatestStoredRevisionProvider;
 import org.ogerardin.b2b.domain.entity.FilesystemSource;
 import org.ogerardin.b2b.domain.entity.LocalTarget;
-import org.ogerardin.b2b.hash.md5.InputStreamMD5Calculator;
+import org.ogerardin.b2b.hash.InputStreamHashCalculator;
 import org.ogerardin.b2b.storage.StorageService;
 import org.ogerardin.b2b.storage.StorageServiceFactory;
 import org.springframework.batch.core.Job;
@@ -99,11 +99,11 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
     @Bean
     @JobScope
     protected FilteringPathItemProcessor internalFilteringPathItemProcessor(
-            @Qualifier("springMD5Calculator") InputStreamMD5Calculator md5Calculator,
+            @Qualifier("springMD5Calculator") InputStreamHashCalculator hashCalculator,
             @Value("#{jobParameters['backupset.id']}") String backupSetId
     ) {
         val storedFileVersionInfoProvider = getStoredFileVersionInfoProvider(backupSetId);
-        val filteringStrategy = new Md5FilteringStrategy(storedFileVersionInfoProvider, md5Calculator);
+        val filteringStrategy = new HashFilteringStrategy(storedFileVersionInfoProvider, hashCalculator);
         return new FilteringPathItemProcessor(storedFileVersionInfoProvider, filteringStrategy);
     }
 

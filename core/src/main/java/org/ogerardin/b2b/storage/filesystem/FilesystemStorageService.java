@@ -2,7 +2,7 @@ package org.ogerardin.b2b.storage.filesystem;
 
 import com.google.common.escape.Escaper;
 import com.google.common.net.PercentEscaper;
-import org.ogerardin.b2b.hash.md5.ByteArrayMD5Calculator;
+import org.ogerardin.b2b.hash.ByteArrayHashCalculator;
 import org.ogerardin.b2b.storage.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -32,7 +32,7 @@ import static org.ogerardin.b2b.util.LambdaExceptionUtil.rethrowFunction;
 public class FilesystemStorageService implements StorageService {
 
     @Autowired
-    protected ByteArrayMD5Calculator md5Calculator;
+    protected ByteArrayHashCalculator md5Calculator;
 
     protected final Path baseDirectory;
 
@@ -202,7 +202,7 @@ public class FilesystemStorageService implements StorageService {
         if (md5Calculator != null) {
             try {
                 byte[] fileBytes = Files.readAllBytes(localPath);
-                md5hash = md5Calculator.hexMd5Hash(fileBytes);
+                md5hash = md5Calculator.hexHash(fileBytes);
             } catch (IOException e) {
                 throw new StorageException("Failed to read file " + localPath, e);
             }

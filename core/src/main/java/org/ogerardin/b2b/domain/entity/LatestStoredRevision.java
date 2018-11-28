@@ -14,6 +14,7 @@ public class LatestStoredRevision {
     @Id
     private String path;
 
+    //FIXME use a generic hash instead of MD5
     private String md5hash;
 
     private boolean deleted = false;

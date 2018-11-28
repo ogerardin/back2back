@@ -85,6 +85,7 @@ class PeerItemWriter implements ItemWriter<LocalFileInfo> {
 
         for (LocalFileInfo item : items) {
             Path path = item.getPath();
+            // FIXME use DigestingInputStreamProvider
             MessageDigest messageDigest = MessageDigest.getInstance("MD5");
             try (
                 // the original file's InputStream
@@ -100,10 +101,10 @@ class PeerItemWriter implements ItemWriter<LocalFileInfo> {
                 upload(uploadInputStream, path.toString());
             }
 
-            byte[] md5Hash = messageDigest.digest();
-            String hexMd5Hash = FormattingHelper.hex(md5Hash);
-            log.debug("Updating local MD5 database for {} -> {}", path, md5Hash);
-            val peerRevision = new LatestStoredRevision(path.toString(), hexMd5Hash, false);
+            byte[] hash = messageDigest.digest();
+            String hexHash = FormattingHelper.hex(hash);
+            log.debug("Updating local hash for {} -> {}", path, hash);
+            val peerRevision = new LatestStoredRevision(path.toString(), hexHash, false);
             peerRevisionInfoRepository.saveRevisionInfo(peerRevision);
 
         }

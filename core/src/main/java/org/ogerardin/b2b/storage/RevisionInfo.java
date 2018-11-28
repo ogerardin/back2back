@@ -25,6 +25,7 @@ public class RevisionInfo {
     long size;
 
     /** MD5 hash of the original (unencrypted) file */
+    //FIXME use a generic hash instead of MD5
     String md5hash;
 
     /** has the file been deleted since? */

@@ -2,7 +2,10 @@ package org.ogerardin.b2b.hash.md5;
 
 import lombok.Data;
 import org.junit.Test;
+import org.ogerardin.b2b.hash.ByteArrayHashCalculator;
 import org.ogerardin.b2b.hash.DigestingInputStream;
+import org.ogerardin.b2b.hash.DigestingInputStreamProvider;
+import org.ogerardin.b2b.hash.InputStreamHashCalculator;
 import org.ogerardin.b2b.hash.md5.apache.ApacheCommonsMD5Calculator;
 import org.ogerardin.b2b.hash.md5.fast.FastMD5Calculator;
 import org.ogerardin.b2b.hash.md5.guava.GuavaMD5Calculator;
@@ -51,10 +54,10 @@ public class MD5CalculatorBenchmarkTest {
 
     @Test
     public void benchmarkInputStream() {
-        // adapter for InputStreamMD5Calculator
-        Function<InputStreamMD5Calculator, ByteArrayMD5Calculator> asMD5Calculator = isc -> bytes -> {
+        // adapter for InputStreamHashCalculator
+        Function<InputStreamHashCalculator, ByteArrayHashCalculator> asMD5Calculator = isc -> bytes -> {
             try {
-                return isc.md5Hash(new ByteArrayInputStream(bytes));
+                return isc.hash(new ByteArrayInputStream(bytes));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -65,11 +68,11 @@ public class MD5CalculatorBenchmarkTest {
 
     @Test
     public void benchmarkDigestInputStream() {
-        // adapter for MD5UpdatingInputStreamProvider
-        Function<MD5UpdatingInputStreamProvider, ByteArrayMD5Calculator> asMD5Calculator = uisp -> bytes -> {
+        // adapter for DigestingInputStreamProvider
+        Function<DigestingInputStreamProvider, ByteArrayHashCalculator> asMD5Calculator = uisp -> bytes -> {
             try {
                 ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
-                DigestingInputStream hpis = uisp.md5UpdatingInputStream(byteArrayInputStream);
+                DigestingInputStream hpis = uisp.digestingInputStream(byteArrayInputStream);
                 //noinspection StatementWithEmptyBody
                 while (hpis.read() > 0) ;
                 hpis.close();
@@ -94,9 +97,9 @@ public class MD5CalculatorBenchmarkTest {
     }
 
     /**
-     * all MD5 implementations are tested using the {@link ByteArrayMD5Calculator} interface with a random byte array as source.
+     * all MD5 implementations are tested using the {@link ByteArrayHashCalculator} interface with a random byte array as source.
      */
-    private static <C> void benchmark(int size, String description, Function<C, ByteArrayMD5Calculator> toMd5Calculator) {
+    private static <C> void benchmark(int size, String description, Function<C, ByteArrayHashCalculator> toMd5Calculator) {
         System.out.println("Benchmarking: " + description);
 
         // generate a random byte array
@@ -111,9 +114,9 @@ public class MD5CalculatorBenchmarkTest {
             Class<?> md5Class = o.getClass();
 
             try {
-                ByteArrayMD5Calculator md5Calculator = toMd5Calculator.apply((C) o);
+                ByteArrayHashCalculator md5Calculator = toMd5Calculator.apply((C) o);
                 stopWatch.start(md5Class.getSimpleName());
-                String md5 = md5Calculator.hexMd5Hash(bytes);
+                String md5 = md5Calculator.hexHash(bytes);
                 stopWatch.stop();
 
                 Result result = new Result(md5, stopWatch.getLastTaskTimeMillis());

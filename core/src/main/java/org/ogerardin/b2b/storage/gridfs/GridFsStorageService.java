@@ -209,6 +209,7 @@ public class GridFsStorageService implements StorageService {
                 .id(fsdbFile.getObjectId().toString())
                 .filename(fsdbFile.getFilename())
                 .size(fsdbFile.getLength())
+                //FIXME we shouldn't rely on this value computed by GridFS but use our own hashing implementation
                 .md5hash(fsdbFile.getMD5())
                 .storedDate(fsdbFile.getUploadDate().toInstant())
                 .build();
