@@ -20,7 +20,8 @@ public class FilesystemItemReader implements ItemReader<LocalFileInfo> {
 
     public FilesystemItemReader(List<Path> roots) {
         List<File> rootsList = roots.stream().map(Path::toFile).collect(Collectors.toList());
-        // We use Guava's Files.fileTraverser() to walk the files
+        // We use Guava's Files.fileTraverser() to walk the files because it seems to be the most reliable
+        // implementation available, even though it's marked unstable...
         this.fileIterator = Files.fileTraverser().breadthFirst(rootsList).iterator();
     }
 

@@ -8,6 +8,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Just a container for information about a file. Handy as item type for Spring Batch
@@ -18,6 +20,8 @@ public class LocalFileInfo {
 
     private final Path path;
     private final BasicFileAttributes fileAttributes;
+
+    private Map<String, String> hashes = new HashMap<>();
 
     public LocalFileInfo(Path path, BasicFileAttributes fileAttributes) {
         this.path = path;

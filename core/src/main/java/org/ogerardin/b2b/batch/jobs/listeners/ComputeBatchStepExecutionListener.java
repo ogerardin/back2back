@@ -49,7 +49,7 @@ public class ComputeBatchStepExecutionListener extends BackupSetAwareBean implem
             updateTotalFilesStats(backupSet, backupJobContext.getTotalFileStats());
 
             // deleted files
-//            long deletedCount = filteringPathItemProcessor.getLatestStoredRevisionProvider().deletedCount();
+//            long deletedCount = filteringPathItemProcessor.getFileBackupStatusInfoProvider().deletedCount();
 //            backupJobContext.setDeletedNow(deletedCount);
 //            long deletedBefore = backupJobContext.getDeletedBefore();
 //            log.info("Deleted file count was {}, now {}", deletedBefore, deletedCount);

@@ -3,10 +3,10 @@ package org.ogerardin.b2b.batch.jobs;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.val;
 import org.ogerardin.b2b.batch.jobs.support.LocalFileInfo;
-import org.ogerardin.b2b.domain.LatestStoredRevisionProvider;
+import org.ogerardin.b2b.domain.FileBackupStatusInfoProvider;
 import org.ogerardin.b2b.domain.entity.FilesystemSource;
-import org.ogerardin.b2b.domain.entity.LatestStoredRevision;
-import org.ogerardin.b2b.domain.mongorepository.LatestStoredRevisionRepository;
+import org.ogerardin.b2b.domain.entity.FileBackupStatusInfo;
+import org.ogerardin.b2b.domain.mongorepository.FileBackupStatusInfoRepository;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.scope.context.JobContext;
 import org.springframework.batch.item.ItemProcessor;
@@ -75,17 +75,17 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
         };
     }
 
-    protected LatestStoredRevisionProvider getStoredFileVersionInfoProvider(String backupSetId) {
+    protected FileBackupStatusInfoProvider getFileBackupStatusInfoProvider(String backupSetId) {
         // The repository needs to be specific to this BackupSet, so we use a collection name derived from the backup set ID.
         String collectionName = backupSetId + ".hash";
 
         // to customize collection name for an entity we need to build a taylored MappingMongoEntityInformation
         val mappingContext = mongoOperations.getConverter().getMappingContext();
         //noinspection unchecked
-        val entity = (MongoPersistentEntity<LatestStoredRevision>) mappingContext.getPersistentEntity(LatestStoredRevision.class);
-        val entityInformation = new MappingMongoEntityInformation<LatestStoredRevision, String>(entity, collectionName);
+        val entity = (MongoPersistentEntity<FileBackupStatusInfo>) mappingContext.getPersistentEntity(FileBackupStatusInfo.class);
+        val entityInformation = new MappingMongoEntityInformation<FileBackupStatusInfo, String>(entity, collectionName);
 
-        return new LatestStoredRevisionRepository(entityInformation, mongoOperations);
+        return new FileBackupStatusInfoRepository(entityInformation, mongoOperations);
     }
 
 }

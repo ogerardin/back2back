@@ -1,6 +1,6 @@
 package org.ogerardin.b2b.domain;
 
-import org.ogerardin.b2b.domain.entity.LatestStoredRevision;
+import org.ogerardin.b2b.domain.entity.FileBackupStatusInfo;
 
 import java.nio.file.Path;
 import java.util.Optional;
@@ -8,21 +8,20 @@ import java.util.Optional;
 /**
  * Interface of a service that provides meta-information about backed up files and some interaction with it.
  */
-public interface LatestStoredRevisionProvider {
+public interface FileBackupStatusInfoProvider {
     //TODO the mechanism for marking deleted files (#untouchAll/#touch) is not very efficient
-    // and should be replaced with a better one
 
     /**
-     * @return the {@link LatestStoredRevision} for the latest stored revision of the file corresponding to the
+     * @return the {@link FileBackupStatusInfo} for the latest stored revision of the file corresponding to the
      * specified local path, {@link Optional#empty()} if not found
      */
-    Optional<LatestStoredRevision> getLatestStoredRevision(String path);
+    Optional<FileBackupStatusInfo> getLatestStoredRevision(String path);
 
     /**
-     * @return the {@link LatestStoredRevision} for the latest stored revision of the file corresponding to the
+     * @return the {@link FileBackupStatusInfo} for the latest stored revision of the file corresponding to the
      * specified local path, {@link Optional#empty()} if not found
      */
-    default Optional<LatestStoredRevision> getLatestStoredRevision(Path path) {
+    default Optional<FileBackupStatusInfo> getLatestStoredRevision(Path path) {
         return getLatestStoredRevision(path.toString());
     }
 
@@ -38,9 +37,9 @@ public interface LatestStoredRevisionProvider {
     boolean touch(Path path);
 
     /**
-     * save a provided {@link LatestStoredRevision}
+     * save a provided {@link FileBackupStatusInfo}
      */
-    void saveRevisionInfo(LatestStoredRevision revision);
+    void saveRevisionInfo(FileBackupStatusInfo revision);
 
 //    long deletedCount();
 

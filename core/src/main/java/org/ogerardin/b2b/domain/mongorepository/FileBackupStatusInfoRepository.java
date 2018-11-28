@@ -3,8 +3,8 @@ package org.ogerardin.b2b.domain.mongorepository;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.MongoCollection;
 import org.bson.Document;
-import org.ogerardin.b2b.domain.LatestStoredRevisionProvider;
-import org.ogerardin.b2b.domain.entity.LatestStoredRevision;
+import org.ogerardin.b2b.domain.FileBackupStatusInfoProvider;
+import org.ogerardin.b2b.domain.entity.FileBackupStatusInfo;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.repository.query.MongoEntityInformation;
 import org.springframework.data.mongodb.repository.support.SimpleMongoRepository;
@@ -16,22 +16,22 @@ import java.util.Optional;
  * A local Mongo repository used to store metadata about remotely backed up files.
  * Since we only care about the last hash, we use the file path as ID.
  */
-public class LatestStoredRevisionRepository
-        extends SimpleMongoRepository<LatestStoredRevision, String>
-    implements LatestStoredRevisionProvider
+public class FileBackupStatusInfoRepository
+        extends SimpleMongoRepository<FileBackupStatusInfo, String>
+    implements FileBackupStatusInfoProvider
 {
 
     private final MongoOperations mongoOperations;
-    private final MongoEntityInformation<LatestStoredRevision, String> entityInformation;
+    private final MongoEntityInformation<FileBackupStatusInfo, String> entityInformation;
 
-    public LatestStoredRevisionRepository(MongoEntityInformation<LatestStoredRevision, String> metadata, MongoOperations mongoOperations) {
+    public FileBackupStatusInfoRepository(MongoEntityInformation<FileBackupStatusInfo, String> metadata, MongoOperations mongoOperations) {
         super(metadata, mongoOperations);
         this.mongoOperations = mongoOperations;
         this.entityInformation = metadata;
     }
 
     @Override
-    public Optional<LatestStoredRevision> getLatestStoredRevision(String path) {
+    public Optional<FileBackupStatusInfo> getLatestStoredRevision(String path) {
         return findById(path);
     }
 
@@ -43,18 +43,18 @@ public class LatestStoredRevisionRepository
 
     @Override
     public boolean touch(Path path) {
-        Optional<LatestStoredRevision> maybeVersionInfo = getLatestStoredRevision(path);
+        Optional<FileBackupStatusInfo> maybeVersionInfo = getLatestStoredRevision(path);
         if (! maybeVersionInfo.isPresent()) {
             return false;
         }
-        LatestStoredRevision versionInfo = maybeVersionInfo.get();
+        FileBackupStatusInfo versionInfo = maybeVersionInfo.get();
         versionInfo.setDeleted(false);
         saveRevisionInfo(versionInfo);
         return true;
     }
 
     @Override
-    public void saveRevisionInfo(LatestStoredRevision revision) {
+    public void saveRevisionInfo(FileBackupStatusInfo revision) {
         super.save(revision);
     }
 
@@ -62,7 +62,7 @@ public class LatestStoredRevisionRepository
 //    public long deletedCount() {
 //        //FIXME poor implementation
 //        return findAll().stream()
-//                .filter(LatestStoredRevision::isDeleted)
+//                .filter(FileBackupStatusInfo::isDeleted)
 //                .count();
 //    }
 

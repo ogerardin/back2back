@@ -3,8 +3,8 @@ package org.ogerardin.b2b.batch.jobs;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.ogerardin.b2b.batch.jobs.support.LocalFileInfo;
-import org.ogerardin.b2b.domain.LatestStoredRevisionProvider;
-import org.ogerardin.b2b.domain.entity.LatestStoredRevision;
+import org.ogerardin.b2b.domain.FileBackupStatusInfoProvider;
+import org.ogerardin.b2b.domain.entity.FileBackupStatusInfo;
 import org.ogerardin.b2b.hash.HashProvider;
 import org.ogerardin.b2b.storage.StorageService;
 import org.springframework.batch.item.ItemWriter;
@@ -27,7 +27,7 @@ class InternalStorageItemWriter implements ItemWriter<LocalFileInfo> {
     private final StorageService storageService;
 
     /** repository to store the hash and ozher info of backed up files */
-    private final LatestStoredRevisionProvider latestStoredRevisionProvider;
+    private final FileBackupStatusInfoProvider fileBackupStatusInfoProvider;
 
     private final long throttleDelay;
 
@@ -36,12 +36,12 @@ class InternalStorageItemWriter implements ItemWriter<LocalFileInfo> {
     private HashProvider hashProvider;
 
     /**
-     * @param latestStoredRevisionProvider
+     * @param fileBackupStatusInfoProvider
      * @param throttleDelay for testing only, introduces a delay after each file
      */
-    InternalStorageItemWriter(StorageService storageService, LatestStoredRevisionProvider latestStoredRevisionProvider, long throttleDelay) {
+    InternalStorageItemWriter(StorageService storageService, FileBackupStatusInfoProvider fileBackupStatusInfoProvider, long throttleDelay) {
         this.storageService = storageService;
-        this.latestStoredRevisionProvider = latestStoredRevisionProvider;
+        this.fileBackupStatusInfoProvider = fileBackupStatusInfoProvider;
         this.throttleDelay = throttleDelay;
     }
 
@@ -59,8 +59,8 @@ class InternalStorageItemWriter implements ItemWriter<LocalFileInfo> {
             //FIXME use DigestingInputStream to avoid reading the file twice
             String hash = hashProvider.hexHash(Files.newInputStream(path));
             log.debug("Updating local hash for {} -> {}", path, hash);
-            val peerRevision = new LatestStoredRevision(path.toString(), hash, false);
-            latestStoredRevisionProvider.saveRevisionInfo(peerRevision);
+            val peerRevision = new FileBackupStatusInfo(path.toString(), hash, false);
+            fileBackupStatusInfoProvider.saveRevisionInfo(peerRevision);
 
             if (throttleDelay != 0) {
                 log.debug("Throttling for {} ms", throttleDelay);

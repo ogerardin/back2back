@@ -5,9 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.ogerardin.b2b.batch.jobs.support.LocalFileInfo;
 import org.ogerardin.b2b.config.ConfigManager;
-import org.ogerardin.b2b.domain.LatestStoredRevisionProvider;
-import org.ogerardin.b2b.domain.entity.LatestStoredRevision;
-import org.ogerardin.b2b.domain.mongorepository.LatestStoredRevisionRepository;
+import org.ogerardin.b2b.domain.FileBackupStatusInfoProvider;
+import org.ogerardin.b2b.domain.entity.FileBackupStatusInfo;
+import org.ogerardin.b2b.domain.mongorepository.FileBackupStatusInfoRepository;
 import org.ogerardin.b2b.storage.EncryptionException;
 import org.ogerardin.b2b.util.CipherHelper;
 import org.ogerardin.b2b.util.FormattingHelper;
@@ -44,7 +44,7 @@ import java.util.List;
  * ItemWriter implementation that uploads the file designated by the input {@link LocalFileInfo} to a remote
  * back2back peer instance using the REST API.
  * Files can be encrypted before transmission if a {@link Key} is provided.
- * Also stores locally the MD5 hash of uploaded files in a {@link LatestStoredRevisionRepository} to allow change detection.
+ * Also stores locally the MD5 hash of uploaded files in a {@link FileBackupStatusInfoRepository} to allow change detection.
  */
 @Slf4j
 class PeerItemWriter implements ItemWriter<LocalFileInfo> {
@@ -53,7 +53,7 @@ class PeerItemWriter implements ItemWriter<LocalFileInfo> {
     private final Key key;
 
     /** repository to store the hash and ozher info of backed up files */
-    private final LatestStoredRevisionProvider latestStoredRevisionProvider;
+    private final FileBackupStatusInfoProvider fileBackupStatusInfoProvider;
 
     /** URL of the peer instance */
     private final URL url;
@@ -63,19 +63,19 @@ class PeerItemWriter implements ItemWriter<LocalFileInfo> {
 
     private static final RestTemplate REST_TEMPLATE = new RestTemplate();
 
-    PeerItemWriter(@NonNull LatestStoredRevisionProvider latestStoredRevisionProvider,
+    PeerItemWriter(@NonNull FileBackupStatusInfoProvider fileBackupStatusInfoProvider,
                    @NonNull String targetHostname, int targetPort, Key key) throws MalformedURLException {
 
-        this.latestStoredRevisionProvider = latestStoredRevisionProvider;
+        this.fileBackupStatusInfoProvider = fileBackupStatusInfoProvider;
         this.key = key;
 
         // construct URL of remote "peer" API
         this.url = new URL("http", targetHostname, targetPort, "/api/peer/upload");
     }
 
-    PeerItemWriter(LatestStoredRevisionProvider latestStoredRevisionProvider,
+    PeerItemWriter(FileBackupStatusInfoProvider fileBackupStatusInfoProvider,
                    String targetHostname, int targetPort) throws MalformedURLException {
-        this(latestStoredRevisionProvider, targetHostname, targetPort, null);
+        this(fileBackupStatusInfoProvider, targetHostname, targetPort, null);
     }
 
 
@@ -104,8 +104,8 @@ class PeerItemWriter implements ItemWriter<LocalFileInfo> {
             byte[] hash = messageDigest.digest();
             String hexHash = FormattingHelper.hex(hash);
             log.debug("Updating local hash for {} -> {}", path, hash);
-            val peerRevision = new LatestStoredRevision(path.toString(), hexHash, false);
-            latestStoredRevisionProvider.saveRevisionInfo(peerRevision);
+            val peerRevision = new FileBackupStatusInfo(path.toString(), hexHash, false);
+            fileBackupStatusInfoProvider.saveRevisionInfo(peerRevision);
 
         }
     }

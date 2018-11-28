@@ -8,7 +8,7 @@ import org.ogerardin.b2b.batch.jobs.support.HashFilteringStrategy;
 import org.ogerardin.b2b.batch.jobs.support.LocalFileInfo;
 import org.ogerardin.b2b.domain.entity.FilesystemSource;
 import org.ogerardin.b2b.domain.entity.LocalTarget;
-import org.ogerardin.b2b.hash.InputStreamHashCalculator;
+import org.ogerardin.b2b.hash.HashProvider;
 import org.ogerardin.b2b.storage.StorageService;
 import org.ogerardin.b2b.storage.StorageServiceFactory;
 import org.springframework.batch.core.Job;
@@ -96,13 +96,13 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
      */
     @Bean
     @JobScope
-    protected FilteringPathItemProcessor internalFilteringPathItemProcessor(
-            @Qualifier("javaMD5Calculator") InputStreamHashCalculator hashCalculator,
+    protected FilteringItemProcessor internalFilteringPathItemProcessor(
+            @Qualifier("javaMD5Calculator") HashProvider hashProvider,
             @Value("#{jobParameters['backupset.id']}") String backupSetId
     ) {
-        val storedFileVersionInfoProvider = getStoredFileVersionInfoProvider(backupSetId);
-        val filteringStrategy = new HashFilteringStrategy(storedFileVersionInfoProvider, hashCalculator);
-        return new FilteringPathItemProcessor(storedFileVersionInfoProvider, filteringStrategy);
+        val fileBackupStatusInfoProvider = getFileBackupStatusInfoProvider(backupSetId);
+        val filteringStrategy = new HashFilteringStrategy(fileBackupStatusInfoProvider, hashProvider);
+        return new FilteringItemProcessor(fileBackupStatusInfoProvider, filteringStrategy);
     }
 
     /**
@@ -114,11 +114,12 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
     @JobScope
     protected ItemProcessor<LocalFileInfo, LocalFileInfo> internalCountingAndFilteringItemProcessor(
             ItemProcessor<LocalFileInfo, LocalFileInfo> countingProcessor,
-            FilteringPathItemProcessor internalFilteringPathItemProcessor) {
+            FilteringItemProcessor internalFilteringPathItemProcessor) {
         return new CompositeItemProcessor<LocalFileInfo, LocalFileInfo>() {
             {
                 setDelegates(Arrays.asList(
                         countingProcessor,
+                        //TODO insert HashingItemProcessor here
                         internalFilteringPathItemProcessor
                 ));
             }
@@ -160,8 +161,9 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
             @Value("#{jobParameters['backupset.id']}") String backupSetId
     )  {
         val storageService = storageServiceFactory.getStorageService(backupSetId);
-        return new InternalStorageItemWriter(storageService,
-                getStoredFileVersionInfoProvider(backupSetId),
+        return new InternalStorageItemWriter(
+                storageService,
+                getFileBackupStatusInfoProvider(backupSetId),
                 properties.getFileThrottleDelay());
     }
 
@@ -170,9 +172,9 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
     protected Step internalInitBatchStep(
             BackupJobContext jobContext
     ) {
-        val storedFileVersionInfoProvider = getStoredFileVersionInfoProvider(jobContext.getBackupSetId());
+        val fileBackupStatusInfoProvider = getFileBackupStatusInfoProvider(jobContext.getBackupSetId());
         return stepBuilderFactory.get("internalInitBatchStep")
-                .tasklet(new InitBatchTasklet(storedFileVersionInfoProvider, jobContext))
+                .tasklet(new InitBatchTasklet(fileBackupStatusInfoProvider, jobContext))
                 .build();
     }
 

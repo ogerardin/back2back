@@ -8,7 +8,7 @@ import org.ogerardin.b2b.batch.jobs.support.HashFilteringStrategy;
 import org.ogerardin.b2b.batch.jobs.support.LocalFileInfo;
 import org.ogerardin.b2b.domain.entity.FilesystemSource;
 import org.ogerardin.b2b.domain.entity.PeerTarget;
-import org.ogerardin.b2b.hash.InputStreamHashCalculator;
+import org.ogerardin.b2b.hash.HashProvider;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
@@ -51,7 +51,7 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
                 .validator(getValidator())
                 .incrementer(new RunIdIncrementer())
                 .listener(jobListener)
-                .start(peerInitBatchStep)        // step 0: init batch
+                .start(peerInitBatchStep)    // step 0: init batch
                 .next(peerComputeBatchStep)  // step 1: compute files that need to be backed up
                 .next(backupToPeerStep)      // step 2: perform backup
                 .build();
@@ -88,13 +88,13 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
      */
     @Bean
     @JobScope
-    protected FilteringPathItemProcessor peerFilteringPathItemProcessor(
-            @Qualifier("javaMD5Calculator") InputStreamHashCalculator hashCalculator,
+    protected FilteringItemProcessor peerFilteringPathItemProcessor(
+            @Qualifier("javaMD5Calculator") HashProvider hashProvider,
             @Value("#{jobParameters['backupset.id']}") String backupSetId
     ) {
-        val storedFileVersionInfoProvider = getStoredFileVersionInfoProvider(backupSetId);
-        val filteringStrategy = new HashFilteringStrategy(storedFileVersionInfoProvider, hashCalculator);
-        return new FilteringPathItemProcessor(storedFileVersionInfoProvider, filteringStrategy);
+        val fileBackupStatusInfoProvider = getFileBackupStatusInfoProvider(backupSetId);
+        val filteringStrategy = new HashFilteringStrategy(fileBackupStatusInfoProvider, hashProvider);
+        return new FilteringItemProcessor(fileBackupStatusInfoProvider, filteringStrategy);
     }
 
     /**
@@ -106,11 +106,12 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
     @JobScope
     protected ItemProcessor<LocalFileInfo, LocalFileInfo> peerCountingAndFilteringItemProcessor(
             ItemProcessor<LocalFileInfo, LocalFileInfo> countingProcessor,
-            FilteringPathItemProcessor peerFilteringPathItemProcessor) {
+            FilteringItemProcessor peerFilteringPathItemProcessor) {
         return new CompositeItemProcessor<LocalFileInfo, LocalFileInfo>() {
             {
                 setDelegates(Arrays.asList(
                         countingProcessor,
+                        //TODO insert HashingItemProcessor here
                         peerFilteringPathItemProcessor
                 ));
             }
@@ -156,8 +157,10 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
         if (targetPort == null) {
             targetPort = properties.getDefaultPeerPort();
         }
-        val storedFileVersionInfoProvider = getStoredFileVersionInfoProvider(backupSetId);
-        return new PeerItemWriter(storedFileVersionInfoProvider, targetHostname, targetPort);
+        val fileBackupStatusInfoProvider = getFileBackupStatusInfoProvider(backupSetId);
+        return new PeerItemWriter(
+                fileBackupStatusInfoProvider,
+                targetHostname, targetPort);
     }
 
 
@@ -166,9 +169,9 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
     protected Step peerInitBatchStep(
             BackupJobContext jobContext
     ) {
-        val storedFileVersionInfoProvider = getStoredFileVersionInfoProvider(jobContext.getBackupSetId());
+        val fileBackupStatusInfoProvider = getFileBackupStatusInfoProvider(jobContext.getBackupSetId());
         return stepBuilderFactory.get("peerInitBatchStep")
-                .tasklet(new InitBatchTasklet(storedFileVersionInfoProvider, jobContext))
+                .tasklet(new InitBatchTasklet(fileBackupStatusInfoProvider, jobContext))
                 .build();
     }
 }
