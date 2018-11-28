@@ -11,7 +11,7 @@
         </template>
         <template slot="paths" slot-scope="data">
           <template v-for="p in data.item.paths">
-            {{p}}<br/>
+            {{p}}<br v-bind:key="p"/>
           </template>
         </template>
         <template slot="enabled" slot-scope="data">
@@ -35,7 +35,7 @@
 
 <script>
 
-  import AppSwitch from './AppSwitch.vue'
+  import AppSwitch from '@/components/AppSwitch.vue'
 
   export default {
     name: 'TargetList',
@@ -74,7 +74,7 @@
         if (! confirm("Really delete Target? This action cannot be undone.")) {
           return;
         }
-        this.$http.delete('http://localhost:8080/api/targets/' + id).then(response => {
+        this.$http.delete('http://localhost:8080/api/targets/' + id).then(() => {
           this.getTargets();
         }, error => {
           console.log(error)
@@ -87,7 +87,7 @@
           return;
         }
         target.enabled = enabled;
-        this.$http.put('http://localhost:8080/api/targets/' + target.id, target).then(response => {
+        this.$http.put('http://localhost:8080/api/targets/' + target.id, target).then(() => {
         }, error => {
           console.log(error)
         });

@@ -1,4 +1,5 @@
 <template>
+
   <b-container fluid>
 
       <b-card title="Destinations">
@@ -16,15 +17,13 @@
 </template>
 
 <script>
-  import BackupSetList from "./BackupSetList";
-  import BackupSetProgress from "./BackupSetProgress";
-  import FolderList from "./FolderList";
+  import BackupSetProgress from "@/components/BackupSetProgress";
+  import FolderList from "@/components/FolderList";
 
   export default {
     components: {
       BackupSetProgress,
       FolderList,
-      BackupSetList,
     },
     name: 'HomeView',
     data() {

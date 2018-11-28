@@ -22,7 +22,7 @@
       </template>
       <template slot="paths" slot-scope="data">
         <template v-for="p in data.item.paths">
-          {{p}}<br/>
+          {{p}}<br v-bind:key="p"/>
         </template>
       </template>
       <template slot="enabled" slot-scope="data">
@@ -41,8 +41,8 @@
 </template>
 
 <script>
-  import SourceEdit from "./SourceEdit";
-  import AppSwitch from "./AppSwitch.vue";
+  import SourceEdit from "@/components/SourceEdit";
+  import AppSwitch from "@/components/AppSwitch.vue";
 
   export default {
     name: 'SourceList',
@@ -78,6 +78,7 @@
     //   this.getSources();
     // },
     watch: {
+        // eslint-disable-next-line
         '$route' (to, from) {
           // show the modal edit dialog if the matched route is 'source-edit'
           this.showEditModal = (this.$route.name === 'source-edit');
@@ -102,7 +103,7 @@
         if (! confirm("Really delete Source? This action cannot be undone.")) {
           return;
         }
-        this.$http.delete('http://localhost:8080/api/sources/' + id).then(response => {
+        this.$http.delete('http://localhost:8080/api/sources/' + id).then(() => {
           this.getSources();
         }, error => {
           console.log(error)
@@ -115,7 +116,7 @@
           return;
         }
         source.enabled = enabled;
-        this.$http.put('http://localhost:8080/api/sources/' + source.id, source).then(response => {
+        this.$http.put('http://localhost:8080/api/sources/' + source.id, source).then(() => {
         }, error => {
           console.log(error)
         });
