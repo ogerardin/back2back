@@ -65,6 +65,9 @@ public class UpdateManager {
      *  1) the release archive is downloaded to a temporary folder
      *  2) the archive is then extracted into a subfolder ({@link #extractDir}, default "extracted")
      *  3) The updater jar is invoked (name {@link #updaterJar}, default "updater.jar)
+     *
+     *  It is expected that the updater.jar will perform the remaining of the update process using {@link UpdatePerformer}
+     *  and an appropriate set of {@link UpdateAction}s
      */
     public void update(Release release) throws IOException, UpdateException, InterruptedException {
         // download zip

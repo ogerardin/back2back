@@ -28,7 +28,7 @@ import java.util.List;
  * First the {@link #url} is downloaded and converted to a DOM tree.
  * Then the XPath expression {@link #releaseXPath} is evaluated on this DOM tree to obtain a list of nodes, each of
  * which is supposed to match one release. The version, download URL and description are then extracted by applying
- * respecively the XPath expressions {@link #versionXPath}, {@link #zipDownloadUrlXPath} and {@link #descriptionXPath}
+ * respectively the XPath expressions {@link #versionXPath}, {@link #zipDownloadUrlXPath} and {@link #descriptionXPath}
  * on the release's DOM node.
  *
  * Limitations:
