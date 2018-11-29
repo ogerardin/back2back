@@ -21,9 +21,8 @@ public class FilesystemStorageProviderTest extends StorageProviderTest<Filesyste
 
     public FilesystemStorageProviderTest() {
         val storageService = new FilesystemStorageService(BASE_DIRECTORY);
-        storageService.init();
-        storageService.deleteAll();
         setStorageService(storageService);
+        storageService.init();
     }
 
     @Test

@@ -16,7 +16,6 @@ import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemWriter;
-import org.springframework.batch.item.support.CompositeItemProcessor;
 import org.springframework.batch.item.support.IteratorItemReader;
 import org.springframework.batch.item.support.PassThroughItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +25,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.nio.file.Path;
-import java.util.Arrays;
 
 /**
  * Job configuration for a backup job that processes a source of type {@link FilesystemSource}
@@ -87,29 +85,6 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
                 // update BackupSet with stats
                 .listener(computeBatchStepExecutionListener)
                 .build();
-    }
-
-    /**
-     * A job-scoped composite {@link ItemProcessor} that does the following:
-     * - increment this job's total file and byte count using {@link #countingProcessor}
-     * - compute the file's hash using {@link HashingItemProcessor}
-     * - filter out unchanged files using {@link FilteringItemProcessor}
-     */
-    @Bean
-    @JobScope
-    protected ItemProcessor<LocalFileInfo, LocalFileInfo> internalCountingAndFilteringItemProcessor(
-            ItemProcessor<LocalFileInfo, LocalFileInfo> countingProcessor,
-            FilteringItemProcessor filteringItemProcessor,
-            HashingItemProcessor hashingProcessor) {
-        return new CompositeItemProcessor<LocalFileInfo, LocalFileInfo>() {
-            {
-                setDelegates(Arrays.asList(
-                        countingProcessor,
-                        hashingProcessor,
-                        filteringItemProcessor
-                ));
-            }
-        };
     }
 
     /**

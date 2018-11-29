@@ -1,7 +1,6 @@
 package org.ogerardin.b2b.storage.gridfs;
 
-import org.junit.After;
-import org.junit.Before;
+import lombok.val;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ogerardin.b2b.storage.StorageProviderTest;
@@ -30,17 +29,13 @@ public class GridFsStorageProviderTest extends StorageProviderTest<GridFsStorage
     @Autowired
     private MongoTemplate mongoTemplate;
 
-    @Before
-    public void setUp() {
-        GridFsStorageService storageService = new GridFsStorageService(mongoDbFactory, mongoConverter, mongoTemplate, "test");
-        storageService.init();
-        storageService.deleteAll();
+
+    public GridFsStorageProviderTest() {
+        val storageService = new GridFsStorageService(mongoDbFactory, mongoConverter, mongoTemplate, "test");
         setStorageService(storageService);
+        storageService.init();
     }
 
-    @After
-    public void tearDown() {
-    }
 
     @Test
     public void testStoreAndRetrieve() throws Exception {

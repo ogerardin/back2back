@@ -2,7 +2,9 @@ package org.ogerardin.b2b.storage;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 
 import javax.crypto.KeyGenerator;
 import java.io.IOException;
@@ -27,6 +29,16 @@ public abstract class StorageProviderTest<S extends StorageService> {
 
     protected void setStorageService(S storageService) {
         this.storageService = storageService;
+    }
+
+    @Before
+    public void setUp() throws Exception {
+        storageService.deleteAll();
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        storageService.deleteAll();
     }
 
     protected void testStoreAndRetrieve() throws Exception {

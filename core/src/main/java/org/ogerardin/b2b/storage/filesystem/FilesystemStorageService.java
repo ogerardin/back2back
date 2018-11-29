@@ -198,6 +198,7 @@ public class FilesystemStorageService implements StorageService {
             throw new StorageException("Failed to get file attributes for file " + localPath, e);
         }
 
+/*
         String md5hash = null;
         if (hashCalculator != null) {
             try {
@@ -207,13 +208,14 @@ public class FilesystemStorageService implements StorageService {
                 throw new StorageException("Failed to read file " + localPath, e);
             }
         }
+*/
 
         RevisionInfo info = RevisionInfo.builder()
                 .id(null) //no ID for FilesystemStorageService
                 .filename(remotePath.toString())
                 .size(fileAttributes.size())
                 .storedDate(fileAttributes.creationTime().toInstant())
-                .md5hash(md5hash)
+//                .md5hash(md5hash)
                 .build();
         return info;
     }
@@ -238,7 +240,7 @@ public class FilesystemStorageService implements StorageService {
     }
 
     @Override
-    public String store(InputStream inputStream, String filename, Key key) {
+    public String store(InputStream inputStream, String filename, Key key) throws EncryptionException {
         throw new RuntimeException("not implemented");
     }
 
@@ -248,12 +250,7 @@ public class FilesystemStorageService implements StorageService {
     }
 
     @Override
-    public String store(Path path, Key key) {
-        throw new RuntimeException("not implemented");
-    }
-
-    @Override
-    public InputStream getAsInputStream(String filename, Key key) {
+    public InputStream getAsInputStream(String filename, Key key) throws StorageFileNotFoundException, EncryptionException {
         throw new RuntimeException("not implemented");
     }
 }

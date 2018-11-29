@@ -13,6 +13,7 @@ import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.scope.context.JobContext;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
+import org.springframework.batch.item.support.CompositeItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +24,7 @@ import org.springframework.data.mongodb.repository.support.MappingMongoEntityInf
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -107,5 +109,27 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
         val entityInformation = new MappingMongoEntityInformation<FileBackupStatusInfo, String>(entity, collectionName);
 
         return new FileBackupStatusInfoRepository(entityInformation, mongoOperations);
+    }
+
+    /**
+     * A job-scoped composite {@link ItemProcessor} that does the following:
+     * - increment this job's total file and byte count using {@link #countingProcessor}
+     * - compute the file's hash using {@link HashingItemProcessor}
+     * - filter out unchanged files using {@link FilteringItemProcessor}
+     */
+    @Bean
+    @JobScope
+    protected ItemProcessor<LocalFileInfo, LocalFileInfo> countingAndFilteringItemProcessor(
+            ItemProcessor<LocalFileInfo, LocalFileInfo> countingProcessor,
+            HashingItemProcessor hashingProcessor, FilteringItemProcessor filteringItemProcessor) {
+        return new CompositeItemProcessor<LocalFileInfo, LocalFileInfo>() {
+            {
+                setDelegates(Arrays.asList(
+                        countingProcessor,
+                        hashingProcessor,
+                        filteringItemProcessor
+                ));
+            }
+        };
     }
 }

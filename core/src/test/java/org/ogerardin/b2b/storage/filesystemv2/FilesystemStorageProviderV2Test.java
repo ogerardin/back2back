@@ -21,9 +21,8 @@ public class FilesystemStorageProviderV2Test extends StorageProviderTest<Filesys
 
     public FilesystemStorageProviderV2Test() {
         val storageService = new FilesystemStorageServiceV2(BASE_DIRECTORY);
-        storageService.init();
-        storageService.deleteAll();
         setStorageService(storageService);
+        storageService.init();
     }
 
     @Test
@@ -36,4 +35,8 @@ public class FilesystemStorageProviderV2Test extends StorageProviderTest<Filesys
         super.testMultipleRevisions();
     }
 
+    @Test
+    public void testStoreAndRetrieveEncrypted() throws Exception {
+        super.testStoreAndRetrieveEncrypted();
+    }
 }

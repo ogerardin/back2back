@@ -3,21 +3,27 @@ package org.ogerardin.b2b.storage.filesystemv2;
 import lombok.extern.slf4j.Slf4j;
 import org.ogerardin.b2b.storage.*;
 import org.ogerardin.b2b.storage.filesystem.FilesystemStorageService;
+import org.ogerardin.b2b.util.CipherHelper;
 
+import javax.crypto.Cipher;
+import javax.crypto.CipherInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.Key;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Implementation of {@link StorageService} using the filesystem.
+ * Implementation of {@link StorageService} using the filesystem, with support of multiple revisions.
+ *
  * The mapping from remote path to local path is identical to {@link FilesystemStorageService}, with the addition of
- * a revision number to the file name; e.g. the first revision of a file
- * named test.txt will be saved as text.txt#0, the second as text.txt#1, etc.
+ * a revision number to the file name; e.g. the revisions of a file named test.txt will be named text.txt#0, text.txt#1, etc.
+ *
+ * Implementation note: the revision ID is the path to the actual revision file.
  */
 @Slf4j
 public class FilesystemStorageServiceV2 extends FilesystemStorageService implements StorageService {
@@ -68,7 +74,9 @@ public class FilesystemStorageServiceV2 extends FilesystemStorageService impleme
         } catch (IOException e) {
             throw new StorageException("Exception while copying input stream to local file " + localPath, e);
         }
-        return localPath.toString();
+        String revisionId = baseDirectory.relativize(localPath).toString();
+        log.debug("Revision ID is {}", revisionId);
+        return revisionId;
 
     }
 
@@ -151,20 +159,20 @@ public class FilesystemStorageServiceV2 extends FilesystemStorageService impleme
 
     private Path getLocalPath(RevisionInfo revision) {
         // for this StorageService, RevisionInfo.id holds the full local path of the corresponding revision
-        return Paths.get(revision.getId());
+        return baseDirectory.resolve(revision.getId());
     }
 
     @Override
     protected RevisionInfo buildRevisionInfo(Path remotePath, Path localPath) {
         RevisionInfo revisionInfo = super.buildRevisionInfo(remotePath, localPath);
         // Store revision file path into RevisionInfo.id
-        revisionInfo.setId(localPath.toString());
+        revisionInfo.setId(baseDirectory.relativize(localPath).toString());
         return revisionInfo;
     }
 
     @Override
     public RevisionInfo getRevisionInfo(String revisionId) {
-        Path localPath = Paths.get(revisionId);
+        Path localPath = baseDirectory.resolve(revisionId);
         return buildRevisionInfo(localPath);
     }
 
@@ -175,4 +183,27 @@ public class FilesystemStorageServiceV2 extends FilesystemStorageService impleme
         return Files.newInputStream(localPath);
     }
 
+    @Override
+    public String store(InputStream inputStream, String filename, Key key) throws EncryptionException {
+        Cipher aes = CipherHelper.getAesCipher(key, Cipher.ENCRYPT_MODE);
+        try (CipherInputStream cipherInputStream = new CipherInputStream(inputStream, aes)) {
+            //TODO metadata to mark the file as encrypted?
+            return store(cipherInputStream, filename);
+        } catch (IOException e) {
+            throw new StorageException("Exception while trying to store CipherInputStream as " + filename, e);
+        }
+    }
+
+    @Override
+    public InputStream getAsInputStream(String filename, Key key) throws StorageFileNotFoundException, EncryptionException {
+        //TODO check metadata to amake sure the file is encrypted?
+        InputStream inputStream = getAsInputStream(filename);
+        return getDecryptedInputStream(inputStream, key);
+    }
+
+    private InputStream getDecryptedInputStream(InputStream inputStream, Key key) throws EncryptionException {
+        Cipher cipher = CipherHelper.getAesCipher(key, Cipher.DECRYPT_MODE);
+        CipherInputStream cipherInputStream = new CipherInputStream(inputStream, cipher);
+        return cipherInputStream;
+    }
 }

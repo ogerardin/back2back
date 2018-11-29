@@ -41,7 +41,9 @@ import java.util.stream.Stream;
  * Implementation of {@link StorageService} using MongoDB's GridFS.
  *
  * This implementation allows the storage of several revisions of the same file (= same path).
- * Unless otherwise specified, methods that take a path as parameter refer to the latest revision.
+ *
+ * Implementation note: the revision ID is the ObjectId of the corresponding {@link com.mongodb.gridfs.GridFSDBFile}
+ * as a hex String.
  */
 public class GridFsStorageService implements StorageService {
 
@@ -181,7 +183,6 @@ public class GridFsStorageService implements StorageService {
         } catch (IOException e) {
             throw new StorageException("Exception while trying to store CipherInputStream as " + filename, e);
         }
-
     }
 
     @Override

@@ -13,7 +13,6 @@ import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemWriter;
-import org.springframework.batch.item.support.CompositeItemProcessor;
 import org.springframework.batch.item.support.IteratorItemReader;
 import org.springframework.batch.item.support.PassThroughItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,7 +20,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.net.MalformedURLException;
-import java.util.Arrays;
 
 /**
  * Job configuration for a backup job that processes a source of type {@link FilesystemSource}
@@ -63,7 +61,7 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
     protected Step peerComputeBatchStep(
             BackupJobContext jobContext,
             FilesystemItemReader filesystemItemReader,
-            ItemProcessor<LocalFileInfo, LocalFileInfo> peerCountingAndFilteringItemProcessor,
+            ItemProcessor<LocalFileInfo, LocalFileInfo> countingAndFilteringItemProcessor,
             ComputeBatchStepExecutionListener computeBatchStepExecutionListener) {
         return stepBuilderFactory
                 .get("peerComputeBatchStep")
@@ -71,37 +69,13 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
                 // read files from local filesystem
                 .reader(filesystemItemReader)
                 // filter out files that don't need backup
-                .processor(peerCountingAndFilteringItemProcessor)
+                .processor(countingAndFilteringItemProcessor)
                 // store them in the context
                 .writer(new FileSetItemWriter(jobContext.getBackupBatch()))
                 // update BackupSet with stats
                 .listener(computeBatchStepExecutionListener)
                 .build();
     }
-
-    /**
-     * A job-scoped composite {@link ItemProcessor} that does the following:
-     * - increment this job's total file and byte count using {@link #countingProcessor}
-     * - compute the file's hash using {@link HashingItemProcessor}
-     * - filter out unchanged files using {@link FilteringItemProcessor}
-     */
-    @Bean
-    @JobScope
-    protected ItemProcessor<LocalFileInfo, LocalFileInfo> peerCountingAndFilteringItemProcessor(
-            ItemProcessor<LocalFileInfo, LocalFileInfo> countingProcessor,
-            FilteringItemProcessor filteringItemProcessor,
-            HashingItemProcessor hashingProcessor) {
-        return new CompositeItemProcessor<LocalFileInfo, LocalFileInfo>() {
-            {
-                setDelegates(Arrays.asList(
-                        countingProcessor,
-                        hashingProcessor,
-                        filteringItemProcessor
-                ));
-            }
-        };
-    }
-
 
     /**
      * Provides a {@link Step} that writes items from the current batch by storing them to the remote peer

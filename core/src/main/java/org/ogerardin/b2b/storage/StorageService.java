@@ -16,6 +16,7 @@ import java.util.stream.Stream;
  * Interface for a service that provides storage and retrieval of files.
  * Each file is identified by its filename which is the original filename (including path) at upload time.
  * If supported by the implementation, specific revisions of a file are identified by an revisionId (a String).
+ * Unless otherwise specified, methods that take a filename as parameter refer to the latest revision.
  */
 public interface StorageService {
 
@@ -64,11 +65,17 @@ public interface StorageService {
         }
     }
 
-    /** Store the specified {@link java.io.InputStream} associated to the specified filename */
+    /**
+     * Store the specified {@link java.io.InputStream} associated to the specified filename
+     * @return the revision ID of the newly created revision, or null if revisions not supported
+     */
     String store(InputStream inputStream, String filename);
 
-    /** Store the specified {@link java.io.InputStream} contents in its encrypted form using the specified key,
-     *  associated to the specified filename */
+    /**
+     * Store the specified {@link java.io.InputStream} contents in its encrypted form using the specified key,
+     *  associated to the specified filename
+     * @return the revision ID of the newly created revision, or null if revisions not supported
+     */
     String store(InputStream inputStream, String filename, Key key) throws EncryptionException;
 
     /** Deletes all the stored files and versions */
