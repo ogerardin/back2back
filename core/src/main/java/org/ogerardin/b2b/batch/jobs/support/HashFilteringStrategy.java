@@ -7,8 +7,6 @@ import org.ogerardin.b2b.domain.entity.FileBackupStatusInfo;
 import org.ogerardin.b2b.hash.ByteArrayHashCalculator;
 import org.ogerardin.b2b.hash.HashProvider;
 
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -19,7 +17,7 @@ import java.util.function.Predicate;
  */
 @Slf4j
 @Data
-public class HashFilteringStrategy implements Predicate<Path> {
+public class HashFilteringStrategy implements Predicate<LocalFileInfo> {
 
     /** Provides a way to query information (most importantly file hash) abouth the stored file */
     private final FileBackupStatusInfoProvider fileBackupStatusInfoProvider;
@@ -31,7 +29,10 @@ public class HashFilteringStrategy implements Predicate<Path> {
      * @return true if the local file with the specified path must be backed up
      */
     @Override
-    public boolean test(Path path) {
+    public boolean test(LocalFileInfo item) {
+
+        Path path = item.getPath();
+
         // retrieve hash of stored file version
         Optional<FileBackupStatusInfo> info = fileBackupStatusInfoProvider.getLatestStoredRevision(path);
         if (!info.isPresent()) {
@@ -40,6 +41,7 @@ public class HashFilteringStrategy implements Predicate<Path> {
             // backup requested
             return true;
         }
+
 
         String hashName = hashCalculator.name();
         String storedHash = info.get().getHashes().get(hashName);
@@ -51,20 +53,17 @@ public class HashFilteringStrategy implements Predicate<Path> {
             return true;
         }
 
-        // compute current file's hash and compare with stored hash
-        try (FileInputStream fileInputStream = new FileInputStream(path.toFile())){
-            //TODO move hash calculation to FilesystemItemReader so that the hash is already available here
-            String computedHash = hashCalculator.hexHash(fileInputStream);
-            if (computedHash.equalsIgnoreCase(storedHash)) {
-                // same hash, file can be skipped
-                log.debug("Unchanged: {}", path);
-                // backup NOT requested
-                return false;
-            }
-        } catch (IOException e) {
-            log.error("Failed to compute hash for " + path, e);
+        // compare current file's hash with stored hash
+        String computedHash = item.getHashes().get(hashName);
+        if (storedHash.equalsIgnoreCase(computedHash)) {
+            // same hash, file can be skipped
+            log.debug("Unchanged: {}", path);
+            // mark the file as "not deleted"
+            fileBackupStatusInfoProvider.touch(path);
+            // backup NOT requested
             return false;
         }
+
         log.debug("CHANGED: {}", path);
         // backup requested
         return true;

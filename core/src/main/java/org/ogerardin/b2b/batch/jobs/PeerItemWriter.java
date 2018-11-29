@@ -10,7 +10,6 @@ import org.ogerardin.b2b.domain.entity.FileBackupStatusInfo;
 import org.ogerardin.b2b.domain.mongorepository.FileBackupStatusInfoRepository;
 import org.ogerardin.b2b.storage.EncryptionException;
 import org.ogerardin.b2b.util.CipherHelper;
-import org.ogerardin.b2b.util.FormattingHelper;
 import org.ogerardin.b2b.web.InputStreamFileResource;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,9 +32,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.DigestInputStream;
 import java.security.Key;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.List;
@@ -80,33 +77,25 @@ class PeerItemWriter implements ItemWriter<LocalFileInfo> {
 
 
     @Override
-    public void write(List<? extends LocalFileInfo> items) throws IOException, NoSuchAlgorithmException, EncryptionException {
+    public void write(@NonNull List<? extends LocalFileInfo> items) throws IOException, NoSuchAlgorithmException, EncryptionException {
         log.debug("Writing " + Arrays.toString(items.toArray()));
 
         for (LocalFileInfo item : items) {
             Path path = item.getPath();
-            // FIXME use DigestingInputStreamProvider
-            MessageDigest messageDigest = MessageDigest.getInstance("MD5");
             try (
-                // the original file's InputStream
                 InputStream fileInputStream = Files.newInputStream(path);
-                // the same stream, but also updates a hasher as it is read
-                InputStream digestInputStream = new DigestInputStream(fileInputStream, messageDigest);
-                // InputStream that will be uploaded.
                 // If we have a key (encryption) we use it to wrap the stream in an encrypted stream,
                 // otherwise we just use the previous one
-                InputStream uploadInputStream = (key != null) ? getCipherInputStream(digestInputStream, key) : digestInputStream;
+                InputStream uploadInputStream = (key != null) ? getCipherInputStream(fileInputStream, key) : fileInputStream;
             ) {
                 log.debug("Trying to upload {}", path);
                 upload(uploadInputStream, path.toString());
             }
 
-            byte[] hash = messageDigest.digest();
-            String hexHash = FormattingHelper.hex(hash);
-            log.debug("Updating local hash for {} -> {}", path, hash);
-            val peerRevision = new FileBackupStatusInfo(path.toString(), hexHash, false);
+            // update stored hash
+            log.debug("Updating local hash for {} -> {}", path, item.getHashes());
+            val peerRevision = new FileBackupStatusInfo(path.toString(), item.getHashes());
             fileBackupStatusInfoProvider.saveRevisionInfo(peerRevision);
-
         }
     }
 

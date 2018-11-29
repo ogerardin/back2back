@@ -5,13 +5,10 @@ import lombok.val;
 import org.ogerardin.b2b.batch.jobs.support.LocalFileInfo;
 import org.ogerardin.b2b.domain.FileBackupStatusInfoProvider;
 import org.ogerardin.b2b.domain.entity.FileBackupStatusInfo;
-import org.ogerardin.b2b.hash.HashProvider;
 import org.ogerardin.b2b.storage.StorageService;
 import org.springframework.batch.item.ItemWriter;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.lang.NonNull;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -31,10 +28,6 @@ class InternalStorageItemWriter implements ItemWriter<LocalFileInfo> {
 
     private final long throttleDelay;
 
-    @Qualifier("javaMD5Calculator")
-    @Autowired
-    private HashProvider hashProvider;
-
     /**
      * @param fileBackupStatusInfoProvider
      * @param throttleDelay for testing only, introduces a delay after each file
@@ -46,7 +39,7 @@ class InternalStorageItemWriter implements ItemWriter<LocalFileInfo> {
     }
 
     @Override
-    public void write(List<? extends LocalFileInfo> items) throws Exception {
+    public void write(@NonNull List<? extends LocalFileInfo> items) throws Exception {
         for (LocalFileInfo item : items) {
             Path path = item.getPath();
             try {
@@ -56,12 +49,12 @@ class InternalStorageItemWriter implements ItemWriter<LocalFileInfo> {
                 log.error("Failed to store file: " + path, e);
             }
 
-            //FIXME use DigestingInputStream to avoid reading the file twice
-            String hash = hashProvider.hexHash(Files.newInputStream(path));
-            log.debug("Updating local hash for {} -> {}", path, hash);
-            val peerRevision = new FileBackupStatusInfo(path.toString(), hash, false);
+            // update stored hash
+            log.debug("Updating local hash for {} -> {}", path, item.getHashes());
+            val peerRevision = new FileBackupStatusInfo(path.toString(), item.getHashes());
             fileBackupStatusInfoProvider.saveRevisionInfo(peerRevision);
 
+            // delay if required
             if (throttleDelay != 0) {
                 log.debug("Throttling for {} ms", throttleDelay);
                 Thread.sleep(throttleDelay);

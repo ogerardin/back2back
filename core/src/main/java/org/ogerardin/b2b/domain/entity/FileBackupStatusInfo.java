@@ -27,11 +27,13 @@ public class FileBackupStatusInfo {
     public FileBackupStatusInfo() {
     }
 
-    @Deprecated
-    public FileBackupStatusInfo(String path, String md5hash) {
+    public FileBackupStatusInfo(String path) {
         this.path = path;
-        this.md5hash = md5hash;
-        this.hashes.put("MD5", md5hash);
+    }
+
+    public FileBackupStatusInfo(String path, Map<String, String> hashes) {
+        this.path = path;
+        this.hashes = hashes;
     }
 
     @Deprecated

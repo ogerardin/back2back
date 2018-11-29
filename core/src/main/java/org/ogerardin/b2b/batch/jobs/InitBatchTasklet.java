@@ -7,6 +7,7 @@ import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
+import org.springframework.lang.NonNull;
 
 @Data
 @Slf4j
@@ -17,7 +18,7 @@ public class InitBatchTasklet implements Tasklet  {
     private final BackupJobContext backupJobContext;
 
     @Override
-    public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
+    public RepeatStatus execute(@NonNull StepContribution contribution, @NonNull ChunkContext chunkContext) {
 
 //        long deletedCount = fileBackupStatusInfoProvider.deletedCount();
 //        backupJobContext.setDeletedBefore(deletedCount);

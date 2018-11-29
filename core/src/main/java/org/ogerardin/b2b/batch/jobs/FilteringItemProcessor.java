@@ -4,16 +4,15 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.ogerardin.b2b.batch.jobs.support.FileSetStats;
 import org.ogerardin.b2b.batch.jobs.support.LocalFileInfo;
-import org.ogerardin.b2b.domain.FileBackupStatusInfoProvider;
 import org.springframework.batch.item.ItemProcessor;
+import org.springframework.lang.NonNull;
 
-import java.nio.file.Path;
 import java.util.function.Predicate;
 
 
 /**
  * ItemProcessor implementation that filters out (eliminates from further processing) the input item
- * according to a specified filter.
+ * according to a given {@link Predicate}
  */
 @Data
 @Slf4j
@@ -22,34 +21,32 @@ class FilteringItemProcessor implements ItemProcessor<LocalFileInfo, LocalFileIn
     private final FileSetStats processedFilesStats = new FileSetStats();
     private final FileSetStats filteredFilesStats = new FileSetStats();
 
-    private final Predicate<Path> filter;
-    private final FileBackupStatusInfoProvider fileBackupStatusInfoProvider;
+    private final Predicate<LocalFileInfo> filter;
 
     /**
-     * @param filter a {@link Predicate} that filters out files that don't need backup
+     * @param filter a {@link Predicate} that should return true if the file must be backed up, false otherwise.
      */
-    public FilteringItemProcessor(FileBackupStatusInfoProvider fileBackupStatusInfoProvider, Predicate<Path> filter) {
+    public FilteringItemProcessor(Predicate<LocalFileInfo> filter) {
         this.filter = filter;
-        this.fileBackupStatusInfoProvider = fileBackupStatusInfoProvider;
     }
 
     @Override
-    public LocalFileInfo process(LocalFileInfo item) {
+    public LocalFileInfo process(@NonNull LocalFileInfo item) {
 
         // update "all files" stats
         processedFilesStats.addFile(item.getFileAttributes().size());
 
-        Path path = item.getPath();
+        if (filter.test(item)) {
+            // file must be backed up!
 
-        // mark the file as "not deleted"
-        boolean knownFile = fileBackupStatusInfoProvider.touch(path);
-
-        if (! knownFile || filter.test(path)) {
+            // update "seleted for backup" stats
             filteredFilesStats.addFile(item.getFileAttributes().size());
+
             return item; // item will be passed to the step's writer
         }
 
-        // returning null instructs Spring Batch to NOT pass this item to the step's writer
+        // no need to backup
+        // return null to instruct Spring Batch to NOT pass this item to the step's writer
         return null;
     }
 

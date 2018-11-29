@@ -2,16 +2,19 @@ package org.ogerardin.b2b.batch.jobs;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.val;
+import org.ogerardin.b2b.batch.jobs.support.HashFilteringStrategy;
 import org.ogerardin.b2b.batch.jobs.support.LocalFileInfo;
 import org.ogerardin.b2b.domain.FileBackupStatusInfoProvider;
 import org.ogerardin.b2b.domain.entity.FilesystemSource;
 import org.ogerardin.b2b.domain.entity.FileBackupStatusInfo;
 import org.ogerardin.b2b.domain.mongorepository.FileBackupStatusInfoRepository;
+import org.ogerardin.b2b.hash.HashProvider;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.scope.context.JobContext;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.mongodb.core.MongoOperations;
@@ -75,7 +78,25 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
         };
     }
 
-    protected FileBackupStatusInfoProvider getFileBackupStatusInfoProvider(String backupSetId) {
+    /**
+     * A job-scoped {@link ItemProcessor} that filters out {@link LocalFileInfo} items
+     * corresponding to a file that isn't different from the latest stored version, base on file hashes.
+     */
+    @Bean
+    @JobScope
+    protected FilteringItemProcessor filteringProcessor(
+            @Qualifier("javaMD5Calculator") HashProvider hashProvider,
+            FileBackupStatusInfoProvider fileBackupStatusInfoProvider
+    ) {
+        val filteringStrategy = new HashFilteringStrategy(fileBackupStatusInfoProvider, hashProvider);
+        return new FilteringItemProcessor(filteringStrategy);
+    }
+
+    @Bean
+    @JobScope
+    protected FileBackupStatusInfoProvider fileBackupStatusInfoProvider(
+            @Value("#{jobParameters['backupset.id']}") String backupSetId
+    ) {
         // The repository needs to be specific to this BackupSet, so we use a collection name derived from the backup set ID.
         String collectionName = backupSetId + ".hash";
 
@@ -87,5 +108,4 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
 
         return new FileBackupStatusInfoRepository(entityInformation, mongoOperations);
     }
-
 }

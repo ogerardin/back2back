@@ -4,11 +4,10 @@ import lombok.val;
 import org.ogerardin.b2b.batch.jobs.listeners.BackupJobExecutionListener;
 import org.ogerardin.b2b.batch.jobs.listeners.ComputeBatchStepExecutionListener;
 import org.ogerardin.b2b.batch.jobs.listeners.FileBackupListener;
-import org.ogerardin.b2b.batch.jobs.support.HashFilteringStrategy;
 import org.ogerardin.b2b.batch.jobs.support.LocalFileInfo;
+import org.ogerardin.b2b.domain.FileBackupStatusInfoProvider;
 import org.ogerardin.b2b.domain.entity.FilesystemSource;
 import org.ogerardin.b2b.domain.entity.LocalTarget;
-import org.ogerardin.b2b.hash.HashProvider;
 import org.ogerardin.b2b.storage.StorageService;
 import org.ogerardin.b2b.storage.StorageServiceFactory;
 import org.springframework.batch.core.Job;
@@ -91,36 +90,23 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
     }
 
     /**
-     * A job-scoped {@link ItemProcessor} that filters out {@link LocalFileInfo} items
-     * corresponding to a file that isn't different from the latest stored version, base on MD5 hashes.
-     */
-    @Bean
-    @JobScope
-    protected FilteringItemProcessor internalFilteringPathItemProcessor(
-            @Qualifier("javaMD5Calculator") HashProvider hashProvider,
-            @Value("#{jobParameters['backupset.id']}") String backupSetId
-    ) {
-        val fileBackupStatusInfoProvider = getFileBackupStatusInfoProvider(backupSetId);
-        val filteringStrategy = new HashFilteringStrategy(fileBackupStatusInfoProvider, hashProvider);
-        return new FilteringItemProcessor(fileBackupStatusInfoProvider, filteringStrategy);
-    }
-
-    /**
      * A job-scoped composite {@link ItemProcessor} that does the following:
      * - increment this job's total file and byte count using {@link #countingProcessor}
-     * - filter out unchanged files using {@link #internalFilteringPathItemProcessor}
+     * - compute the file's hash using {@link HashingItemProcessor}
+     * - filter out unchanged files using {@link FilteringItemProcessor}
      */
     @Bean
     @JobScope
     protected ItemProcessor<LocalFileInfo, LocalFileInfo> internalCountingAndFilteringItemProcessor(
             ItemProcessor<LocalFileInfo, LocalFileInfo> countingProcessor,
-            FilteringItemProcessor internalFilteringPathItemProcessor) {
+            FilteringItemProcessor filteringItemProcessor,
+            HashingItemProcessor hashingProcessor) {
         return new CompositeItemProcessor<LocalFileInfo, LocalFileInfo>() {
             {
                 setDelegates(Arrays.asList(
                         countingProcessor,
-                        //TODO insert HashingItemProcessor here
-                        internalFilteringPathItemProcessor
+                        hashingProcessor,
+                        filteringItemProcessor
                 ));
             }
         };
@@ -158,21 +144,22 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
     @Bean
     @JobScope
     protected InternalStorageItemWriter internalStorageItemWriter(
-            @Value("#{jobParameters['backupset.id']}") String backupSetId
+            @Value("#{jobParameters['backupset.id']}") String backupSetId,
+            FileBackupStatusInfoProvider fileBackupStatusInfoProvider
     )  {
         val storageService = storageServiceFactory.getStorageService(backupSetId);
         return new InternalStorageItemWriter(
                 storageService,
-                getFileBackupStatusInfoProvider(backupSetId),
+                fileBackupStatusInfoProvider,
                 properties.getFileThrottleDelay());
     }
 
     @Bean
     @JobScope
     protected Step internalInitBatchStep(
-            BackupJobContext jobContext
+            BackupJobContext jobContext,
+            FileBackupStatusInfoProvider fileBackupStatusInfoProvider
     ) {
-        val fileBackupStatusInfoProvider = getFileBackupStatusInfoProvider(jobContext.getBackupSetId());
         return stepBuilderFactory.get("internalInitBatchStep")
                 .tasklet(new InitBatchTasklet(fileBackupStatusInfoProvider, jobContext))
                 .build();
