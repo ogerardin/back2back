@@ -1,7 +1,6 @@
 package org.ogerardin.b2b.batch.jobs;
 
 import org.ogerardin.b2b.batch.jobs.listeners.BackupJobExecutionListener;
-import org.ogerardin.b2b.batch.jobs.listeners.ComputeBatchStepExecutionListener;
 import org.ogerardin.b2b.batch.jobs.listeners.FileBackupListener;
 import org.ogerardin.b2b.batch.jobs.support.LocalFileInfo;
 import org.ogerardin.b2b.domain.FileBackupStatusInfoProvider;
@@ -11,7 +10,6 @@ import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
-import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.support.IteratorItemReader;
 import org.springframework.batch.item.support.PassThroughItemProcessor;
@@ -36,9 +34,9 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
 
     @Bean
     protected Job filesystemToPeerBackupJob(
-            Step peerInitBatchStep,
-            Step peerComputeBatchStep,
-            Step backupToPeerStep,
+            Step initBatchStep,
+            Step computeBatchStep,
+            Step peerBackupStep,
             BackupJobExecutionListener jobListener
     ) {
         return jobBuilderFactory
@@ -46,34 +44,9 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
                 .validator(getValidator())
                 .incrementer(new RunIdIncrementer())
                 .listener(jobListener)
-                .start(peerInitBatchStep)    // step 0: init batch
-                .next(peerComputeBatchStep)  // step 1: compute files that need to be backed up
-                .next(backupToPeerStep)      // step 2: perform backup
-                .build();
-    }
-
-    /**
-     * A {@link Step} that computes the backup batch using peer information
-     * and stores it into the context
-     */
-    @Bean
-    @JobScope
-    protected Step peerComputeBatchStep(
-            BackupJobContext jobContext,
-            FilesystemItemReader filesystemItemReader,
-            ItemProcessor<LocalFileInfo, LocalFileInfo> countingAndFilteringItemProcessor,
-            ComputeBatchStepExecutionListener computeBatchStepExecutionListener) {
-        return stepBuilderFactory
-                .get("peerComputeBatchStep")
-                .<LocalFileInfo, LocalFileInfo> chunk(10)
-                // read files from local filesystem
-                .reader(filesystemItemReader)
-                // filter out files that don't need backup
-                .processor(countingAndFilteringItemProcessor)
-                // store them in the context
-                .writer(new FileSetItemWriter(jobContext.getBackupBatch()))
-                // update BackupSet with stats
-                .listener(computeBatchStepExecutionListener)
+                .start(initBatchStep)    // step 0: init batch
+                .next(computeBatchStep)  // step 1: compute files that need to be backed up
+                .next(peerBackupStep)      // step 2: perform backup
                 .build();
     }
 
@@ -82,13 +55,13 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
      */
     @Bean
     @JobScope
-    protected Step backupToPeerStep(
+    protected Step peerBackupStep(
             BackupJobContext jobContext,
             PeerItemWriter peerWriter,
             FileBackupListener fileBackupListener
     ) {
         return stepBuilderFactory
-                .get("backupToPeerStep")
+                .get("peerBackupStep")
                 .<LocalFileInfo, LocalFileInfo>chunk(1) // handle 1 file at a time
                 // read files from job context
                 .reader(new IteratorItemReader<>(jobContext.getBackupBatch().getFiles()))
@@ -100,7 +73,6 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
                 .listener(fileBackupListener)
                 .build();
     }
-
 
 
     /**
@@ -122,14 +94,4 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
     }
 
 
-    @Bean
-    @JobScope
-    protected Step peerInitBatchStep(
-            BackupJobContext jobContext,
-            FileBackupStatusInfoProvider fileBackupStatusInfoProvider
-    ) {
-        return stepBuilderFactory.get("peerInitBatchStep")
-                .tasklet(new InitBatchTasklet(fileBackupStatusInfoProvider, jobContext))
-                .build();
-    }
 }

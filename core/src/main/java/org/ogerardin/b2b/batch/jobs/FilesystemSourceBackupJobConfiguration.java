@@ -2,13 +2,15 @@ package org.ogerardin.b2b.batch.jobs;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.val;
+import org.ogerardin.b2b.batch.jobs.listeners.ComputeBatchStepExecutionListener;
 import org.ogerardin.b2b.batch.jobs.support.HashFilteringStrategy;
 import org.ogerardin.b2b.batch.jobs.support.LocalFileInfo;
 import org.ogerardin.b2b.domain.FileBackupStatusInfoProvider;
-import org.ogerardin.b2b.domain.entity.FilesystemSource;
 import org.ogerardin.b2b.domain.entity.FileBackupStatusInfo;
+import org.ogerardin.b2b.domain.entity.FilesystemSource;
 import org.ogerardin.b2b.domain.mongorepository.FileBackupStatusInfoRepository;
 import org.ogerardin.b2b.hash.HashProvider;
+import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.scope.context.JobContext;
 import org.springframework.batch.item.ItemProcessor;
@@ -131,5 +133,42 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
                 ));
             }
         };
+    }
+
+    @Bean
+    @JobScope
+    protected Step initBatchStep(
+            BackupJobContext jobContext,
+            FileBackupStatusInfoProvider fileBackupStatusInfoProvider
+    ) {
+        return stepBuilderFactory
+                .get("initBatchStep" + this.getClass().getSimpleName())
+                .tasklet(new InitBatchTasklet(fileBackupStatusInfoProvider, jobContext))
+                .build();
+    }
+
+    /**
+     * A {@link Step} that computes the backup batch using local information
+     * and stores it into the context
+     */
+    @Bean
+    @JobScope
+    protected Step computeBatchStep(
+            BackupJobContext jobContext,
+            FilesystemItemReader filesystemItemReader,
+            ItemProcessor<LocalFileInfo, LocalFileInfo> countingAndFilteringItemProcessor,
+            ComputeBatchStepExecutionListener computeBatchStepExecutionListener) {
+        return stepBuilderFactory
+                .get("computeBatchStep" + this.getClass().getSimpleName())
+                .<LocalFileInfo, LocalFileInfo> chunk(10)
+                // read files from local filesystem
+                .reader(filesystemItemReader)
+                // filter out files that don't need backup.
+                .processor(countingAndFilteringItemProcessor)
+                // store them in the context
+                .writer(new FileSetItemWriter(jobContext.getBackupBatch()))
+                // update BackupSet with stats
+                .listener(computeBatchStepExecutionListener)
+                .build();
     }
 }

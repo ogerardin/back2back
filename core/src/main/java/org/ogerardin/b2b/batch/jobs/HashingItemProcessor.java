@@ -32,7 +32,7 @@ class HashingItemProcessor implements ItemProcessor<LocalFileInfo, LocalFileInfo
     @Override
     public LocalFileInfo process(@NonNull LocalFileInfo item) {
         Path file = item.getPath();
-        log.debug("hashing {} using {}", file, hashProvider);
+//        log.debug("hashing {} using {}", file, hashProvider);
         try {
             InputStream inputStream = Files.newInputStream(file);
             String computedHash = hashProvider.hexHash(inputStream);

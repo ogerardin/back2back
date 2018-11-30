@@ -49,9 +49,9 @@ public class EmbeddedMongoRunner {
                 .build();
 
 /*
-        IRuntimeConfig runtimeConfig = new CustomEmbeddedMongoConfiguration.RuntimeConfigBuilder()
+        IRuntimeConfig runtimeConfig = new CustomEmbeddedMongoConfiguration.CustomRuntimeConfigBuilder()
                 .defaultsWithLogger(Command.MongoD, log)
-//                .defaultsWithBundledDownloader(Command.MongoD, log)
+//                .defaultsWithBundled(Command.MongoD, log)
                 .build();
         MongodStarter runtime = MongodStarter.getInstance(runtimeConfig);
 */

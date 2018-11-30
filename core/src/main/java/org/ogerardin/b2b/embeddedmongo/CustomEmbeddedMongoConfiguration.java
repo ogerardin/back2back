@@ -6,6 +6,7 @@ import de.flapdoodle.embed.mongo.MongodStarter;
 import de.flapdoodle.embed.mongo.config.DownloadConfigBuilder;
 import de.flapdoodle.embed.mongo.config.ExtractedArtifactStoreBuilder;
 import de.flapdoodle.embed.mongo.config.IMongodConfig;
+import de.flapdoodle.embed.mongo.config.RuntimeConfigBuilder;
 import de.flapdoodle.embed.process.config.io.ProcessOutput;
 import de.flapdoodle.embed.process.config.store.IDownloadConfig;
 import de.flapdoodle.embed.process.distribution.Distribution;
@@ -20,7 +21,6 @@ import lombok.val;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.mongo.MongoProperties;
-import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -32,14 +32,13 @@ import org.springframework.core.env.PropertySource;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * A custom configuration class for Embedded Mongo. Much of the code is copied from
  * {@link org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration} due to methods being private...
  */
 @Configuration
-@EnableConfigurationProperties({ MongoProperties.class, EmbeddedMongoProperties.class })
+@EnableConfigurationProperties(MongoProperties.class)
 @Slf4j
 public class CustomEmbeddedMongoConfiguration {
 
@@ -77,14 +76,11 @@ public class CustomEmbeddedMongoConfiguration {
     public static MongodExecutable getMongodExecutable(IMongodConfig mongodConfig) {
         // Try to obtain a bundled version of MongoDB.
         try {
-            val downloader = new Downloader();
-            val runtimeConfig = new RuntimeConfigBuilder()
-                    .defaultsWithBundledDownloader(Command.MongoD, MONGO_LOGGER, downloader)
+            val runtimeConfig = new CustomRuntimeConfigBuilder()
+                    .defaultsWithBundled(Command.MongoD, MONGO_LOGGER)
                     .build();
             val mongodStarter = MongodStarter.getInstance(runtimeConfig);
             val executable = mongodStarter.prepare(mongodConfig);
-            log.info("MongoDB executable loaded from bundled resource: {}",
-                    Optional.ofNullable(downloader.getDownloadUrl()).orElse("(cached)"));
             return executable;
         } catch (DistributionException e) {
             // failed to start using bundle configuration
@@ -92,7 +88,7 @@ public class CustomEmbeddedMongoConfiguration {
         }
 
         // If it failed, try to use the default downloader
-        val runtimeConfig = new RuntimeConfigBuilder()
+        val runtimeConfig = new CustomRuntimeConfigBuilder()
                 .defaultsWithLogger(Command.MongoD, MONGO_LOGGER)
                 .build();
         val mongodStarter = MongodStarter.getInstance(runtimeConfig);
@@ -129,7 +125,7 @@ public class CustomEmbeddedMongoConfiguration {
     }
 
 
-    static class RuntimeConfigBuilder extends de.flapdoodle.embed.mongo.config.RuntimeConfigBuilder {
+    static class CustomRuntimeConfigBuilder extends de.flapdoodle.embed.mongo.config.RuntimeConfigBuilder {
         /**
          * @return A {@link RuntimeConfigBuilder} set to use a custom output procesor and
          *          a proxy obtained through {@link ProxyHelper}
@@ -158,15 +154,15 @@ public class CustomEmbeddedMongoConfiguration {
             return this;
         }
 
-        public RuntimeConfigBuilder defaultsWithBundledDownloader(Command command, Logger logger) {
-            return defaultsWithBundledDownloader(command, logger, null);
+        public RuntimeConfigBuilder defaultsWithBundled(Command command, Logger logger) {
+            return defaultsWithBundled(command, logger, null);
         }
 
         /**
          * @return A {@link RuntimeConfigBuilder} set to use a custom output procesor and
          *          obtain the distributable as a resource from the classpath.
          */
-        public RuntimeConfigBuilder defaultsWithBundledDownloader(Command command, Logger logger, Downloader downloader) {
+        public RuntimeConfigBuilder defaultsWithBundled(Command command, Logger logger, CustomDownloader downloader) {
             defaultsWithLogger(command, logger);
 
             // a custom download config where the base URL points to a classpath resource
@@ -202,7 +198,7 @@ public class CustomEmbeddedMongoConfiguration {
 
 
     @Getter
-    static class Downloader extends de.flapdoodle.embed.process.store.Downloader {
+    static class CustomDownloader extends de.flapdoodle.embed.process.store.Downloader {
         private String downloadUrl;
         @Override
         public String getDownloadUrl(IDownloadConfig runtime, Distribution distribution) {

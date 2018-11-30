@@ -2,7 +2,6 @@ package org.ogerardin.b2b.batch.jobs;
 
 import lombok.val;
 import org.ogerardin.b2b.batch.jobs.listeners.BackupJobExecutionListener;
-import org.ogerardin.b2b.batch.jobs.listeners.ComputeBatchStepExecutionListener;
 import org.ogerardin.b2b.batch.jobs.listeners.FileBackupListener;
 import org.ogerardin.b2b.batch.jobs.support.LocalFileInfo;
 import org.ogerardin.b2b.domain.FileBackupStatusInfoProvider;
@@ -14,7 +13,6 @@ import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
-import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.support.IteratorItemReader;
 import org.springframework.batch.item.support.PassThroughItemProcessor;
@@ -46,9 +44,9 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
      */
     @Bean
     protected Job filesystemToInternalBackupJob(
-            Step internalInitBatchStep,
-            Step internalComputeBatchStep,
-            Step backupToInternalStorageStep,
+            Step initBatchStep,
+            Step computeBatchStep,
+            Step internalBackupStep,
             BackupJobExecutionListener jobListener
     ) {
         return jobBuilderFactory
@@ -56,34 +54,9 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
                 .validator(getValidator())
                 .incrementer(new RunIdIncrementer())
                 .listener(jobListener)
-                .start(internalInitBatchStep)       // step 0: init batch
-                .next(internalComputeBatchStep)     // step 1: compute files that need to be backed up
-                .next(backupToInternalStorageStep)  // step 2: perform backup
-                .build();
-    }
-
-    /**
-     * A {@link Step} that computes the backup batch using local information
-     * and stores it into the context
-     */
-    @Bean
-    @JobScope
-    protected Step internalComputeBatchStep(
-            BackupJobContext jobContext,
-            FilesystemItemReader filesystemItemReader,
-            ItemProcessor<LocalFileInfo, LocalFileInfo> countingAndFilteringItemProcessor,
-            ComputeBatchStepExecutionListener computeBatchStepExecutionListener) {
-        return stepBuilderFactory
-                .get("internalComputeBatchStep")
-                .<LocalFileInfo, LocalFileInfo> chunk(10)
-                // read files from local filesystem
-                .reader(filesystemItemReader)
-                // filter out files that don't need backup.
-                .processor(countingAndFilteringItemProcessor)
-                // store them in the context
-                .writer(new FileSetItemWriter(jobContext.getBackupBatch()))
-                // update BackupSet with stats
-                .listener(computeBatchStepExecutionListener)
+                .start(initBatchStep)   // step 0: init batch
+                .next(computeBatchStep)         // step 1: compute files that need to be backed up
+                .next(internalBackupStep)               // step 2: perform backup
                 .build();
     }
 
@@ -92,7 +65,7 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
      */
     @Bean
     @JobScope
-    protected Step backupToInternalStorageStep(
+    protected Step internalBackupStep(
             BackupJobContext jobContext,
             InternalStorageItemWriter internalStorageWriter,
             FileBackupListener fileBackupListener
@@ -111,7 +84,6 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
                 .build();
     }
 
-
     /**
      * Provides a job-scoped {@link ItemWriter} that stores {@link Path} items into
      * the internal storage
@@ -127,17 +99,6 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
                 storageService,
                 fileBackupStatusInfoProvider,
                 properties.getFileThrottleDelay());
-    }
-
-    @Bean
-    @JobScope
-    protected Step internalInitBatchStep(
-            BackupJobContext jobContext,
-            FileBackupStatusInfoProvider fileBackupStatusInfoProvider
-    ) {
-        return stepBuilderFactory.get("internalInitBatchStep")
-                .tasklet(new InitBatchTasklet(fileBackupStatusInfoProvider, jobContext))
-                .build();
     }
 
 }
