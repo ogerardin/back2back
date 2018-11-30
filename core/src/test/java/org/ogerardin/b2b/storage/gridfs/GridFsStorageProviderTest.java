@@ -15,8 +15,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 
 @RunWith(SpringRunner.class)
-@DataMongoTest
 @ActiveProfiles("test")
+@DataMongoTest
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class GridFsStorageProviderTest extends StorageProviderTest<GridFsStorageService> {
 

@@ -3,16 +3,12 @@ package org.ogerardin.b2b.storage.filesystemv2;
 import lombok.extern.slf4j.Slf4j;
 import org.ogerardin.b2b.storage.*;
 import org.ogerardin.b2b.storage.filesystem.FilesystemStorageService;
-import org.ogerardin.b2b.util.CipherHelper;
 
-import javax.crypto.Cipher;
-import javax.crypto.CipherInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.Key;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -86,20 +82,6 @@ public class FilesystemStorageServiceV2 extends FilesystemStorageService impleme
         Path localPath = getLocalPath(latestRevision);
 
         return getInputStream(localPath, filename);
-    }
-
-    @Override
-    public void deleteAll() {
-        try {
-            //noinspection ResultOfMethodCallIgnored
-            Files.walk(baseDirectory)
-                    .sorted(Comparator.reverseOrder())
-                    .map(Path::toFile)
-                    //                .peek(System.out::println)
-                    .forEach(java.io.File::delete);
-        } catch (IOException e) {
-            throw new StorageException("Exception while trying to recursively delete " + baseDirectory, e);
-        }
     }
 
     private Path getLocalPathForNextRevision(Path remotePath) {
@@ -183,27 +165,4 @@ public class FilesystemStorageServiceV2 extends FilesystemStorageService impleme
         return Files.newInputStream(localPath);
     }
 
-    @Override
-    public String store(InputStream inputStream, String filename, Key key) throws EncryptionException {
-        Cipher aes = CipherHelper.getAesCipher(key, Cipher.ENCRYPT_MODE);
-        try (CipherInputStream cipherInputStream = new CipherInputStream(inputStream, aes)) {
-            //TODO metadata to mark the file as encrypted?
-            return store(cipherInputStream, filename);
-        } catch (IOException e) {
-            throw new StorageException("Exception while trying to store CipherInputStream as " + filename, e);
-        }
-    }
-
-    @Override
-    public InputStream getAsInputStream(String filename, Key key) throws StorageFileNotFoundException, EncryptionException {
-        //TODO check metadata to amake sure the file is encrypted?
-        InputStream inputStream = getAsInputStream(filename);
-        return getDecryptedInputStream(inputStream, key);
-    }
-
-    private InputStream getDecryptedInputStream(InputStream inputStream, Key key) throws EncryptionException {
-        Cipher cipher = CipherHelper.getAesCipher(key, Cipher.DECRYPT_MODE);
-        CipherInputStream cipherInputStream = new CipherInputStream(inputStream, cipher);
-        return cipherInputStream;
-    }
 }

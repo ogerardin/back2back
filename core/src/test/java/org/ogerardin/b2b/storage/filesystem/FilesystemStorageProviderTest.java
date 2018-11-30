@@ -29,4 +29,9 @@ public class FilesystemStorageProviderTest extends StorageProviderTest<Filesyste
     public void testStoreAndRetrieve() throws Exception {
         super.testStoreAndRetrieve();
     }
+
+    @Test
+    public void testStoreAndRetrieveEncrypted() throws Exception {
+        super.testStoreAndRetrieveEncrypted();
+    }
 }

@@ -21,7 +21,9 @@ import java.util.stream.Collectors;
 @Slf4j
 public abstract class StorageProviderTest<S extends StorageService> {
 
-    /** Resource folder containing a set of files to use for testing */
+    /**
+     * Resource folder containing a set of files to use for testing
+     */
     private static final String FILESET_RSC = "/fileset";
 
     private S storageService;
@@ -126,17 +128,23 @@ public abstract class StorageProviderTest<S extends StorageService> {
     }
 
     private void assertStoredRevisionMatchesFile(RevisionRetriever retriever, Path path, String revisionId) throws Exception {
-        InputStream inputStream0 = Files.newInputStream(path, StandardOpenOption.READ);
-        InputStream inputStream1 = retriever.getAsInputStream(revisionId);
-        Assert.assertTrue(IOUtils.contentEquals(inputStream0, inputStream1));
+        try (
+                InputStream inputStream0 = Files.newInputStream(path, StandardOpenOption.READ);
+                InputStream inputStream1 = retriever.getAsInputStream(revisionId);
+        ) {
+            Assert.assertTrue(IOUtils.contentEquals(inputStream0, inputStream1));
+        }
     }
 
     private void assertStoredVersionMatchesFile(Retriever retriever, Path p0, Path p1) throws IOException {
         Assert.assertTrue(p0.endsWith(p1));
 
-        InputStream inputStream0 = Files.newInputStream(p0, StandardOpenOption.READ);
-        InputStream inputStream1 = retriever.getAsInputStream(p1);
-        Assert.assertTrue(IOUtils.contentEquals(inputStream0, inputStream1));
+        try (
+                InputStream inputStream0 = Files.newInputStream(p0, StandardOpenOption.READ);
+                InputStream inputStream1 = retriever.getAsInputStream(p1)
+        ) {
+            Assert.assertTrue(IOUtils.contentEquals(inputStream0, inputStream1));
+        }
     }
 
     private List<Path> getSampleFilesPaths() throws IOException, URISyntaxException {

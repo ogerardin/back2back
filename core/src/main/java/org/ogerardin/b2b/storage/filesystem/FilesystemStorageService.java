@@ -4,9 +4,12 @@ import com.google.common.escape.Escaper;
 import com.google.common.net.PercentEscaper;
 import org.ogerardin.b2b.hash.ByteArrayHashCalculator;
 import org.ogerardin.b2b.storage.*;
+import org.ogerardin.b2b.util.CipherHelper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.FileSystemUtils;
 
-import java.io.File;
+import javax.crypto.Cipher;
+import javax.crypto.CipherInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,7 +19,6 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.security.Key;
-import java.util.Comparator;
 import java.util.stream.Stream;
 
 import static org.ogerardin.b2b.util.LambdaExceptionUtil.rethrowFunction;
@@ -132,12 +134,8 @@ public class FilesystemStorageService implements StorageService {
     @Override
     public void deleteAll() {
         try {
-            //noinspection ResultOfMethodCallIgnored
-            Files.walk(baseDirectory)
-                    .sorted(Comparator.reverseOrder())
-                    .map(Path::toFile)
-    //                .peek(System.out::println)
-                    .forEach(File::delete);
+            FileSystemUtils.deleteRecursively(baseDirectory);
+//            MoreFiles.deleteRecursively(baseDirectory) ;
         } catch (IOException e) {
             throw new StorageException("Exception while trying to recursively delete " + baseDirectory, e);
         }
@@ -240,17 +238,31 @@ public class FilesystemStorageService implements StorageService {
     }
 
     @Override
-    public String store(InputStream inputStream, String filename, Key key) throws EncryptionException {
-        throw new RuntimeException("not implemented");
-    }
-
-    @Override
     public InputStream getRevisionAsInputStream(String revisionId, Key key) {
         throw new RuntimeException("not implemented");
     }
 
     @Override
+    public String store(InputStream inputStream, String filename, Key key) throws EncryptionException {
+        Cipher aes = CipherHelper.getAesCipher(key, Cipher.ENCRYPT_MODE);
+        try (CipherInputStream cipherInputStream = new CipherInputStream(inputStream, aes)) {
+            //TODO metadata to mark the file as encrypted?
+            return store(cipherInputStream, filename);
+        } catch (IOException e) {
+            throw new StorageException("Exception while trying to store CipherInputStream as " + filename, e);
+        }
+    }
+
+    @Override
     public InputStream getAsInputStream(String filename, Key key) throws StorageFileNotFoundException, EncryptionException {
-        throw new RuntimeException("not implemented");
+        //TODO check metadata to amake sure the file is encrypted?
+        InputStream inputStream = getAsInputStream(filename);
+        return getDecryptedInputStream(inputStream, key);
+    }
+
+    private InputStream getDecryptedInputStream(InputStream inputStream, Key key) throws EncryptionException {
+        Cipher cipher = CipherHelper.getAesCipher(key, Cipher.DECRYPT_MODE);
+        CipherInputStream cipherInputStream = new CipherInputStream(inputStream, cipher);
+        return cipherInputStream;
     }
 }
