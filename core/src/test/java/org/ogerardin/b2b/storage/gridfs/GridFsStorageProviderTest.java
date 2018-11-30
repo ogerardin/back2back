@@ -1,9 +1,11 @@
 package org.ogerardin.b2b.storage.gridfs;
 
 import lombok.val;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ogerardin.b2b.storage.StorageProviderTest;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.data.mongodb.MongoDbFactory;
@@ -18,7 +20,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 @ActiveProfiles("test")
 @DataMongoTest
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class GridFsStorageProviderTest extends StorageProviderTest<GridFsStorageService> {
+public class GridFsStorageProviderTest extends StorageProviderTest<GridFsStorageService> implements InitializingBean {
 
     @Autowired
     private MongoDbFactory mongoDbFactory;
@@ -31,11 +33,12 @@ public class GridFsStorageProviderTest extends StorageProviderTest<GridFsStorage
 
 
     public GridFsStorageProviderTest() {
-        val storageService = new GridFsStorageService(mongoDbFactory, mongoConverter, mongoTemplate, "test");
-        setStorageService(storageService);
-        storageService.init();
     }
 
+    @Override
+    @Before
+    public void setUp() throws Exception {
+    }
 
     @Test
     public void testStoreAndRetrieve() throws Exception {
@@ -53,5 +56,10 @@ public class GridFsStorageProviderTest extends StorageProviderTest<GridFsStorage
     }
 
 
-
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        val storageService = new GridFsStorageService(mongoDbFactory, mongoConverter, mongoTemplate, "test");
+        setStorageService(storageService);
+        storageService.init();
+    }
 }
