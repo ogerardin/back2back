@@ -99,7 +99,9 @@
                             <goal>wget</goal>
                         </goals>
                         <configuration>
-                            <url>http://nssm.cc/release/nssm-${nssm.version}.zip</url>
+                            <!--<url>http://nssm.cc/release/nssm-${nssm.version}.zip</url>-->
+                            <!-- FIXME alternate download link as nssm.cc gives a 503 -->
+                            <url>http://ubsms.com/download/tools/nssm-${nssm.version}.zip</url>
                             <!--<md5>be7b3577c6e3a280e5106a9e9db5b3775931cefc</md5>-->
                             <outputDirectory>${project.build.testOutputDirectory}/org/ogerardin/processcontrol</outputDirectory>
                             <unpack>true</unpack>
