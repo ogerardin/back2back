@@ -19,18 +19,42 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.mongo.MongoProperties;
+import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.MapPropertySource;
+import org.springframework.core.env.MutablePropertySources;
+import org.springframework.core.env.PropertySource;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
+/**
+ * A custom configuration class for Embedded Mongo. Much of the code is copied from
+ * {@link org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration} due to methods being private...
+ */
 @Configuration
+@EnableConfigurationProperties({ MongoProperties.class, EmbeddedMongoProperties.class })
 @Slf4j
 public class CustomEmbeddedMongoConfiguration {
 
-    // custom logger for embedded Mongo
     private static final Logger MONGO_LOGGER = LoggerFactory
             .getLogger(CustomEmbeddedMongoConfiguration.class.getPackage().getName() + ".EmbeddedMongo");
+
+    private final ApplicationContext context;
+
+    private final MongoProperties properties;
+
+
+    public CustomEmbeddedMongoConfiguration(ApplicationContext context, MongoProperties properties) {
+        this.context = context;
+        this.properties = properties;
+    }
 
 
     /**
@@ -38,9 +62,16 @@ public class CustomEmbeddedMongoConfiguration {
      * First try to obtain MongoDB from classpath, then if it failed try default.
      */
     @Bean(initMethod = "start", destroyMethod = "stop")
-    public static MongodExecutable embeddedMongoServer(IMongodConfig mongodConfig) {
+    public MongodExecutable embeddedMongoServer(IMongodConfig mongodConfig) {
+
+        // if a port is specified, configure embedded Mongo to listen on that port
+        Integer configuredPort = this.properties.getPort();
+        if (configuredPort == null || configuredPort == 0) {
+            setEmbeddedPort(mongodConfig.net().getPort());
+        }
+
+        // Try to obtain a bundled version of MongoDB.
         try {
-            // Try to obtain a bundled version of MongoDB.
             val downloader = new Downloader();
             val runtimeConfig = new RuntimeConfigBuilder()
                     .defaultsWithBundledDownloader(Command.MongoD, MONGO_LOGGER, downloader)
@@ -62,6 +93,34 @@ public class CustomEmbeddedMongoConfiguration {
         val mongodStarter = MongodStarter.getInstance(runtimeConfig);
         val executable = mongodStarter.prepare(mongodConfig);
         return executable;
+    }
+
+    // copied from org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration.setEmbeddedPort
+    private void setEmbeddedPort(int port) {
+        setPortProperty(this.context, port);
+    }
+
+    // copied from org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration.setPortProperty
+    private void setPortProperty(ApplicationContext currentContext, int port) {
+        if (currentContext instanceof ConfigurableApplicationContext) {
+            MutablePropertySources sources = ((ConfigurableApplicationContext) currentContext)
+                    .getEnvironment().getPropertySources();
+            getMongoPorts(sources).put("local.mongo.port", port);
+        }
+        if (currentContext.getParent() != null) {
+            setPortProperty(currentContext.getParent(), port);
+        }
+    }
+
+    // copied from org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration.getMongoPorts
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> getMongoPorts(MutablePropertySources sources) {
+        PropertySource<?> propertySource = sources.get("mongo.ports");
+        if (propertySource == null) {
+            propertySource = new MapPropertySource("mongo.ports", new HashMap<>());
+            sources.addFirst(propertySource);
+        }
+        return (Map<String, Object>) propertySource.getSource();
     }
 
 

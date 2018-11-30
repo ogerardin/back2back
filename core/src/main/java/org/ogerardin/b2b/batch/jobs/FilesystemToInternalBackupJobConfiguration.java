@@ -71,7 +71,7 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
     protected Step internalComputeBatchStep(
             BackupJobContext jobContext,
             FilesystemItemReader filesystemItemReader,
-            ItemProcessor<LocalFileInfo, LocalFileInfo> internalCountingAndFilteringItemProcessor,
+            ItemProcessor<LocalFileInfo, LocalFileInfo> countingAndFilteringItemProcessor,
             ComputeBatchStepExecutionListener computeBatchStepExecutionListener) {
         return stepBuilderFactory
                 .get("internalComputeBatchStep")
@@ -79,7 +79,7 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
                 // read files from local filesystem
                 .reader(filesystemItemReader)
                 // filter out files that don't need backup.
-                .processor(internalCountingAndFilteringItemProcessor)
+                .processor(countingAndFilteringItemProcessor)
                 // store them in the context
                 .writer(new FileSetItemWriter(jobContext.getBackupBatch()))
                 // update BackupSet with stats
