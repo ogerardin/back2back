@@ -70,6 +70,11 @@ public class CustomEmbeddedMongoConfiguration {
             setEmbeddedPort(mongodConfig.net().getPort());
         }
 
+        return getMongodExecutable(mongodConfig);
+
+    }
+
+    public static MongodExecutable getMongodExecutable(IMongodConfig mongodConfig) {
         // Try to obtain a bundled version of MongoDB.
         try {
             val downloader = new Downloader();

@@ -59,7 +59,7 @@ public class EmbeddedMongoRunner {
         MongodExecutable mongodExecutable = null;
         try {
 //            mongodExecutable = runtime.prepare(mongodConfig);
-            mongodExecutable =  CustomEmbeddedMongoConfiguration.embeddedMongoServer(mongodConfig);
+            mongodExecutable =  CustomEmbeddedMongoConfiguration.getMongodExecutable(mongodConfig);
             mongodExecutable.start();
 
             Thread.sleep(Long.MAX_VALUE);
