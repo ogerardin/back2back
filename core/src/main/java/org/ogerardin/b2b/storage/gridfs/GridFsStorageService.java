@@ -272,30 +272,15 @@ public class GridFsStorageService implements StorageService {
     }
 
     @Override
-    public void untouchAll() {
-        getFilesCollection()
-                .updateMany(new BasicDBObject(), BasicDBObject.parse("{ \"$set\": {\"metadata.deleted\": \"true\"}}"));
-    }
-
-    @Override
-    public boolean touch(String filename) {
+    public void delete(String filename) {
         try {
             GridFSFile fsFile = getLatestGridFSFile(filename);
             getFilesCollection()
                     .updateOne(new BasicDBObject("_id", fsFile.getId()),
-                            BasicDBObject.parse("{ \"$set\": {\"metadata.deleted\": \"false\"}}"));
+                            BasicDBObject.parse("{ \"$set\": {\"metadata.deleted\": \"true\"}}"));
 
-            return true;
-        } catch (StorageFileNotFoundException e) {
-            return false;
+        } catch (StorageFileNotFoundException ignored) {
         }
-    }
-
-    @Override
-    public long countDeleted() {
-        return getAllFiles(true)
-                .filter(FileInfo::isDeleted)
-                .count();
     }
 
     // this should be exposed by GridFsTemplate

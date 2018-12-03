@@ -5,11 +5,15 @@ import com.mongodb.client.MongoCollection;
 import org.bson.Document;
 import org.ogerardin.b2b.domain.FileBackupStatusInfoProvider;
 import org.ogerardin.b2b.domain.entity.FileBackupStatusInfo;
+import org.springframework.batch.item.ItemReader;
+import org.springframework.batch.item.data.builder.MongoItemReaderBuilder;
 import org.springframework.data.mongodb.core.MongoOperations;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.repository.query.MongoEntityInformation;
 import org.springframework.data.mongodb.repository.support.SimpleMongoRepository;
 
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -42,15 +46,12 @@ public class FileBackupStatusInfoRepository
     }
 
     @Override
-    public boolean touch(Path path) {
-        Optional<FileBackupStatusInfo> maybeVersionInfo = getLatestStoredRevision(path);
-        if (! maybeVersionInfo.isPresent()) {
-            return false;
-        }
-        FileBackupStatusInfo versionInfo = maybeVersionInfo.get();
-        versionInfo.setDeleted(false);
-        saveRevisionInfo(versionInfo);
-        return true;
+    public void touch(Path path, Map<String, String> newHashes) {
+        Optional<FileBackupStatusInfo> maybeStatusInfo = getLatestStoredRevision(path);
+        FileBackupStatusInfo statusInfo = maybeStatusInfo.orElseGet(FileBackupStatusInfo::new);
+        statusInfo.setDeleted(false);
+        statusInfo.setCurrentHashes(newHashes);
+        saveRevisionInfo(statusInfo);
     }
 
     @Override
@@ -58,12 +59,22 @@ public class FileBackupStatusInfoRepository
         super.save(revision);
     }
 
-//    @Override
-//    public long deletedCount() {
-//        //FIXME poor implementation
-//        return findAll().stream()
-//                .filter(FileBackupStatusInfo::isDeleted)
-//                .count();
-//    }
+    @Override
+    public ItemReader<FileBackupStatusInfo> reader() {
+        return new MongoItemReaderBuilder<FileBackupStatusInfo>()
+                .template(mongoOperations)
+                .collection(entityInformation.getCollectionName())
+                .targetType(FileBackupStatusInfo.class)
+                .query(new Query()) // return all items
+                .pageSize(10)  // fetch N at a time
+                .build();
+    }
+
+    @Override
+    public void deletedDeleted() {
+        MongoCollection<Document> collection = mongoOperations.getCollection(entityInformation.getCollectionName());
+        collection.deleteMany(BasicDBObject.parse("{ \"$eq\": {\"deleted\": \"true\"}}"));
+        
+    }
 
 }

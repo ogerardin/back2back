@@ -3,8 +3,8 @@ package org.ogerardin.b2b.batch.jobs;
 import lombok.val;
 import org.ogerardin.b2b.batch.jobs.listeners.BackupJobExecutionListener;
 import org.ogerardin.b2b.batch.jobs.listeners.FileBackupListener;
-import org.ogerardin.b2b.batch.jobs.support.LocalFileInfo;
 import org.ogerardin.b2b.domain.FileBackupStatusInfoProvider;
+import org.ogerardin.b2b.domain.entity.FileBackupStatusInfo;
 import org.ogerardin.b2b.domain.entity.FilesystemSource;
 import org.ogerardin.b2b.domain.entity.LocalTarget;
 import org.ogerardin.b2b.storage.StorageService;
@@ -14,8 +14,6 @@ import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.ItemWriter;
-import org.springframework.batch.item.support.IteratorItemReader;
-import org.springframework.batch.item.support.PassThroughItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -47,16 +45,17 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
             Step initBatchStep,
             Step computeBatchStep,
             Step internalBackupStep,
-            BackupJobExecutionListener jobListener
-    ) {
+            BackupJobExecutionListener jobListener,
+            Step finalizeBackupStep) {
         return jobBuilderFactory
                 .get("filesystemToInternalBackupJob")
                 .validator(getValidator())
                 .incrementer(new RunIdIncrementer())
                 .listener(jobListener)
-                .start(initBatchStep)   // step 0: init batch
-                .next(computeBatchStep)         // step 1: compute files that need to be backed up
-                .next(internalBackupStep)               // step 2: perform backup
+                .start(initBatchStep)       // step 0: init batch
+                .next(computeBatchStep)     // step 1: compute files that need to be backed up
+                .next(internalBackupStep)   // step 2: perform backup
+                .next(finalizeBackupStep)   // step 3: cleanup
                 .build();
     }
 
@@ -66,19 +65,20 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
     @Bean
     @JobScope
     protected Step internalBackupStep(
-            BackupJobContext jobContext,
-            InternalStorageItemWriter internalStorageWriter,
-            FileBackupListener fileBackupListener
-    ) {
+            BackupStatusUpdater backupStatusUpdater,
+            FileBackupListener fileBackupListener,
+            FileBackupStatusInfoProvider fileBackupStatusInfoProvider,
+            InternalBackupItemProcessor internalBackupItemProcessor) {
         return stepBuilderFactory
                 .get("backupToInternalStorageStep")
-                .<LocalFileInfo, LocalFileInfo> chunk(1) // handle 1 file at a time
-                // read files from job context
-                .reader(new IteratorItemReader<>(jobContext.getBackupBatch().getFiles()))
-                // no processing
-                .processor(new PassThroughItemProcessor<>())
-                // store them to the internal storage
-                .writer(internalStorageWriter)
+                // handle 1 file at a time
+                .<FileBackupStatusInfo, FileBackupStatusInfo> chunk(1)
+                // read files from local backup status database
+                .reader(fileBackupStatusInfoProvider.reader())
+                // perform backup
+                .processor(internalBackupItemProcessor)
+                // store backup status
+                .writer(backupStatusUpdater)
                 // monitor progress
                 .listener(fileBackupListener)
                 .build();
@@ -90,14 +90,12 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
      */
     @Bean
     @JobScope
-    protected InternalStorageItemWriter internalStorageItemWriter(
-            @Value("#{jobParameters['backupset.id']}") String backupSetId,
-            FileBackupStatusInfoProvider fileBackupStatusInfoProvider
+    protected InternalBackupItemProcessor internalBackupItemProcessor(
+            @Value("#{jobParameters['backupset.id']}") String backupSetId
     )  {
         val storageService = storageServiceFactory.getStorageService(backupSetId);
-        return new InternalStorageItemWriter(
+        return new InternalBackupItemProcessor(
                 storageService,
-                fileBackupStatusInfoProvider,
                 properties.getFileThrottleDelay());
     }
 

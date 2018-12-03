@@ -26,6 +26,8 @@ import java.net.MalformedURLException;
 @Configuration
 public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBackupJobConfiguration {
 
+    //TODO use new workflow (like FilesystemToInternalBackupJobConfiguration)
+
     public FilesystemToPeerBackupJobConfiguration() {
         addStaticParameter("target.type", PeerTarget.class.getName());
         addMandatoryParameter("target.hostname");

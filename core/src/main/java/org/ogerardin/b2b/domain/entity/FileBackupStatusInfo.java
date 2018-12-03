@@ -4,6 +4,8 @@ import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.nio.file.Path;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,38 +17,54 @@ import java.util.Map;
 public class FileBackupStatusInfo {
 
     @Id
-    private String path;
+    private Path path;
 
     @Deprecated
     private String md5hash;
 
-    private Map<String, String> hashes = new HashMap<>();
+    /**
+     * Hashes of the last backed up revision of the file
+     */
+    private Map<String, String> lastSuccessfulBackupHashes = new HashMap<>();
 
+    /**
+     * Hashes of the current file on disk (only if different from {@link #lastSuccessfulBackupHashes}
+     */
+    private Map<String, String> currentHashes = new HashMap<>();
+
+    /**
+     * {@code true} if the file has been deleted from the filesystem since last backup
+     */
     private boolean deleted = false;
+
+    private Instant lastSuccessfulBackup;
+
+    private Instant lastBackupAttempt;
+
+    private String lastBackupAttemptError;
 
     public FileBackupStatusInfo() {
     }
 
-    public FileBackupStatusInfo(String path) {
+    public FileBackupStatusInfo(Path path) {
         this.path = path;
     }
 
-    public FileBackupStatusInfo(String path, Map<String, String> hashes) {
+    public FileBackupStatusInfo(Path path, Map<String, String> lastSuccessfulBackupHashes) {
         this.path = path;
-        this.hashes = hashes;
+        this.lastSuccessfulBackupHashes = lastSuccessfulBackupHashes;
     }
 
     @Deprecated
-    public FileBackupStatusInfo(String path, String md5hash, boolean deleted) {
+    public FileBackupStatusInfo(Path path, String md5hash, boolean deleted) {
         this.path = path;
         this.md5hash = md5hash;
         this.deleted = deleted;
-        this.hashes.put("MD5", md5hash);
+        this.lastSuccessfulBackupHashes.put("MD5", md5hash);
     }
 
     public FileBackupStatusInfo setHash(String hashName, String hashValue) {
-        hashes.put(hashName, hashValue);
+        lastSuccessfulBackupHashes.put(hashName, hashValue);
         return this;
     }
-
 }

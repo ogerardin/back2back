@@ -1,15 +1,16 @@
 package org.ogerardin.b2b.domain;
 
 import org.ogerardin.b2b.domain.entity.FileBackupStatusInfo;
+import org.springframework.batch.item.ItemReader;
 
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.Optional;
 
 /**
  * Interface of a service that provides meta-information about backed up files and some interaction with it.
  */
 public interface FileBackupStatusInfoProvider {
-    //TODO the mechanism for marking deleted files (#untouchAll/#touch) is not very efficient
 
     /**
      * @return the {@link FileBackupStatusInfo} for the latest stored revision of the file corresponding to the
@@ -26,21 +27,25 @@ public interface FileBackupStatusInfoProvider {
     }
 
     /**
-     * Marks all known files as "deleted"
+     * Marks all known files as "potentially deleted"
      */
     void untouchAll();
 
     /**
-     * If the specified file is known, mark it as "not deleted"; otherwise do nothing.
-     * @return true if the file was known, false otherwise
+     * If the specified file is known, mark it as "not deleted", otherwise create an entry.
+     * In both cases set {@link FileBackupStatusInfo#currentHashes} to the specified hashes.
      */
-    boolean touch(Path path);
+    void touch(Path path, Map<String, String> newHashes);
 
     /**
      * save a provided {@link FileBackupStatusInfo}
      */
     void saveRevisionInfo(FileBackupStatusInfo revision);
 
-//    long deletedCount();
+    ItemReader<FileBackupStatusInfo> reader();
 
+    /**
+     * Remove the entries for deleted files
+     */
+    void deletedDeleted();
 }

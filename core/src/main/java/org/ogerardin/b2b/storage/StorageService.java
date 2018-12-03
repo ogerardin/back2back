@@ -115,11 +115,12 @@ public interface StorageService {
         return new InputStreamResource(getRevisionAsInputStream(revisionId));
     }
 
-    /** Mark all files as "untouched" (= potentially deleted) */
-    void untouchAll();
+    /** Mark the specified file as deleted */
+    void delete(String filename);
 
-    /** Mark the specified file as "touched" (= not deleted) */
-    boolean touch(String filename);
+    default void delete(Path path) {
+        String normalizedPath = normalizedPath(path);
+        delete(normalizedPath);
+    }
 
-    long countDeleted();
 }

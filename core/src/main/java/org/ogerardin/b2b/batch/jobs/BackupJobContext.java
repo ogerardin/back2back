@@ -17,7 +17,10 @@ public class BackupJobContext {
 
     private FileSetStats totalFileStats = new FileSetStats();
 
-    /** The set of files that need to be backep up */
+    /**
+     * The set of files that need to be backep up
+     * @deprecated don't use in-memory file sez, can get too big
+     */
     private final FileSet backupBatch = new FileSet();
 
 }

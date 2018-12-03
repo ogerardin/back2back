@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Abstract superclass for jobs that accept a source of type {@link FilesystemSource}
@@ -108,7 +109,7 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
         val mappingContext = mongoOperations.getConverter().getMappingContext();
         //noinspection unchecked
         val entity = (MongoPersistentEntity<FileBackupStatusInfo>) mappingContext.getPersistentEntity(FileBackupStatusInfo.class);
-        val entityInformation = new MappingMongoEntityInformation<FileBackupStatusInfo, String>(entity, collectionName);
+        val entityInformation = new MappingMongoEntityInformation<FileBackupStatusInfo, String>(Objects.requireNonNull(entity), collectionName);
 
         return new FileBackupStatusInfoRepository(entityInformation, mongoOperations);
     }
@@ -121,15 +122,14 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
      */
     @Bean
     @JobScope
-    protected ItemProcessor<LocalFileInfo, LocalFileInfo> countingAndFilteringItemProcessor(
+    protected ItemProcessor<LocalFileInfo, LocalFileInfo> countingAndHashingItemProcessor(
             ItemProcessor<LocalFileInfo, LocalFileInfo> countingProcessor,
-            HashingItemProcessor hashingProcessor, FilteringItemProcessor filteringItemProcessor) {
+            HashingItemProcessor hashingProcessor) {
         return new CompositeItemProcessor<LocalFileInfo, LocalFileInfo>() {
             {
                 setDelegates(Arrays.asList(
                         countingProcessor,
-                        hashingProcessor,
-                        filteringItemProcessor
+                        hashingProcessor
                 ));
             }
         };
@@ -147,6 +147,18 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
                 .build();
     }
 
+    @Bean
+    @JobScope
+    protected Step finalizeBackupStep(
+            BackupJobContext jobContext,
+            FileBackupStatusInfoProvider fileBackupStatusInfoProvider
+    ) {
+        return stepBuilderFactory
+                .get("finalizeBackupStep" + this.getClass().getSimpleName())
+                .tasklet(new FinalizeBackupTasklet(fileBackupStatusInfoProvider, jobContext))
+                .build();
+    }
+
     /**
      * A {@link Step} that computes the backup batch using local information
      * and stores it into the context
@@ -154,21 +166,39 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
     @Bean
     @JobScope
     protected Step computeBatchStep(
-            BackupJobContext jobContext,
             FilesystemItemReader filesystemItemReader,
-            ItemProcessor<LocalFileInfo, LocalFileInfo> countingAndFilteringItemProcessor,
-            ComputeBatchStepExecutionListener computeBatchStepExecutionListener) {
+            ItemProcessor<LocalFileInfo, LocalFileInfo> countingAndHashingItemProcessor,
+            ComputeBatchStepExecutionListener computeBatchStepExecutionListener,
+            BackupStatusToucher backupStatusToucher
+    ) {
         return stepBuilderFactory
                 .get("computeBatchStep" + this.getClass().getSimpleName())
                 .<LocalFileInfo, LocalFileInfo> chunk(10)
                 // read files from local filesystem
                 .reader(filesystemItemReader)
                 // filter out files that don't need backup.
-                .processor(countingAndFilteringItemProcessor)
+                .processor(countingAndHashingItemProcessor)
                 // store them in the context
-                .writer(new FileSetItemWriter(jobContext.getBackupBatch()))
+                .writer(backupStatusToucher)
                 // update BackupSet with stats
                 .listener(computeBatchStepExecutionListener)
                 .build();
     }
+
+    @Bean
+    @JobScope
+    protected BackupStatusUpdater backupStatusUpdater(
+            FileBackupStatusInfoProvider fileBackupStatusInfoProvider
+    ) {
+        return new BackupStatusUpdater(fileBackupStatusInfoProvider);
+    }
+
+    @Bean
+    @JobScope
+    protected BackupStatusToucher backupStatusToucher(
+            FileBackupStatusInfoProvider fileBackupStatusInfoProvider
+    ) {
+        return new BackupStatusToucher(fileBackupStatusInfoProvider);
+    }
+
 }

@@ -44,7 +44,7 @@ public class HashFilteringStrategy implements Predicate<LocalFileInfo> {
 
 
         String hashName = hashCalculator.name();
-        String storedHash = info.get().getHashes().get(hashName);
+        String storedHash = info.get().getLastSuccessfulBackupHashes().get(hashName);
 
         if (storedHash == null) {
             // no stored hash for the current hashing algorithm (might happen if the hash provider has changed since last backup)
@@ -59,7 +59,7 @@ public class HashFilteringStrategy implements Predicate<LocalFileInfo> {
             // same hash, file can be skipped
             log.debug("Unchanged: {}", path);
             // mark the file as "not deleted"
-            fileBackupStatusInfoProvider.touch(path);
+            fileBackupStatusInfoProvider.touch(path, item.getHashes());
             // backup NOT requested
             return false;
         }

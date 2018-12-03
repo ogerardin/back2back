@@ -223,18 +223,14 @@ public class FilesystemStorageService implements StorageService {
     }
 
     @Override
-    public void untouchAll() {
-        throw new RuntimeException("not implemented");
-    }
-
-    @Override
-    public boolean touch(String filename) {
-        throw new RuntimeException("not implemented");
-    }
-
-    @Override
-    public long countDeleted() {
-        return 0;
+    public void delete(String filename) {
+        Path remotePath = Paths.get(filename);
+        Path localPath = remoteToLocal(remotePath);
+        try {
+            Files.delete(localPath);
+        } catch (IOException e) {
+            throw new StorageException("Failed to delete " + localPath, e);
+        }
     }
 
     @Override
