@@ -53,7 +53,7 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
                 .incrementer(new RunIdIncrementer())
                 .listener(jobListener)
                 .start(initBatchStep)       // step 0: init batch
-                .next(computeBatchStep)     // step 1: compute files that need to be backed up
+                .next(computeBatchStep)     // step 1: compute hashes
                 .next(internalBackupStep)   // step 2: perform backup
                 .next(finalizeBackupStep)   // step 3: cleanup
                 .build();
@@ -94,6 +94,7 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
             @Value("#{jobParameters['backupset.id']}") String backupSetId
     )  {
         val storageService = storageServiceFactory.getStorageService(backupSetId);
+
         return new InternalBackupItemProcessor(
                 storageService,
                 properties.getFileThrottleDelay());

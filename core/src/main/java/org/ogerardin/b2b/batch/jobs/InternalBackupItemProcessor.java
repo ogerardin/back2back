@@ -8,7 +8,6 @@ import org.springframework.lang.NonNull;
 
 import java.nio.file.Path;
 import java.time.Instant;
-import java.util.Collections;
 
 /**
  * ItemProcessor implementation that stores the file corresponding to the input {@link Path} into the
@@ -42,13 +41,17 @@ class InternalBackupItemProcessor implements ItemProcessor<FileBackupStatusInfo,
                 log.debug("MARKING AS DELETED: " + path);
                 storageService.delete(path);
             }
-            else {
+            else if (item.fileChanged()){
                 log.debug("STORING: " + path);
                 storageService.store(path);
                 item.setLastSuccessfulBackup(now);
                 item.setLastBackupAttemptError(null);
                 item.setLastSuccessfulBackupHashes(item.getCurrentHashes());
-                item.setCurrentHashes(Collections.emptyMap());
+//                item.setCurrentHashes(Collections.emptyMap());
+            }
+            else {
+                log.debug("UNCHANGED: " + path);
+                item.setLastSuccessfulBackupHashes(item.getCurrentHashes());
             }
         } catch (Exception e) {
             log.error("Failed to store file: " + path, e);

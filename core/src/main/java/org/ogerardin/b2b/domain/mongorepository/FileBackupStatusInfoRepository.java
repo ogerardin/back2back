@@ -13,6 +13,7 @@ import org.springframework.data.mongodb.repository.query.MongoEntityInformation;
 import org.springframework.data.mongodb.repository.support.SimpleMongoRepository;
 
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -63,9 +64,11 @@ public class FileBackupStatusInfoRepository
     public ItemReader<FileBackupStatusInfo> reader() {
         return new MongoItemReaderBuilder<FileBackupStatusInfo>()
                 .template(mongoOperations)
+                .saveState(false)
                 .collection(entityInformation.getCollectionName())
                 .targetType(FileBackupStatusInfo.class)
-                .query(new Query()) // return all items
+                .query(new Query().limit(Integer.MAX_VALUE)) // return all items
+                .sorts(new HashMap<>())
                 .pageSize(10)  // fetch N at a time
                 .build();
     }
@@ -74,7 +77,7 @@ public class FileBackupStatusInfoRepository
     public void deletedDeleted() {
         MongoCollection<Document> collection = mongoOperations.getCollection(entityInformation.getCollectionName());
         collection.deleteMany(BasicDBObject.parse("{ \"$eq\": {\"deleted\": \"true\"}}"));
-        
+
     }
 
 }

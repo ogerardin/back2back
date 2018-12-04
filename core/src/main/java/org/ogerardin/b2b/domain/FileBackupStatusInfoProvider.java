@@ -42,6 +42,9 @@ public interface FileBackupStatusInfoProvider {
      */
     void saveRevisionInfo(FileBackupStatusInfo revision);
 
+    /**
+     * @return an {@link ItemReader} that provides all items in no specific order
+     */
     ItemReader<FileBackupStatusInfo> reader();
 
     /**

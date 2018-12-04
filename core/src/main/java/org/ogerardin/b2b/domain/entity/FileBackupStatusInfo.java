@@ -1,13 +1,14 @@
 package org.ogerardin.b2b.domain.entity;
 
+import com.google.common.collect.Sets;
 import lombok.Data;
+import lombok.NonNull;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.nio.file.Path;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Meta-data about a backed up file.
@@ -50,6 +51,7 @@ public class FileBackupStatusInfo {
         this.path = path;
     }
 
+    @Deprecated
     public FileBackupStatusInfo(Path path, Map<String, String> lastSuccessfulBackupHashes) {
         this.path = path;
         this.lastSuccessfulBackupHashes = lastSuccessfulBackupHashes;
@@ -63,8 +65,32 @@ public class FileBackupStatusInfo {
         this.lastSuccessfulBackupHashes.put("MD5", md5hash);
     }
 
-    public FileBackupStatusInfo setHash(String hashName, String hashValue) {
-        lastSuccessfulBackupHashes.put(hashName, hashValue);
-        return this;
+    /**
+     * @return true if the file has changed since last backup, i.e. at least one of the common hash types between
+     *  {@link #lastSuccessfulBackupHashes} and {@link #currentHashes} has different values, or there are no
+     *  common hash types.
+     */
+    public boolean fileChanged() {
+        Set<String> commonHashNames = Sets.intersection(
+                lastSuccessfulBackupHashes.keySet(),
+                currentHashes.keySet()
+        );
+
+        if (commonHashNames.isEmpty()) {
+            // no common hash type -> must assume possibly changed
+            return true;
+        }
+
+        for (String hashName : commonHashNames) {
+            @NonNull String lastBackupHash = lastSuccessfulBackupHashes.get(hashName);
+            @NonNull String currentHash = currentHashes.get(hashName);
+            if (!Objects.equals(lastBackupHash, currentHash)) {
+                // found a hash type with different values -> file changed
+                return true;
+            }
+        }
+
+        // else file considered unchanged
+        return false;
     }
 }
