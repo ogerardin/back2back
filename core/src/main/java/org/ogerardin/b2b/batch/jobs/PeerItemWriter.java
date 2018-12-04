@@ -94,7 +94,7 @@ class PeerItemWriter implements ItemWriter<LocalFileInfo> {
 
             // update stored hash
             log.debug("Updating local hash for {} -> {}", path, item.getHashes());
-            val peerRevision = new FileBackupStatusInfo(path, item.getHashes());
+            val peerRevision = new FileBackupStatusInfo(path.toString(), item.getHashes());
             fileBackupStatusInfoProvider.saveRevisionInfo(peerRevision);
         }
     }

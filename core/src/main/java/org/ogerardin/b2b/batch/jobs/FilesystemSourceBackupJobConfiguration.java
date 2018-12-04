@@ -118,7 +118,6 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
      * A job-scoped composite {@link ItemProcessor} that does the following:
      * - increment this job's total file and byte count using {@link #countingProcessor}
      * - compute the file's hash using {@link HashingItemProcessor}
-     * - filter out unchanged files using {@link FilteringItemProcessor}
      */
     @Bean
     @JobScope

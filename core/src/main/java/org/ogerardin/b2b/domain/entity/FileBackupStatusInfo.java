@@ -8,7 +8,10 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.nio.file.Path;
 import java.time.Instant;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * Meta-data about a backed up file.
@@ -18,7 +21,7 @@ import java.util.*;
 public class FileBackupStatusInfo {
 
     @Id
-    private Path path;
+    private String path;
 
     @Deprecated
     private String md5hash;
@@ -47,18 +50,22 @@ public class FileBackupStatusInfo {
     public FileBackupStatusInfo() {
     }
 
-    public FileBackupStatusInfo(Path path) {
+    public FileBackupStatusInfo(String path) {
         this.path = path;
     }
 
+    public FileBackupStatusInfo(Path path) {
+        this(path.toString());
+    }
+
     @Deprecated
-    public FileBackupStatusInfo(Path path, Map<String, String> lastSuccessfulBackupHashes) {
+    public FileBackupStatusInfo(String path, Map<String, String> lastSuccessfulBackupHashes) {
         this.path = path;
         this.lastSuccessfulBackupHashes = lastSuccessfulBackupHashes;
     }
 
     @Deprecated
-    public FileBackupStatusInfo(Path path, String md5hash, boolean deleted) {
+    public FileBackupStatusInfo(String path, String md5hash, boolean deleted) {
         this.path = path;
         this.md5hash = md5hash;
         this.deleted = deleted;

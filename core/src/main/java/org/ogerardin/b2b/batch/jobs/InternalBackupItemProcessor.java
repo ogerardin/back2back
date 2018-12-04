@@ -7,6 +7,7 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.lang.NonNull;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Instant;
 
 /**
@@ -35,7 +36,7 @@ class InternalBackupItemProcessor implements ItemProcessor<FileBackupStatusInfo,
         Instant now = Instant.now();
         item.setLastBackupAttempt(now);
 
-        Path path = item.getPath();
+        Path path = Paths.get(item.getPath());
         try {
             if (item.isDeleted()) {
                 log.debug("MARKING AS DELETED: " + path);

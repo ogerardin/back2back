@@ -49,7 +49,7 @@ public class FileBackupStatusInfoRepository
     @Override
     public void touch(Path path, Map<String, String> newHashes) {
         Optional<FileBackupStatusInfo> maybeStatusInfo = getLatestStoredRevision(path);
-        FileBackupStatusInfo statusInfo = maybeStatusInfo.orElseGet(FileBackupStatusInfo::new);
+        FileBackupStatusInfo statusInfo = maybeStatusInfo.orElseGet(() -> new FileBackupStatusInfo(path));
         statusInfo.setDeleted(false);
         statusInfo.setCurrentHashes(newHashes);
         saveRevisionInfo(statusInfo);
@@ -76,7 +76,7 @@ public class FileBackupStatusInfoRepository
     @Override
     public void deletedDeleted() {
         MongoCollection<Document> collection = mongoOperations.getCollection(entityInformation.getCollectionName());
-        collection.deleteMany(BasicDBObject.parse("{ \"$eq\": {\"deleted\": \"true\"}}"));
+        collection.deleteMany(BasicDBObject.parse("{ \"deleted\": {\"$eq\": true}}"));
 
     }
 
