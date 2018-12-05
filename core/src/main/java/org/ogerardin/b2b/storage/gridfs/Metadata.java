@@ -17,5 +17,6 @@ public class Metadata {
     private boolean encrypted = false;
 
     /** MD5 hash of the original (unencrypted) file */
+    @Deprecated
     private String md5hash;
 }

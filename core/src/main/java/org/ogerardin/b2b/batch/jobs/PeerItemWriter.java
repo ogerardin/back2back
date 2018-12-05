@@ -33,7 +33,6 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.Key;
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -77,7 +76,7 @@ class PeerItemWriter implements ItemWriter<LocalFileInfo> {
 
 
     @Override
-    public void write(@NonNull List<? extends LocalFileInfo> items) throws IOException, NoSuchAlgorithmException, EncryptionException {
+    public void write(@NonNull List<? extends LocalFileInfo> items) throws IOException, EncryptionException {
         log.debug("Writing " + Arrays.toString(items.toArray()));
 
         for (LocalFileInfo item : items) {

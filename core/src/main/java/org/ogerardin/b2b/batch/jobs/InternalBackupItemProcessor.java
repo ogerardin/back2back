@@ -9,6 +9,7 @@ import org.springframework.lang.NonNull;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
+import java.util.Collections;
 
 /**
  * ItemProcessor implementation that stores the file corresponding to the input {@link Path} into the
@@ -48,11 +49,12 @@ class InternalBackupItemProcessor implements ItemProcessor<FileBackupStatusInfo,
                 item.setLastSuccessfulBackup(now);
                 item.setLastBackupAttemptError(null);
                 item.setLastSuccessfulBackupHashes(item.getCurrentHashes());
-//                item.setCurrentHashes(Collections.emptyMap());
+                item.setCurrentHashes(Collections.emptyMap());
             }
             else {
                 log.debug("UNCHANGED: " + path);
                 item.setLastSuccessfulBackupHashes(item.getCurrentHashes());
+                item.setCurrentHashes(Collections.emptyMap());
             }
         } catch (Exception e) {
             log.error("Failed to store file: " + path, e);

@@ -49,6 +49,7 @@ public interface FileBackupStatusInfoProvider {
 
     /**
      * Remove the entries for deleted files
+     * @return the number of deleted entries
      */
-    void deletedDeleted();
+    long deletedDeleted();
 }

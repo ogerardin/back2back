@@ -149,12 +149,11 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
     @Bean
     @JobScope
     protected Step finalizeBackupStep(
-            BackupJobContext jobContext,
             FileBackupStatusInfoProvider fileBackupStatusInfoProvider
     ) {
         return stepBuilderFactory
                 .get("finalizeBackupStep" + this.getClass().getSimpleName())
-                .tasklet(new FinalizeBackupTasklet(fileBackupStatusInfoProvider, jobContext))
+                .tasklet(new FinalizeBackupTasklet(fileBackupStatusInfoProvider))
                 .build();
     }
 

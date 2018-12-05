@@ -6,24 +6,24 @@ import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
+import org.springframework.lang.NonNull;
 
 @Slf4j
 public class FinalizeBackupTasklet implements Tasklet {
 
     private final FileBackupStatusInfoProvider fileBackupStatusInfoProvider;
-    private final BackupJobContext jobContext;
 
-    public FinalizeBackupTasklet(FileBackupStatusInfoProvider fileBackupStatusInfoProvider, BackupJobContext jobContext) {
+    public FinalizeBackupTasklet(FileBackupStatusInfoProvider fileBackupStatusInfoProvider) {
         this.fileBackupStatusInfoProvider = fileBackupStatusInfoProvider;
-        this.jobContext = jobContext;
     }
 
     @Override
-    public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-        log.debug("Cleaning up...");
+    public RepeatStatus execute(@NonNull StepContribution contribution, @NonNull ChunkContext chunkContext) {
+        log.info("Cleaning up...");
 
         // remove info about deleted files
-        fileBackupStatusInfoProvider.deletedDeleted();
+        long deletedCount = fileBackupStatusInfoProvider.deletedDeleted();
+        log.debug("Removed {} entries for deleted files", deletedCount);
 
         return RepeatStatus.FINISHED;
     }

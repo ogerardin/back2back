@@ -102,16 +102,16 @@ public interface StorageService {
     }
 
     /** Returns information about a file version, designated by its ID */
-    RevisionInfo getRevisionInfo(String revisionId) throws StorageFileVersionNotFoundException;
+    RevisionInfo getRevisionInfo(String revisionId) throws StorageFileRevisionNotFoundException;
 
     /** Returns an {@link java.io.InputStream} to read the contents of a file version, designated by its ID */
-    InputStream getRevisionAsInputStream(String revisionId) throws StorageFileVersionNotFoundException, IOException;
+    InputStream getRevisionAsInputStream(String revisionId) throws StorageFileRevisionNotFoundException, IOException;
 
     /** Returns an {@link java.io.InputStream} to read the contents of a file version, designated by its ID,
      * in its unencrypted form using the specified key */
-    InputStream getRevisionAsInputStream(String revisionId, Key key) throws StorageFileVersionNotFoundException, EncryptionException;
+    InputStream getRevisionAsInputStream(String revisionId, Key key) throws StorageFileRevisionNotFoundException, EncryptionException;
 
-    default Resource getRevisionAsResource(String revisionId) throws StorageFileVersionNotFoundException, IOException {
+    default Resource getRevisionAsResource(String revisionId) throws StorageFileRevisionNotFoundException, IOException {
         return new InputStreamResource(getRevisionAsInputStream(revisionId));
     }
 

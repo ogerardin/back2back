@@ -51,6 +51,12 @@ public abstract class StorageProviderTest<S extends StorageService> {
         );
     }
 
+    protected void testStoreAndRetrieveById() throws Exception {
+        storeRetrieveByRevisionId(
+                this::storeUnencrypted,
+                this::retrieveRevisionUnencrypted);
+    }
+
     protected void testStoreAndRetrieveEncrypted() throws Exception {
         KeyGenerator keygen = KeyGenerator.getInstance("AES");
         key = keygen.generateKey();
@@ -70,7 +76,21 @@ public abstract class StorageProviderTest<S extends StorageService> {
         );
     }
 
-    private void storeRetrieveCompare(Storer storer, FileLister lister, Retriever retriever) throws URISyntaxException, IOException {
+    private void storeRetrieveByRevisionId(Storer storer, RevisionRetriever retriever) throws Exception {
+        // list all files in resource directory
+        List<Path> paths0 = getSampleFilesPaths();
+
+        // store each file in storage service
+        for (Path path : paths0) {
+            log.info("Storing {}", path);
+            String revId = storer.store(path);
+            log.info("stored as revision {}", revId);
+
+            assertStoredRevisionMatchesFile(retriever, path, revId);
+        }
+
+    }
+    private void storeRetrieveCompare(Storer storer, FileLister lister, PathRetriever retriever) throws URISyntaxException, IOException {
         // list all files in resource directory
         List<Path> paths0 = getSampleFilesPaths();
 
@@ -90,13 +110,12 @@ public abstract class StorageProviderTest<S extends StorageService> {
         for (int i = 0; i < paths0.size(); i++) {
             Path p0 = paths0.get(i);
             Path p1 = paths1.get(i);
-            log.debug("Verifying {}", p0);
             assertStoredVersionMatchesFile(retriever, p0, p1);
         }
 
     }
 
-    private void storeMultipleRevisions(Storer storer, RevisionLister lister, RevisionRetriever retriever) throws Exception {
+    private void storeMultipleRevisions(Storer storer, RevisionLister lister, RevisionRetriever retriever) throws IOException, URISyntaxException, StorageFileRevisionNotFoundException, StorageFileNotFoundException {
         // list all files in resource directory
         List<Path> paths0 = getSampleFilesPaths();
 
@@ -120,14 +139,14 @@ public abstract class StorageProviderTest<S extends StorageService> {
         for (int i = 0; i < paths0.size(); i++) {
             Path path = paths0.get(i);
             RevisionInfo revision = allRevisions.get(i);
-            log.info("Verifying {}", revision);
             String revisionId = revision.getId();
             assertStoredRevisionMatchesFile(retriever, path, revisionId);
         }
 
     }
 
-    private void assertStoredRevisionMatchesFile(RevisionRetriever retriever, Path path, String revisionId) throws Exception {
+    private void assertStoredRevisionMatchesFile(RevisionRetriever retriever, Path path, String revisionId) throws IOException, StorageFileRevisionNotFoundException, StorageFileNotFoundException {
+        log.info("Veryfing stored revision {} against local file {}", revisionId, path);
         try (
                 InputStream inputStream0 = Files.newInputStream(path, StandardOpenOption.READ);
                 InputStream inputStream1 = retriever.getAsInputStream(revisionId);
@@ -136,7 +155,10 @@ public abstract class StorageProviderTest<S extends StorageService> {
         }
     }
 
-    private void assertStoredVersionMatchesFile(Retriever retriever, Path p0, Path p1) throws IOException {
+    private void assertStoredVersionMatchesFile(PathRetriever retriever, Path p0, Path p1) throws IOException {
+
+        log.info("Veryfing stored file {} against local file {}", p1, p0);
+
         Assert.assertTrue(p0.endsWith(p1));
 
         try (
@@ -154,9 +176,9 @@ public abstract class StorageProviderTest<S extends StorageService> {
                 .collect(Collectors.toList());
     }
 
-    private void storeEncrypted(Path p) {
+    private String storeEncrypted(Path p) {
         try {
-            storageService.store(p, key);
+            return storageService.store(p, key);
         } catch (EncryptionException e) {
             throw new RuntimeException(e);
         }
@@ -170,8 +192,8 @@ public abstract class StorageProviderTest<S extends StorageService> {
         }
     }
 
-    private void storeUnencrypted(Path path) {
-        storageService.store(path);
+    private String storeUnencrypted(Path path) {
+        return storageService.store(path);
     }
 
     private InputStream retrieveUnencrypted(Path path) {
@@ -182,7 +204,7 @@ public abstract class StorageProviderTest<S extends StorageService> {
         }
     }
 
-    private InputStream retrieveRevisionUnencrypted(String revisionId) throws StorageFileVersionNotFoundException, IOException, StorageFileNotFoundException {
+    private InputStream retrieveRevisionUnencrypted(String revisionId) throws StorageFileRevisionNotFoundException, IOException, StorageFileNotFoundException {
         return storageService.getRevisionAsInputStream(revisionId);
     }
 

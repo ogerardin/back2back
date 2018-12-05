@@ -2,6 +2,7 @@ package org.ogerardin.b2b.domain.mongorepository;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.result.DeleteResult;
 import org.bson.Document;
 import org.ogerardin.b2b.domain.FileBackupStatusInfoProvider;
 import org.ogerardin.b2b.domain.entity.FileBackupStatusInfo;
@@ -74,10 +75,10 @@ public class FileBackupStatusInfoRepository
     }
 
     @Override
-    public void deletedDeleted() {
+    public long deletedDeleted() {
         MongoCollection<Document> collection = mongoOperations.getCollection(entityInformation.getCollectionName());
-        collection.deleteMany(BasicDBObject.parse("{ \"deleted\": {\"$eq\": true}}"));
-
+        DeleteResult deleteResult = collection.deleteMany(BasicDBObject.parse("{ \"deleted\": {\"$eq\": true}}"));
+        return deleteResult.getDeletedCount();
     }
 
 }

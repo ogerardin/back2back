@@ -224,19 +224,19 @@ public class GridFsStorageService implements StorageService {
     }
 
     @Override
-    public RevisionInfo getRevisionInfo(String revisionId) throws StorageFileVersionNotFoundException {
+    public RevisionInfo getRevisionInfo(String revisionId) throws StorageFileRevisionNotFoundException {
         GridFSFile fsFile = getGridFSFileById(revisionId);
         return buildRevisionInfo(fsFile);
     }
 
     @Override
-    public InputStream getRevisionAsInputStream(String revisionId) throws StorageFileVersionNotFoundException {
+    public InputStream getRevisionAsInputStream(String revisionId) throws StorageFileRevisionNotFoundException {
         GridFSFile fsFile = getGridFSFileById(revisionId);
         return getInputStream(fsFile);
     }
 
     @Override
-    public InputStream getRevisionAsInputStream(String revisionId, Key key) throws StorageFileVersionNotFoundException, EncryptionException {
+    public InputStream getRevisionAsInputStream(String revisionId, Key key) throws StorageFileRevisionNotFoundException, EncryptionException {
         GridFSFile fsFile = getGridFSFileById(revisionId);
         return getDecryptedInputStream(fsFile, key);
     }
@@ -263,10 +263,10 @@ public class GridFsStorageService implements StorageService {
         return cipherInputStream;
     }
 
-    private GridFSFile getGridFSFileById(String revisionId) throws StorageFileVersionNotFoundException {
+    private GridFSFile getGridFSFileById(String revisionId) throws StorageFileRevisionNotFoundException {
         GridFSFile fsFile = gridFsTemplate.findOne(new Query(Criteria.where("_id").is(revisionId)));
         if (fsFile == null) {
-            throw new StorageFileVersionNotFoundException(revisionId);
+            throw new StorageFileRevisionNotFoundException(revisionId);
         }
         return fsFile;
     }
