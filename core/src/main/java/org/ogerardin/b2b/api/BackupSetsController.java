@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/backupsets")
@@ -47,9 +48,7 @@ public class BackupSetsController {
      */
     @GetMapping("/{id}/files")
     public FileInfo[] getFiles(@PathVariable String id, @RequestParam(required = false) Boolean includeDeleted) {
-        if (includeDeleted == null) {
-            includeDeleted = false;
-        }
+        includeDeleted = Optional.ofNullable(includeDeleted).orElse(Boolean.FALSE);
         BackupSet backupSet = backupSetRepository.findById(id).get();
         StorageService storageService = getStorageService(backupSet);
         return storageService.getAllFiles(includeDeleted).toArray(FileInfo[]::new);

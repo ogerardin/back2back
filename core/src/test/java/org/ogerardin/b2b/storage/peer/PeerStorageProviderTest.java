@@ -43,6 +43,10 @@ public class PeerStorageProviderTest extends StorageProviderTest<PeerStorageServ
         super.testStoreAndRetrieveById();
     }
 
+    @Test
+    public void testStoreAndRetrieve() throws Exception {
+        super.testStoreAndRetrieve();
+    }
 
     @Override
     public void afterPropertiesSet() throws Exception {

@@ -8,34 +8,33 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
+@SpringBootApplication(exclude = {DataSourceAutoConfiguration.class})
 @Slf4j
-@SpringBootApplication(exclude={DataSourceAutoConfiguration.class})
 @EnableScheduling
 public class Main {
 
     private static String[] args;
     private static ConfigurableApplicationContext context;
 
-    @Autowired
-    B2BProperties properties;
+//    @Autowired
+//    B2BProperties properties;
 
-    @Autowired
+    @Autowired(required = false)
     private JobStarter jobStarter;
 
-    @Autowired
+    @Autowired(required = false)
     private ConfigManager configManager;
 
-    @Autowired
+    @Autowired(required = false)
     private BackupSetManager backupSetManager;
 
-    public Main() {
-    }
 
     public static void main(String[] args) {
         Main.args = args;
@@ -50,6 +49,7 @@ public class Main {
     }
 
     @Bean
+    @ConditionalOnBean({ConfigManager.class, BackupSetManager.class})
     CommandLineRunner init() {
         return args -> {
             // load initial config
@@ -57,18 +57,18 @@ public class Main {
 
             // reset the state of all backupsets
             backupSetManager.init();
-
-            // start backup jobs
-//            jobStarter.syncJobs();
         };
     }
 
+    /**
+     * schedule job syncing at regular intervals
+     */
     @Scheduled(fixedRateString = "${org.ogerardin.b2b.job-sync-rate}")
+    @ConditionalOnBean(JobStarter.class)
     public void scheduledSync() {
         jobStarter.syncJobs();
     }
 
 
-
-
 }
+

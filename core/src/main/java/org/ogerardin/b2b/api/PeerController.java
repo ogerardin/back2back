@@ -9,10 +9,7 @@ import org.ogerardin.b2b.domain.entity.PeerSource;
 import org.ogerardin.b2b.domain.mongorepository.BackupSetRepository;
 import org.ogerardin.b2b.domain.mongorepository.BackupSourceRepository;
 import org.ogerardin.b2b.domain.mongorepository.BackupTargetRepository;
-import org.ogerardin.b2b.storage.RevisionInfo;
-import org.ogerardin.b2b.storage.StorageFileRevisionNotFoundException;
-import org.ogerardin.b2b.storage.StorageService;
-import org.ogerardin.b2b.storage.StorageServiceFactory;
+import org.ogerardin.b2b.storage.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.Resource;
@@ -24,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -69,11 +67,8 @@ public class PeerController {
         //TODO check credentials for the remote computer
 
         // find or create the local BackupSet for the remote computer
-        UUID remoteComputerUuid = UUID.fromString(computerId);
-        BackupSet backupSet = getBackupSet(remoteComputerUuid);
+        StorageService storageService = getStorageService(computerId);
 
-        // store the file in the local storage
-        StorageService storageService = storageServiceFactory.getStorageService(backupSet.getId());
         String revisionId = storageService.store(file.getInputStream(), originalFilename);
         log.debug("Successfully stored {} as {}", originalFilename, revisionId);
 
@@ -87,15 +82,32 @@ public class PeerController {
             @RequestParam("computer-id") String computerId
     ) throws StorageFileRevisionNotFoundException, IOException, B2BException {
 
-        UUID remoteComputerUuid = UUID.fromString(computerId);
-        BackupSet backupSet = getBackupSet(remoteComputerUuid);
-        StorageService storageService = storageServiceFactory.getStorageService(backupSet.getId());
+        StorageService storageService = getStorageService(computerId);
+
         RevisionInfo revisionInfo = storageService.getRevisionInfo(revisionId);
         String filename = Paths.get(revisionInfo.getFilename()).getFileName().toString();
         Resource resource = storageService.getRevisionAsResource(revisionId);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename=\"" + filename + "\"")
                 .body(resource);
+    }
+
+    private StorageService getStorageService(String computerId) throws B2BException {
+        UUID remoteComputerUuid = UUID.fromString(computerId);
+        BackupSet backupSet = getBackupSet(remoteComputerUuid);
+        return storageServiceFactory.getStorageService(backupSet.getId());
+    }
+
+    @GetMapping("list")
+    public FileInfo[] listFiles(
+            @RequestParam("computer-id") String computerId,
+            @RequestParam(value = "include-deleted", required = false) Boolean includeDeleted
+    ) throws B2BException {
+        StorageService storageService = getStorageService(computerId);
+        includeDeleted = Optional.ofNullable(includeDeleted).orElse(Boolean.FALSE);
+
+        return storageService.getAllFiles(includeDeleted)
+                .toArray(FileInfo[]::new);
     }
 
 

@@ -5,6 +5,7 @@ import com.google.common.net.PercentEscaper;
 import org.ogerardin.b2b.hash.ByteArrayHashCalculator;
 import org.ogerardin.b2b.storage.*;
 import org.ogerardin.b2b.util.CipherHelper;
+import org.ogerardin.b2b.util.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.FileSystemUtils;
 
@@ -58,7 +59,9 @@ public class FilesystemStorageService implements StorageService {
 
     @Override
     public Stream<FileInfo> getAllFiles(boolean includeDeleted) {
-        //FIXME includeDeleted is ignored
+        if (includeDeleted) {
+            throw new NotImplementedException("includeDeleted not supported");
+        }
         try {
             return Files.walk(baseDirectory)
                     .filter(p -> !Files.isDirectory(p))

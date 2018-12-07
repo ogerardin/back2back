@@ -22,6 +22,7 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.security.Key;
+import java.util.Arrays;
 import java.util.stream.Stream;
 
 /**
@@ -55,7 +56,15 @@ public class PeerStorageService implements StorageService {
 
     @Override
     public Stream<FileInfo> getAllFiles(boolean includeDeleted) {
-        throw new NotImplementedException();
+        try {
+            URL url = new URL(baseUrl, String.format("list?computer-id=%s", computerId));
+            log.info("Listing from URL {}", url);
+            ResponseEntity<FileInfo[]> responseEntity = restTemplate.getForEntity(url.toURI(), FileInfo[].class);
+            assertResponseSuccessful(responseEntity);
+            return Arrays.stream(responseEntity.getBody());
+        } catch (URISyntaxException | IOException e) {
+            throw new StorageException("Failed to list files", e);
+        }
     }
 
     @Override
@@ -180,7 +189,7 @@ public class PeerStorageService implements StorageService {
         return responseEntity.getBody().getInputStream();
     }
 
-    private void assertResponseSuccessful(ResponseEntity<Resource> responseEntity) throws IOException {
+    private void assertResponseSuccessful(ResponseEntity<?> responseEntity) throws IOException {
         if (!responseEntity.getStatusCode().is2xxSuccessful()) {
             throw new IOException("Expected status code 2xx, got: " + responseEntity);
         }
