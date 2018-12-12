@@ -77,7 +77,7 @@ public class FilesystemStorageServiceV2 extends FilesystemStorageService impleme
     }
 
     @Override
-    public InputStream getAsInputStream(String filename) throws StorageFileNotFoundException {
+    public InputStream getAsInputStream(String filename) throws FileNotFoundException {
         RevisionInfo latestRevision = getLatestRevision(filename);
         Path localPath = getLocalPath(latestRevision);
 
@@ -127,11 +127,11 @@ public class FilesystemStorageServiceV2 extends FilesystemStorageService impleme
     }
 
     @Override
-    public RevisionInfo getLatestRevision(String filename) throws StorageFileNotFoundException {
+    public RevisionInfo getLatestRevision(String filename) throws FileNotFoundException {
         Path remotePath = Paths.get(filename);
         RevisionInfo revisionInfo = Arrays.stream(getRevisions(remotePath))
                 .max(Comparator.comparing(RevisionInfo::getStoredDate))
-                .orElseThrow(() -> new StorageFileNotFoundException(filename));
+                .orElseThrow(() -> new FileNotFoundException(filename));
         return revisionInfo;
     }
 

@@ -115,7 +115,7 @@ public abstract class StorageProviderTest<S extends StorageService> {
 
     }
 
-    private void storeMultipleRevisions(Storer storer, RevisionLister lister, RevisionRetriever retriever) throws IOException, URISyntaxException, StorageFileRevisionNotFoundException, StorageFileNotFoundException {
+    private void storeMultipleRevisions(Storer storer, RevisionLister lister, RevisionRetriever retriever) throws IOException, URISyntaxException, RevisionNotFoundException, FileNotFoundException {
         // list all files in resource directory
         List<Path> paths0 = getSampleFilesPaths();
 
@@ -145,7 +145,7 @@ public abstract class StorageProviderTest<S extends StorageService> {
 
     }
 
-    private void assertStoredRevisionMatchesFile(RevisionRetriever retriever, Path path, String revisionId) throws IOException, StorageFileRevisionNotFoundException, StorageFileNotFoundException {
+    private void assertStoredRevisionMatchesFile(RevisionRetriever retriever, Path path, String revisionId) throws IOException, RevisionNotFoundException, FileNotFoundException {
         log.info("Veryfing stored revision {} against local file {}", revisionId, path);
         try (
                 InputStream inputStream0 = Files.newInputStream(path, StandardOpenOption.READ);
@@ -187,7 +187,7 @@ public abstract class StorageProviderTest<S extends StorageService> {
     private InputStream retrieveEncrypted(Path path) {
         try {
             return storageService.getAsInputStream(path.toString(), key);
-        } catch (StorageFileNotFoundException | EncryptionException e) {
+        } catch (FileNotFoundException | EncryptionException e) {
             throw new RuntimeException(e);
         }
     }
@@ -199,12 +199,12 @@ public abstract class StorageProviderTest<S extends StorageService> {
     private InputStream retrieveUnencrypted(Path path) {
         try {
             return storageService.getAsInputStream(path);
-        } catch (StorageFileNotFoundException e) {
+        } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private InputStream retrieveRevisionUnencrypted(String revisionId) throws StorageFileRevisionNotFoundException, IOException, StorageFileNotFoundException {
+    private InputStream retrieveRevisionUnencrypted(String revisionId) throws RevisionNotFoundException, IOException, FileNotFoundException {
         return storageService.getRevisionAsInputStream(revisionId);
     }
 

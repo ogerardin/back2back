@@ -20,7 +20,6 @@ import org.springframework.data.mongodb.core.convert.MongoConverter;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.gridfs.GridFsCriteria;
-import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.data.util.StreamUtils;
 
 import javax.crypto.Cipher;
@@ -49,7 +48,7 @@ public class GridFsStorageService implements StorageService {
 
     private static final String DEFAULT_BUCKET = "storage";
 
-    private final GridFsTemplate gridFsTemplate;
+    private final CustomGridFsTemplate gridFsTemplate;
     private final MongoTemplate mongoTemplate;
     private final MongoConverter mongoConverter;
     private final String bucketName;
@@ -59,7 +58,9 @@ public class GridFsStorageService implements StorageService {
     }
 
     public GridFsStorageService(MongoDbFactory mongoDbFactory, MongoConverter mongoConverter, MongoTemplate mongoTemplate, String bucketName) {
-        this.gridFsTemplate = new GridFsTemplate(mongoDbFactory, mongoConverter, bucketName);
+        this.gridFsTemplate = new CustomGridFsTemplate(mongoDbFactory, mongoConverter, bucketName,
+                gridFSBucket -> gridFSBucket.withDisableMD5(true)
+        );
         this.mongoTemplate = mongoTemplate;
         this.mongoConverter = mongoConverter;
         this.bucketName = bucketName;
@@ -115,14 +116,14 @@ public class GridFsStorageService implements StorageService {
     }
 
     @Override
-    public InputStream getAsInputStream(String filename) throws StorageFileNotFoundException {
+    public InputStream getAsInputStream(String filename) throws FileNotFoundException {
         GridFSFile fsdbFile = getLatestGridFSFile(filename);
         return getInputStream(fsdbFile);
     }
 
 
     @Override
-    public InputStream getAsInputStream(String filename, Key key) throws StorageFileNotFoundException, EncryptionException {
+    public InputStream getAsInputStream(String filename, Key key) throws FileNotFoundException, EncryptionException {
         GridFSFile fsFile = getLatestGridFSFile(filename);
         return getDecryptedInputStream(fsFile, key);
     }
@@ -131,14 +132,14 @@ public class GridFsStorageService implements StorageService {
      * An attempt to implement getGridFSDBFile using Mongo sorting, by querying the GridFS collection directly.
      * !!! UNRELIABLE !!!
      */
-    private GridFSFile getGridFSDBFile_(String filename) throws StorageFileNotFoundException {
+    private GridFSFile getGridFSDBFile_(String filename) throws FileNotFoundException {
         // 1) perform a standard MongoTemplate query on the file bucket.
         Query query = new Query(GridFsCriteria.whereFilename().is(filename))
                 .with(new Sort(Sort.Direction.DESC, "uploadDate"))
                 .limit(1);
         List<BasicDBObject> gridFsFiles = mongoTemplate.find(query, BasicDBObject.class, bucketName + ".files");
         if (gridFsFiles.isEmpty()) {
-            throw new StorageFileNotFoundException(filename);
+            throw new FileNotFoundException(filename);
         }
         DBObject file = gridFsFiles.get(0);
         Object fileId = file.get("_id");
@@ -195,13 +196,13 @@ public class GridFsStorageService implements StorageService {
     /**
      * Returns the {@link GridFSFile} corresponding to the most recent version of the specified file stored.
      */
-    private GridFSFile getLatestGridFSFile(String filename) throws StorageFileNotFoundException {
+    private GridFSFile getLatestGridFSFile(String filename) throws FileNotFoundException {
         // we do the sorting in the stream pipeline as GridFS doesn't support sorted queries
         List<GridFSFile> revisions = new ArrayList<>();
         gridFsTemplate.find(new Query(GridFsCriteria.whereFilename().is(filename))).into(revisions);
         GridFSFile fsFile = revisions.stream()
                 .max(Comparator.comparing(GridFSFile::getUploadDate))
-                .orElseThrow(() -> new StorageFileNotFoundException(filename));
+                .orElseThrow(() -> new FileNotFoundException(filename));
         return fsFile;
     }
 
@@ -218,25 +219,25 @@ public class GridFsStorageService implements StorageService {
     }
 
     @Override
-    public RevisionInfo getLatestRevision(String filename) throws StorageFileNotFoundException {
+    public RevisionInfo getLatestRevision(String filename) throws FileNotFoundException {
         GridFSFile fsFile = getLatestGridFSFile(filename);
         return buildRevisionInfo(fsFile);
     }
 
     @Override
-    public RevisionInfo getRevisionInfo(String revisionId) throws StorageFileRevisionNotFoundException {
+    public RevisionInfo getRevisionInfo(String revisionId) throws RevisionNotFoundException {
         GridFSFile fsFile = getGridFSFileById(revisionId);
         return buildRevisionInfo(fsFile);
     }
 
     @Override
-    public InputStream getRevisionAsInputStream(String revisionId) throws StorageFileRevisionNotFoundException {
+    public InputStream getRevisionAsInputStream(String revisionId) throws RevisionNotFoundException {
         GridFSFile fsFile = getGridFSFileById(revisionId);
         return getInputStream(fsFile);
     }
 
     @Override
-    public InputStream getRevisionAsInputStream(String revisionId, Key key) throws StorageFileRevisionNotFoundException, EncryptionException {
+    public InputStream getRevisionAsInputStream(String revisionId, Key key) throws RevisionNotFoundException, EncryptionException {
         GridFSFile fsFile = getGridFSFileById(revisionId);
         return getDecryptedInputStream(fsFile, key);
     }
@@ -263,10 +264,10 @@ public class GridFsStorageService implements StorageService {
         return cipherInputStream;
     }
 
-    private GridFSFile getGridFSFileById(String revisionId) throws StorageFileRevisionNotFoundException {
+    private GridFSFile getGridFSFileById(String revisionId) throws RevisionNotFoundException {
         GridFSFile fsFile = gridFsTemplate.findOne(new Query(Criteria.where("_id").is(revisionId)));
         if (fsFile == null) {
-            throw new StorageFileRevisionNotFoundException(revisionId);
+            throw new RevisionNotFoundException(revisionId);
         }
         return fsFile;
     }
@@ -279,7 +280,7 @@ public class GridFsStorageService implements StorageService {
                     .updateOne(new BasicDBObject("_id", fsFile.getId()),
                             BasicDBObject.parse("{ \"$set\": {\"metadata.deleted\": \"true\"}}"));
 
-        } catch (StorageFileNotFoundException ignored) {
+        } catch (FileNotFoundException ignored) {
         }
     }
 

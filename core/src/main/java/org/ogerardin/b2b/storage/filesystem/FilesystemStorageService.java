@@ -11,7 +11,6 @@ import org.springframework.util.FileSystemUtils;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -117,18 +116,18 @@ public class FilesystemStorageService implements StorageService {
     }
 
     @Override
-    public InputStream getAsInputStream(String filename) throws StorageFileNotFoundException {
+    public InputStream getAsInputStream(String filename) throws FileNotFoundException {
         Path remotePath = Paths.get(filename);
         Path localPath = remoteToLocal(remotePath);
 
         return getInputStream(localPath, filename);
     }
 
-    protected static InputStream getInputStream(Path localPath, String filename) throws StorageFileNotFoundException {
+    protected static InputStream getInputStream(Path localPath, String filename) throws FileNotFoundException {
         try {
             return Files.newInputStream(localPath);
-        } catch (FileNotFoundException e) {
-            throw new StorageFileNotFoundException(e);
+        } catch (java.io.FileNotFoundException e) {
+            throw new FileNotFoundException(e);
         } catch (IOException e) {
             throw new StorageException("Exception while trying to get InputStream for " + filename, e);
         }
@@ -163,18 +162,18 @@ public class FilesystemStorageService implements StorageService {
             RevisionInfo revisionInfo = getLatestRevision(filename);
             return new RevisionInfo[]{ revisionInfo };
         }
-        catch (StorageFileNotFoundException e) {
+        catch (FileNotFoundException e) {
             return new RevisionInfo[0];
         }
     }
 
 
     @Override
-    public RevisionInfo getLatestRevision(String filename) throws StorageFileNotFoundException {
+    public RevisionInfo getLatestRevision(String filename) throws FileNotFoundException {
         Path remotePath = Paths.get(filename);
         Path localPath = remoteToLocal(remotePath);
         if (! Files.exists(localPath)) {
-            throw new StorageFileNotFoundException(remotePath.toString());
+            throw new FileNotFoundException(remotePath.toString());
         }
         RevisionInfo fileInfo = buildRevisionInfo(remotePath, localPath);
         return fileInfo;
@@ -253,7 +252,7 @@ public class FilesystemStorageService implements StorageService {
     }
 
     @Override
-    public InputStream getAsInputStream(String filename, Key key) throws StorageFileNotFoundException, EncryptionException {
+    public InputStream getAsInputStream(String filename, Key key) throws FileNotFoundException, EncryptionException {
         //TODO check metadata to amake sure the file is encrypted?
         InputStream inputStream = getAsInputStream(filename);
         return getDecryptedInputStream(inputStream, key);

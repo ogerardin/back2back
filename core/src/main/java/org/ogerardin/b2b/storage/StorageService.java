@@ -29,17 +29,17 @@ public interface StorageService {
     Stream<RevisionInfo> getAllRevisions();
 
     /** Obtain an {@link java.io.InputStream} to read the contents of the latest revision of the specified file */
-    InputStream getAsInputStream(String filename) throws StorageFileNotFoundException;
+    InputStream getAsInputStream(String filename) throws FileNotFoundException;
 
-    default InputStream getAsInputStream(Path path) throws StorageFileNotFoundException {
+    default InputStream getAsInputStream(Path path) throws FileNotFoundException {
         return getAsInputStream(normalizedPath(path));
     }
 
     /** Obtain an {@link java.io.InputStream} to read the unencrypted contents of the latest version of the specified file,
      * using the specified key to decrypt it. */
-    InputStream getAsInputStream(String filename, Key key) throws StorageFileNotFoundException, EncryptionException;
+    InputStream getAsInputStream(String filename, Key key) throws FileNotFoundException, EncryptionException;
 
-    default Resource getAsResource(String filename) throws StorageFileNotFoundException {
+    default Resource getAsResource(String filename) throws FileNotFoundException {
         return new InputStreamResource(getAsInputStream(filename));
     }
 
@@ -94,24 +94,24 @@ public interface StorageService {
     }
 
     /** Returns information about the latest stored version of the specified file, passed as a String */
-    RevisionInfo getLatestRevision(String filename) throws StorageFileNotFoundException;
+    RevisionInfo getLatestRevision(String filename) throws FileNotFoundException;
 
-    default RevisionInfo getLatestRevision(Path path) throws StorageFileNotFoundException {
+    default RevisionInfo getLatestRevision(Path path) throws FileNotFoundException {
         String normalizedPath = normalizedPath(path);
         return getLatestRevision(normalizedPath);
     }
 
     /** Returns information about a file version, designated by its ID */
-    RevisionInfo getRevisionInfo(String revisionId) throws StorageFileRevisionNotFoundException;
+    RevisionInfo getRevisionInfo(String revisionId) throws RevisionNotFoundException;
 
     /** Returns an {@link java.io.InputStream} to read the contents of a file version, designated by its ID */
-    InputStream getRevisionAsInputStream(String revisionId) throws StorageFileRevisionNotFoundException, IOException;
+    InputStream getRevisionAsInputStream(String revisionId) throws RevisionNotFoundException, IOException;
 
     /** Returns an {@link java.io.InputStream} to read the contents of a file version, designated by its ID,
      * in its unencrypted form using the specified key */
-    InputStream getRevisionAsInputStream(String revisionId, Key key) throws StorageFileRevisionNotFoundException, EncryptionException;
+    InputStream getRevisionAsInputStream(String revisionId, Key key) throws RevisionNotFoundException, EncryptionException;
 
-    default Resource getRevisionAsResource(String revisionId) throws StorageFileRevisionNotFoundException, IOException {
+    default Resource getRevisionAsResource(String revisionId) throws RevisionNotFoundException, IOException {
         return new InputStreamResource(getRevisionAsInputStream(revisionId));
     }
 

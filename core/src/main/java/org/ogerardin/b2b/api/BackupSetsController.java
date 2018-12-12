@@ -83,7 +83,7 @@ public class BackupSetsController {
     }
 
     @GetMapping("/{id}/revisions/{revisionId}")
-    public RevisionInfo getItemInfo(@PathVariable String id, @PathVariable String revisionId) throws StorageFileRevisionNotFoundException {
+    public RevisionInfo getItemInfo(@PathVariable String id, @PathVariable String revisionId) throws RevisionNotFoundException {
         BackupSet backupSet = backupSetRepository.findById(id).get();
         StorageService storageService = getStorageService(backupSet);
         return storageService.getRevisionInfo(revisionId);
@@ -91,7 +91,7 @@ public class BackupSetsController {
 
     @GetMapping("/{id}/revisions/{revisionId}/contents")
     @ResponseBody
-    public ResponseEntity<Resource> getItemContents(@PathVariable String id, @PathVariable String revisionId) throws StorageFileRevisionNotFoundException, IOException {
+    public ResponseEntity<Resource> getItemContents(@PathVariable String id, @PathVariable String revisionId) throws RevisionNotFoundException, IOException {
         BackupSet backupSet = backupSetRepository.findById(id).get();
         StorageService storageService = getStorageService(backupSet);
         RevisionInfo revisionInfo = storageService.getRevisionInfo(revisionId);

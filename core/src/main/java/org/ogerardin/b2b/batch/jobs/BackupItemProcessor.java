@@ -12,11 +12,11 @@ import java.time.Instant;
 import java.util.Collections;
 
 /**
- * ItemProcessor implementation that stores the file corresponding to the input {@link Path} into the
- * internal storage.
+ * {@link ItemProcessor} implementation that stores the file corresponding to the input {@link FileBackupStatusInfo}
+ * into a {@link StorageService}
  */
 @Slf4j
-class InternalBackupItemProcessor implements ItemProcessor<FileBackupStatusInfo, FileBackupStatusInfo> {
+class BackupItemProcessor implements ItemProcessor<FileBackupStatusInfo, FileBackupStatusInfo> {
 
     //TODO implement encryption (see PeerItemWriter)
 
@@ -27,7 +27,7 @@ class InternalBackupItemProcessor implements ItemProcessor<FileBackupStatusInfo,
     /**
      * @param throttleDelay for testing only, introduces a delay after each file
      */
-    InternalBackupItemProcessor(StorageService storageService, long throttleDelay) {
+    BackupItemProcessor(StorageService storageService, long throttleDelay) {
         this.storageService = storageService;
         this.throttleDelay = throttleDelay;
     }

@@ -80,7 +80,7 @@ public class PeerController {
     public ResponseEntity<Resource> getItemContents(
             @PathVariable String revisionId,
             @RequestParam("computer-id") String computerId
-    ) throws StorageFileRevisionNotFoundException, IOException, B2BException {
+    ) throws RevisionNotFoundException, IOException, B2BException {
 
         StorageService storageService = getStorageService(computerId);
 

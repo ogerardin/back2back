@@ -152,7 +152,7 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
             FileBackupStatusInfoProvider fileBackupStatusInfoProvider
     ) {
         return stepBuilderFactory
-                .get("finalizeBackupStep" + this.getClass().getSimpleName())
+                .get("finalizeBackupStep")
                 .tasklet(new FinalizeBackupTasklet(fileBackupStatusInfoProvider))
                 .build();
     }
@@ -170,7 +170,7 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
             BackupStatusToucher backupStatusToucher
     ) {
         return stepBuilderFactory
-                .get("computeBatchStep" + this.getClass().getSimpleName())
+                .get("computeBatchStep")
                 .<LocalFileInfo, LocalFileInfo> chunk(10)
                 // read files from local filesystem
                 .reader(filesystemItemReader)

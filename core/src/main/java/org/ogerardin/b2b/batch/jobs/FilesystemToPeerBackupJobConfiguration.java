@@ -1,21 +1,25 @@
 package org.ogerardin.b2b.batch.jobs;
 
+import lombok.val;
 import org.ogerardin.b2b.batch.jobs.listeners.BackupJobExecutionListener;
 import org.ogerardin.b2b.batch.jobs.listeners.FileBackupListener;
 import org.ogerardin.b2b.batch.jobs.support.LocalFileInfo;
+import org.ogerardin.b2b.config.ConfigManager;
 import org.ogerardin.b2b.domain.FileBackupStatusInfoProvider;
+import org.ogerardin.b2b.domain.entity.FileBackupStatusInfo;
 import org.ogerardin.b2b.domain.entity.FilesystemSource;
 import org.ogerardin.b2b.domain.entity.PeerTarget;
+import org.ogerardin.b2b.storage.peer.PeerStorageService;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.ItemWriter;
-import org.springframework.batch.item.support.IteratorItemReader;
-import org.springframework.batch.item.support.PassThroughItemProcessor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestTemplate;
 
 import java.net.MalformedURLException;
 
@@ -26,7 +30,11 @@ import java.net.MalformedURLException;
 @Configuration
 public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBackupJobConfiguration {
 
-    //TODO use new workflow (like FilesystemToInternalBackupJobConfiguration)
+    @Autowired
+    ConfigManager configManager;
+
+    private static final RestTemplate REST_TEMPLATE = new RestTemplate();
+
 
     public FilesystemToPeerBackupJobConfiguration() {
         addStaticParameter("target.type", PeerTarget.class.getName());
@@ -39,16 +47,18 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
             Step initBatchStep,
             Step computeBatchStep,
             Step peerBackupStep,
-            BackupJobExecutionListener jobListener
+            BackupJobExecutionListener jobListener,
+            Step finalizeBackupStep
     ) {
         return jobBuilderFactory
                 .get("filesystemToPeerBackupJob")
                 .validator(getValidator())
                 .incrementer(new RunIdIncrementer())
                 .listener(jobListener)
-                .start(initBatchStep)    // step 0: init batch
-                .next(computeBatchStep)  // step 1: compute files that need to be backed up
-                .next(peerBackupStep)      // step 2: perform backup
+                .start(initBatchStep)
+                .next(computeBatchStep)
+                .next(peerBackupStep)
+                .next(finalizeBackupStep)
                 .build();
     }
 
@@ -58,19 +68,20 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
     @Bean
     @JobScope
     protected Step peerBackupStep(
-            BackupJobContext jobContext,
-            PeerItemWriter peerWriter,
-            FileBackupListener fileBackupListener
-    ) {
+            FileBackupListener fileBackupListener,
+            FileBackupStatusInfoProvider fileBackupStatusInfoProvider,
+            BackupItemProcessor peerBackupItemProcessor,
+            BackupStatusUpdater backupStatusUpdater) {
         return stepBuilderFactory
-                .get("peerBackupStep")
-                .<LocalFileInfo, LocalFileInfo>chunk(1) // handle 1 file at a time
-                // read files from job context
-                .reader(new IteratorItemReader<>(jobContext.getBackupBatch().getFiles()))
-                // no processing
-                .processor(new PassThroughItemProcessor<>())
-                // store them to the remote peer
-                .writer(peerWriter)
+                .get("backupToPeerStorageStep")
+                // handle 1 file at a time
+                .<FileBackupStatusInfo, FileBackupStatusInfo> chunk(1)
+                // read files from local backup status database
+                .reader(fileBackupStatusInfoProvider.reader())
+                // perform backup
+                .processor(peerBackupItemProcessor)
+                // store backup status
+                .writer(backupStatusUpdater)
                 // monitor progress
                 .listener(fileBackupListener)
                 .build();
@@ -82,17 +93,19 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
      */
     @Bean
     @JobScope
-    protected PeerItemWriter peerItemWriter(
+    protected BackupItemProcessor peerBackupItemProcessor(
             @Value("#{jobParameters['target.hostname']}") String targetHostname,
-            @Value("#{jobParameters['target.port']}") Integer targetPort,
-            FileBackupStatusInfoProvider fileBackupStatusInfoProvider
+            @Value("#{jobParameters['target.port']}") Integer targetPort
     ) throws MalformedURLException {
         if (targetPort == null) {
             targetPort = properties.getDefaultPeerPort();
         }
-        return new PeerItemWriter(
-                fileBackupStatusInfoProvider,
-                targetHostname, targetPort);
+        String computerId = configManager.getMachineInfo().getComputerId();
+        val storageService = new PeerStorageService(targetHostname, targetPort, computerId, REST_TEMPLATE);
+
+        return new BackupItemProcessor(
+                storageService,
+                properties.getFileThrottleDelay());
     }
 
 

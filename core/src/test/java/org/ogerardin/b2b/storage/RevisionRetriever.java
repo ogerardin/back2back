@@ -4,5 +4,5 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public interface RevisionRetriever {
-    InputStream getAsInputStream(String revisionId) throws StorageFileRevisionNotFoundException, IOException, StorageFileNotFoundException;
+    InputStream getAsInputStream(String revisionId) throws RevisionNotFoundException, IOException, FileNotFoundException;
 }

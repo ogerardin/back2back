@@ -68,7 +68,8 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
             BackupStatusUpdater backupStatusUpdater,
             FileBackupListener fileBackupListener,
             FileBackupStatusInfoProvider fileBackupStatusInfoProvider,
-            InternalBackupItemProcessor internalBackupItemProcessor) {
+            BackupItemProcessor backupItemProcessor
+    ) {
         return stepBuilderFactory
                 .get("backupToInternalStorageStep")
                 // handle 1 file at a time
@@ -76,7 +77,7 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
                 // read files from local backup status database
                 .reader(fileBackupStatusInfoProvider.reader())
                 // perform backup
-                .processor(internalBackupItemProcessor)
+                .processor(backupItemProcessor)
                 // store backup status
                 .writer(backupStatusUpdater)
                 // monitor progress
@@ -90,12 +91,12 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
      */
     @Bean
     @JobScope
-    protected InternalBackupItemProcessor internalBackupItemProcessor(
+    protected BackupItemProcessor backupItemProcessor(
             @Value("#{jobParameters['backupset.id']}") String backupSetId
     )  {
         val storageService = storageServiceFactory.getStorageService(backupSetId);
 
-        return new InternalBackupItemProcessor(
+        return new BackupItemProcessor(
                 storageService,
                 properties.getFileThrottleDelay());
     }

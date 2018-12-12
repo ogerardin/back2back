@@ -10,7 +10,7 @@ import org.ogerardin.b2b.domain.entity.PeerSource;
 import org.ogerardin.b2b.domain.mongorepository.BackupSetRepository;
 import org.ogerardin.b2b.domain.mongorepository.BackupTargetRepository;
 import org.ogerardin.b2b.storage.FileInfo;
-import org.ogerardin.b2b.storage.StorageFileRevisionNotFoundException;
+import org.ogerardin.b2b.storage.RevisionNotFoundException;
 import org.ogerardin.b2b.storage.StorageService;
 import org.ogerardin.b2b.storage.StorageServiceFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -124,7 +124,7 @@ public class FileUploadTest {
         given(this.storageServiceFactory.getStorageService(any(String.class)))
                 .willReturn(storageService);
 
-        given(this.storageService.getRevisionInfo(any(String.class))).willThrow(new StorageFileRevisionNotFoundException("mock"));
+        given(this.storageService.getRevisionInfo(any(String.class))).willThrow(new RevisionNotFoundException("mock"));
 
         this.mvc.perform(get(String.format("/api/backupsets/%s/revisions/1", backupSet.getId())))
                 .andExpect(status().isNotFound());

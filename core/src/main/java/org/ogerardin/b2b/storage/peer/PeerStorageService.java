@@ -73,12 +73,12 @@ public class PeerStorageService implements StorageService {
     }
 
     @Override
-    public InputStream getAsInputStream(String filename) throws StorageFileNotFoundException {
+    public InputStream getAsInputStream(String filename) throws FileNotFoundException {
         throw new NotImplementedException();
     }
 
     @Override
-    public InputStream getAsInputStream(String filename, Key key) throws StorageFileNotFoundException, EncryptionException {
+    public InputStream getAsInputStream(String filename, Key key) throws FileNotFoundException, EncryptionException {
         throw new NotImplementedException();
     }
 
