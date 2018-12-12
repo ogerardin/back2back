@@ -77,19 +77,38 @@ public class PeerController {
 
     @GetMapping("/download/{revisionId}")
     @ResponseBody
-    public ResponseEntity<Resource> getItemContents(
+    public ResponseEntity<Resource> downloadRevision(
             @PathVariable String revisionId,
             @RequestParam("computer-id") String computerId
-    ) throws RevisionNotFoundException, IOException, B2BException {
-
+    ) throws B2BException, IOException {
         StorageService storageService = getStorageService(computerId);
+        try {
+            RevisionInfo revisionInfo = storageService.getRevisionInfo(revisionId);
+            String filename = Paths.get(revisionInfo.getFilename()).getFileName().toString();
+            Resource resource = storageService.getRevisionAsResource(revisionId);
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename=\"" + filename + "\"")
+                    .body(resource);
+        } catch (RevisionNotFoundException e) {
+            // 404 if not found
+            return ResponseEntity.notFound().build();
+        }
+    }
 
-        RevisionInfo revisionInfo = storageService.getRevisionInfo(revisionId);
-        String filename = Paths.get(revisionInfo.getFilename()).getFileName().toString();
-        Resource resource = storageService.getRevisionAsResource(revisionId);
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename=\"" + filename + "\"")
-                .body(resource);
+    @GetMapping("/download")
+    @ResponseBody
+    public ResponseEntity<Resource> downloadFile(
+            @RequestParam("computer-id") String computerId,
+            @RequestParam("filename") String filename
+    ) throws B2BException, IOException {
+        StorageService storageService = getStorageService(computerId);
+        try {
+            RevisionInfo revisionInfo = storageService.getLatestRevision(filename);
+            return downloadRevision(revisionInfo.getId(), computerId);
+        } catch (FileNotFoundException e) {
+            // 404 if not found
+            return ResponseEntity.notFound().build();
+        }
     }
 
     private StorageService getStorageService(String computerId) throws B2BException {

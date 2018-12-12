@@ -187,7 +187,7 @@ public abstract class StorageProviderTest<S extends StorageService> {
     private InputStream retrieveEncrypted(Path path) {
         try {
             return storageService.getAsInputStream(path.toString(), key);
-        } catch (FileNotFoundException | EncryptionException e) {
+        } catch (FileNotFoundException | EncryptionException | IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -199,7 +199,7 @@ public abstract class StorageProviderTest<S extends StorageService> {
     private InputStream retrieveUnencrypted(Path path) {
         try {
             return storageService.getAsInputStream(path);
-        } catch (FileNotFoundException e) {
+        } catch (FileNotFoundException | IOException e) {
             throw new RuntimeException(e);
         }
     }

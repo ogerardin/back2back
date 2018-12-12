@@ -19,10 +19,12 @@ import javax.crypto.CipherInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.security.Key;
 import java.util.Arrays;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
@@ -73,35 +75,28 @@ public class PeerStorageService implements StorageService {
     }
 
     @Override
-    public InputStream getAsInputStream(String filename) throws FileNotFoundException {
-        throw new NotImplementedException();
+    public InputStream getAsInputStream(String filename) throws IOException, FileNotFoundException {
+        return downloadFile(filename);
     }
 
     @Override
-    public InputStream getAsInputStream(String filename, Key key) throws FileNotFoundException, EncryptionException {
-        throw new NotImplementedException();
+    public InputStream getAsInputStream(String filename, Key key) throws FileNotFoundException, EncryptionException, IOException {
+        InputStream inputStream = downloadFile(filename);
+        return getDecryptedInputStream(inputStream, key);
     }
 
     @Override
-    public String store(InputStream inputStream, String filename) {
-        log.debug("Trying to upload {}", filename);
-        try {
-            return upload(inputStream, filename);
-        } catch (URISyntaxException | IOException e) {
-            throw new StorageException("Failed to upload file as " + filename, e);
-        }
+    public String store(InputStream inputStream, String filename) throws IOException {
+        return upload(inputStream, filename);
     }
 
     @Override
-    public String store(InputStream inputStream, String filename, @NonNull Key key) throws EncryptionException {
+    public String store(InputStream inputStream, String filename, @NonNull Key key) throws EncryptionException, IOException {
         try (
                 // wrap the stream in an encrypted stream
                 InputStream uploadInputStream = getCipherInputStream(inputStream, key);
         ) {
-            log.debug("Trying to upload {}", filename);
             return upload(uploadInputStream, filename);
-        } catch (IOException | URISyntaxException e) {
-            throw new StorageException("Failed to upload encrypted file as " + filename, e);
         }
     }
 
@@ -126,12 +121,8 @@ public class PeerStorageService implements StorageService {
     }
 
     @Override
-    public InputStream getRevisionAsInputStream(String revisionId) {
-        try {
-            return download(revisionId);
-        } catch (URISyntaxException | IOException e) {
-            throw new StorageException("Failed to download revision " + revisionId, e);
-        }
+    public InputStream getRevisionAsInputStream(String revisionId) throws RevisionNotFoundException, IOException {
+        return downloadRevision(revisionId);
     }
 
     @Override
@@ -144,12 +135,17 @@ public class PeerStorageService implements StorageService {
         throw new NotImplementedException();
     }
 
-    private static InputStream getCipherInputStream(InputStream is, Key key) throws EncryptionException {
+    private static InputStream getCipherInputStream(InputStream inputStream, Key key) throws EncryptionException {
         Cipher cipher = CipherHelper.getAesCipher(key, Cipher.ENCRYPT_MODE);
-        return new CipherInputStream(is, cipher);
+        return new CipherInputStream(inputStream, cipher);
     }
 
-    private String upload(InputStream inputStream, String path) throws URISyntaxException, IOException {
+    private static InputStream getDecryptedInputStream(InputStream inputStream, Key key) throws EncryptionException {
+        Cipher cipher = CipherHelper.getAesCipher(key, Cipher.DECRYPT_MODE);
+        return new CipherInputStream(inputStream, cipher);
+    }
+
+    private String upload(InputStream inputStream, String path) throws IOException {
         //We can't use org.springframework.core.io.InputStreamResource, see https://jira.spring.io/browse/SPR-13571
         Resource resource = new InputStreamFileResource(inputStream, path);
 
@@ -165,33 +161,68 @@ public class PeerStorageService implements StorageService {
         // perform HTTP request
         URL uploadUrl = new URL(baseUrl, "upload");
         log.debug("Submitting multipart POST request: {}", requestEntity);
-        val responseEntity = restTemplate.exchange(
-                uploadUrl.toURI(),
+        ResponseEntity<String> responseEntity = restTemplate.exchange(
+                getUriSafe(uploadUrl),
                 HttpMethod.POST,
                 requestEntity,
                 String.class);
         log.debug("Response: {} ", responseEntity);
-
-        if (!responseEntity.getStatusCode().is2xxSuccessful()) {
-            throw new IOException("Expected status code 2xx, got: " + responseEntity);
-        }
+        assertResponseSuccessful(responseEntity);
 
         // the response is expected to contain the new revisionId as body (String)
         return responseEntity.getBody();
     }
 
-    private InputStream download(String revisionId) throws IOException, URISyntaxException {
-        URL downloadUrl = new URL(baseUrl, String.format("download/%s?computer-id=%s", revisionId, computerId));
+    private InputStream downloadRevision(String revisionId) throws IOException, RevisionNotFoundException {
+        URL url = new URL(baseUrl, String.format("download/%s?computer-id=%s", revisionId, computerId));
+        return getInputStream(url, () -> new RevisionNotFoundException(revisionId));
+    }
+
+    private InputStream downloadFile(String filename) throws IOException, FileNotFoundException {
+        URL url = new URL(baseUrl, String.format("download?computer-id=%s&filename=%s", computerId, filename));
+        return getInputStream(url, () -> new FileNotFoundException(filename));
+    }
+
+    /**
+     * Performs a HTTP GET on the specified URL and returns an {@link InputStream} that gives access to the
+     * resource contents. If the response has status 404, throws the exception generated by the specified
+     * {@link Supplier}. If the response has a non-successful status (not 2xx), throws a {@link IOException}.
+     *
+     * @param <E> the type of the exception returned by exception404
+     * @throws E           if the HTTP response has status 404
+     * @throws IOException if the HTTP response has a non-success status (not 2xx) or if there was any other error
+     */
+    private <E extends Throwable> InputStream getInputStream(URL downloadUrl, Supplier<E> exception404) throws E, IOException {
         log.info("Downloading from URL {}", downloadUrl);
-        ResponseEntity<Resource> responseEntity = restTemplate.getForEntity(downloadUrl.toURI(), Resource.class);
+
+        // perform call
+        ResponseEntity<Resource> responseEntity = restTemplate.getForEntity(getUriSafe(downloadUrl), Resource.class);
+
+        // map 404 to exception using specified Supplier
+        if (responseEntity.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
+            throw exception404.get();
+        }
+        // map any other non-successful status to IOException
         assertResponseSuccessful(responseEntity);
 
+        //noinspection ConstantConditions
         return responseEntity.getBody().getInputStream();
+    }
+
+    private static URI getUriSafe(URL url) {
+        try {
+            return url.toURI();
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void assertResponseSuccessful(ResponseEntity<?> responseEntity) throws IOException {
         if (!responseEntity.getStatusCode().is2xxSuccessful()) {
             throw new IOException("Expected status code 2xx, got: " + responseEntity);
+        }
+        if (responseEntity.getBody() == null) {
+            throw new IOException("Response body is null");
         }
     }
 

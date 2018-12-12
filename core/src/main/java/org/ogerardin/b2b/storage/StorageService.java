@@ -29,17 +29,17 @@ public interface StorageService {
     Stream<RevisionInfo> getAllRevisions();
 
     /** Obtain an {@link java.io.InputStream} to read the contents of the latest revision of the specified file */
-    InputStream getAsInputStream(String filename) throws FileNotFoundException;
+    InputStream getAsInputStream(String filename) throws FileNotFoundException, IOException;
 
-    default InputStream getAsInputStream(Path path) throws FileNotFoundException {
+    default InputStream getAsInputStream(Path path) throws FileNotFoundException, IOException {
         return getAsInputStream(normalizedPath(path));
     }
 
     /** Obtain an {@link java.io.InputStream} to read the unencrypted contents of the latest version of the specified file,
      * using the specified key to decrypt it. */
-    InputStream getAsInputStream(String filename, Key key) throws FileNotFoundException, EncryptionException;
+    InputStream getAsInputStream(String filename, Key key) throws FileNotFoundException, EncryptionException, IOException;
 
-    default Resource getAsResource(String filename) throws FileNotFoundException {
+    default Resource getAsResource(String filename) throws FileNotFoundException, IOException {
         return new InputStreamResource(getAsInputStream(filename));
     }
 
@@ -69,14 +69,14 @@ public interface StorageService {
      * Store the specified {@link java.io.InputStream} associated to the specified filename
      * @return the revision ID of the newly created revision, or null if revisions not supported
      */
-    String store(InputStream inputStream, String filename);
+    String store(InputStream inputStream, String filename) throws IOException;
 
     /**
      * Store the specified {@link java.io.InputStream} contents in its encrypted form using the specified key,
      *  associated to the specified filename
      * @return the revision ID of the newly created revision, or null if revisions not supported
      */
-    String store(InputStream inputStream, String filename, Key key) throws EncryptionException;
+    String store(InputStream inputStream, String filename, Key key) throws EncryptionException, IOException;
 
     /** Deletes all the stored files and versions */
     void deleteAll();
