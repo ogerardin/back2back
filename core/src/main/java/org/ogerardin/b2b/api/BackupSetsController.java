@@ -62,8 +62,6 @@ public class BackupSetsController {
         // dependent on the specific StorageService implementation; for example for GridFsStorageService
         // it will be used as the GridFS bucket name.
         return storageServiceFactory.getStorageService(backupSet.getId());
-        // TODO we should implement a maintenance job to delete StorageService resources for which there is no
-        //  more corresponding backupSet
     }
 
     /**
@@ -71,7 +69,10 @@ public class BackupSetsController {
      *             path variable because it's awkward to handle slashes inside a path variable.
      */
     @GetMapping("/{id}/revisions")
-    public RevisionInfo[] getVersions(@PathVariable String id, @RequestParam(required = false) String path) {
+    public RevisionInfo[] getRevisions(
+            @PathVariable String id,
+            @RequestParam(required = false) String path
+    ) {
         BackupSet backupSet = backupSetRepository.findById(id).get();
         StorageService storageService = getStorageService(backupSet);
         if (path == null) {
@@ -83,7 +84,7 @@ public class BackupSetsController {
     }
 
     @GetMapping("/{id}/revisions/{revisionId}")
-    public RevisionInfo getItemInfo(@PathVariable String id, @PathVariable String revisionId) throws RevisionNotFoundException {
+    public RevisionInfo getRevisionInfo(@PathVariable String id, @PathVariable String revisionId) throws RevisionNotFoundException {
         BackupSet backupSet = backupSetRepository.findById(id).get();
         StorageService storageService = getStorageService(backupSet);
         return storageService.getRevisionInfo(revisionId);

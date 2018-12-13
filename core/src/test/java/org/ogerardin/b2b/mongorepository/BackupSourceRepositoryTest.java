@@ -8,7 +8,6 @@ import org.ogerardin.b2b.domain.entity.FilesystemSource;
 import org.ogerardin.b2b.domain.mongorepository.BackupSourceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
@@ -25,7 +24,7 @@ public class BackupSourceRepositoryTest extends AbstractMongoTest {
     BackupSourceRepository backupSourceRepository;
 
     @Test
-    public void test() throws URISyntaxException, IOException, InterruptedException {
+    public void test() throws URISyntaxException {
         backupSourceRepository.deleteAll();
 
         List<BackupSource> sources = new ArrayList<>();

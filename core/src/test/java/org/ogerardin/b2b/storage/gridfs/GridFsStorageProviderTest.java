@@ -57,7 +57,7 @@ public class GridFsStorageProviderTest extends StorageProviderTest<GridFsStorage
 
 
     @Override
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() {
         val storageService = new GridFsStorageService(mongoDbFactory, mongoConverter, mongoTemplate, "test");
         setStorageService(storageService);
         storageService.init();
