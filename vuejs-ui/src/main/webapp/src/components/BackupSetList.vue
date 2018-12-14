@@ -9,13 +9,13 @@
       </router-link>
     </template>
     <template slot="backupSource" slot-scope="data">
-      <router-link v-bind:to="{name: 'source-edit', params: {id: data.value.id}}">
-        {{data.value.description}}
+      <router-link v-bind:to="{name: 'source-edit', params: {id: data.value && data.value.id}}">
+        {{data.value && data.value.description}}
       </router-link>
     </template>
     <template slot="backupTarget" slot-scope="data">
-      <router-link v-bind:to="{name: 'target-edit', params: {id: data.value.id}}">
-        {{data.value.description}}
+      <router-link v-bind:to="{name: 'target-edit', params: {id: data.value && data.value.id}}">
+        {{data.value && data.value.description}}
       </router-link>
     </template>
     <template slot="status" slot-scope="data">
