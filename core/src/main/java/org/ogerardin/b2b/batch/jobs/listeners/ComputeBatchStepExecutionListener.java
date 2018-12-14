@@ -55,7 +55,7 @@ public class ComputeBatchStepExecutionListener extends BackupSetAwareBean implem
 //            log.info("Deleted file count was {}, now {}", deletedBefore, deletedCount);
 
             // batch stats are obtained from the current job context
-            updateBatchStats(backupSet, backupJobContext.getBackupBatch().getStats());
+//            updateBatchStats(backupSet, backupJobContext.getBackupBatch().getStats());
 
         }
         else {
