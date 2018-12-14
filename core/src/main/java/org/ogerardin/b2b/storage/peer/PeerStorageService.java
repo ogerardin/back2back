@@ -13,7 +13,7 @@ import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriUtils;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
@@ -23,7 +23,6 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.security.Key;
 import java.util.Arrays;
 import java.util.function.Supplier;
@@ -41,15 +40,19 @@ public class PeerStorageService implements StorageService {
     /**
      * URL of the peer instance
      */
-    private final URL baseUrl;
+    private final URI baseUri;
 
     private final String computerId;
 
     private final RestTemplate restTemplate;
 
-    public PeerStorageService(String targetHostname, int targetPort, String computerId, RestTemplate restTemplate) throws MalformedURLException {
+    public PeerStorageService(String targetHostname, int targetPort, String computerId, RestTemplate restTemplate) {
         // construct URL of remote "peer" API
-        this.baseUrl = new URL("http", targetHostname, targetPort, "/api/peer/");
+        try {
+            this.baseUri = new URL("http", targetHostname, targetPort, "/api/peer/").toURI();
+        } catch (URISyntaxException | MalformedURLException e) {
+            throw new StorageException("Failed to initialize remote URI", e);
+        }
         this.computerId = computerId;
         this.restTemplate = restTemplate;
     }
@@ -61,12 +64,19 @@ public class PeerStorageService implements StorageService {
     @Override
     public Stream<FileInfo> getAllFiles(boolean includeDeleted) {
         try {
-            URL url = new URL(baseUrl, String.format("list?computer-id=%s", computerId));
-            log.info("Listing from URL {}", url);
-            ResponseEntity<FileInfo[]> responseEntity = restTemplate.getForEntity(url.toURI(), FileInfo[].class);
+//            URL url = new URL(baseUri, String.format("list?computer-id=%s", computerId));
+            URI uri = UriComponentsBuilder.fromUri(baseUri)
+                    .path("list")
+                    .queryParam("computer-id", computerId)
+                    .encode()
+                    .build()
+                    .toUri();
+
+            log.info("Listing from {}", uri);
+            ResponseEntity<FileInfo[]> responseEntity = restTemplate.getForEntity(uri, FileInfo[].class);
             assertResponseSuccessful(responseEntity);
             return Arrays.stream(responseEntity.getBody());
-        } catch (URISyntaxException | IOException e) {
+        } catch (IOException e) {
             throw new StorageException("Failed to list files", e);
         }
     }
@@ -154,16 +164,21 @@ public class PeerStorageService implements StorageService {
         // build request
         MultiValueMap<String, Object> parts = new LinkedMultiValueMap<>();
         parts.add("file", resource);
-        parts.add("computer-id", computerId);
+//        parts.add("computer-id", computerId);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
         val requestEntity = new HttpEntity<>(parts, headers);
 
         // perform HTTP request
-        URL uploadUrl = new URL(baseUrl, "upload");
+        URI uri = UriComponentsBuilder.fromUri(baseUri)
+                .path("upload")
+                .queryParam("computer-id", computerId)
+                .encode()
+                .build()
+                .toUri();
         log.debug("Submitting multipart POST request: {}", requestEntity);
         ResponseEntity<String> responseEntity = restTemplate.exchange(
-                getUriSafe(uploadUrl),
+                uri,
                 HttpMethod.POST,
                 requestEntity,
                 String.class);
@@ -175,16 +190,24 @@ public class PeerStorageService implements StorageService {
     }
 
     private InputStream downloadRevision(String revisionId) throws IOException, RevisionNotFoundException {
-        //TODO use UriBuilderFactory
-        URL url = new URL(baseUrl, String.format("download/%s?computer-id=%s", revisionId, computerId));
-        return getInputStream(url, () -> new RevisionNotFoundException(revisionId));
+        URI uri = UriComponentsBuilder.fromUri(baseUri)
+                .path("download/{revisionId}")
+                .queryParam("computer-id", computerId)
+                .encode()
+                .buildAndExpand(revisionId)
+                .toUri();
+        return getInputStream(uri, () -> new RevisionNotFoundException(revisionId));
     }
 
     private InputStream downloadFile(String filename) throws IOException, FileNotFoundException {
-        //TODO use UriBuilderFactory
-        String encodedFilename = UriUtils.encode(filename, Charset.defaultCharset());
-        URL url = new URL(baseUrl, String.format("download?computer-id=%s&filename=%s", computerId, encodedFilename));
-        return getInputStream(url, () -> new FileNotFoundException(filename));
+        URI uri = UriComponentsBuilder.fromUri(baseUri)
+                .path("download")
+                .queryParam("computer-id", computerId)
+                .queryParam("filename", filename)
+                .encode()
+                .build()
+                .toUri();
+        return getInputStream(uri, () -> new FileNotFoundException(filename));
     }
 
     /**
@@ -193,14 +216,15 @@ public class PeerStorageService implements StorageService {
      * {@link Supplier}. If the response has an other non-successful status (not 2xx), throws a {@link IOException}.
      *
      * @param <E> the type of the exception thrown in case of 404
+     * @param downloadUri
      * @throws E           if the HTTP response has status 404
      * @throws IOException if the HTTP response has an other non-success status (not 2xx) or if there was any other error
      */
-    private <E extends Throwable> InputStream getInputStream(URL downloadUrl, Supplier<E> status404ExceptionSupplier) throws E, IOException {
-        log.info("Downloading from URL {}", downloadUrl);
+    private <E extends Throwable> InputStream getInputStream(URI downloadUri, Supplier<E> status404ExceptionSupplier) throws E, IOException {
+        log.info("Downloading from URL {}", downloadUri);
 
         // perform call
-        ResponseEntity<Resource> responseEntity = restTemplate.getForEntity(getUriSafe(downloadUrl), Resource.class);
+        ResponseEntity<Resource> responseEntity = restTemplate.getForEntity(downloadUri, Resource.class);
 
         // map 404 to exception using specified Supplier
         if (responseEntity.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
@@ -211,14 +235,6 @@ public class PeerStorageService implements StorageService {
 
         //noinspection ConstantConditions
         return responseEntity.getBody().getInputStream();
-    }
-
-    private static URI getUriSafe(URL url) {
-        try {
-            return url.toURI();
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     private void assertResponseSuccessful(ResponseEntity<?> responseEntity) throws IOException {
