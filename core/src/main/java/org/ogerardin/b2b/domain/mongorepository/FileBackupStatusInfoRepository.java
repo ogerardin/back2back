@@ -9,13 +9,12 @@ import org.ogerardin.b2b.domain.entity.FileBackupStatusInfo;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.data.builder.MongoItemReaderBuilder;
 import org.springframework.data.mongodb.core.MongoOperations;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.repository.query.MongoEntityInformation;
 import org.springframework.data.mongodb.repository.support.SimpleMongoRepository;
 
-import java.nio.file.Path;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -48,34 +47,26 @@ public class FileBackupStatusInfoRepository
     }
 
     @Override
-    public void touch(Path path, Map<String, String> newHashes) {
-        Optional<FileBackupStatusInfo> maybeStatusInfo = getLatestStoredRevision(path);
-        FileBackupStatusInfo statusInfo = maybeStatusInfo.orElseGet(() -> new FileBackupStatusInfo(path));
-        statusInfo.setDeleted(false);
-        statusInfo.setCurrentHashes(newHashes);
-        saveRevisionInfo(statusInfo);
+    public void saveStatusInfo(FileBackupStatusInfo statusInfo) {
+        super.save(statusInfo);
     }
 
     @Override
-    public void saveRevisionInfo(FileBackupStatusInfo revision) {
-        super.save(revision);
-    }
-
-    @Override
-    public ItemReader<FileBackupStatusInfo> reader() {
+    public ItemReader<FileBackupStatusInfo> backupRequestedItemReader() {
         return new MongoItemReaderBuilder<FileBackupStatusInfo>()
                 .template(mongoOperations)
                 .saveState(false)
                 .collection(entityInformation.getCollectionName())
                 .targetType(FileBackupStatusInfo.class)
-                .query(new Query().limit(Integer.MAX_VALUE)) // return all items
+                .query(new Query(Criteria.where("backupRequested").is(Boolean.TRUE))
+                        .limit(Integer.MAX_VALUE))
                 .sorts(new HashMap<>())
                 .pageSize(10)  // fetch N at a time
                 .build();
     }
 
     @Override
-    public long deletedDeleted() {
+    public long removeDeleted() {
         MongoCollection<Document> collection = mongoOperations.getCollection(entityInformation.getCollectionName());
         DeleteResult deleteResult = collection.deleteMany(BasicDBObject.parse("{ \"deleted\": {\"$eq\": true}}"));
         return deleteResult.getDeletedCount();

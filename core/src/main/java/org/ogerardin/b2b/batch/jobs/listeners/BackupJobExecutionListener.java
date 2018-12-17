@@ -42,8 +42,9 @@ public class BackupJobExecutionListener extends BackupSetAwareBean implements Jo
 
         BackupSet backupSet = getBackupSet();
         backupSet.setLastBackupCompleteTime(completeTime);
-        backupSet.setBatchCount(0);
-        backupSet.setBatchSize(0);
+//        backupSet.setBatchCount(0);
+//        backupSet.setBatchSize(0);
+        backupSet.getBatchFiles().reset();
 
         String status = "Complete";
         long pauseAfterBackup = properties.getPauseAfterBackup();

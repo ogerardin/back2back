@@ -21,4 +21,11 @@ public class B2BProperties {
     /** Pause between backup jobs */
     long pauseAfterBackup = 30 * 60 * 1000;
 
+    /**
+     * Number of files processed in one chunk during the "compute batch" phase.
+     * This affects how many hashes are saved in the hash database at a time, and also how often statistics are saved
+     * to the backup set.
+     */
+    int listFilesChunkSize = 10;
+
 }

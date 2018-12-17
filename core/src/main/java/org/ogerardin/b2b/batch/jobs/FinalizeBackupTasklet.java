@@ -22,7 +22,7 @@ public class FinalizeBackupTasklet implements Tasklet {
         log.info("Cleaning up...");
 
         // remove info about deleted files
-        long deletedCount = fileBackupStatusInfoProvider.deletedDeleted();
+        long deletedCount = fileBackupStatusInfoProvider.removeDeleted();
         log.debug("Removed {} entries for deleted files", deletedCount);
 
         return RepeatStatus.FINISHED;

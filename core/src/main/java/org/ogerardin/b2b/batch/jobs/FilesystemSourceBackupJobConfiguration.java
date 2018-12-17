@@ -2,7 +2,8 @@ package org.ogerardin.b2b.batch.jobs;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.val;
-import org.ogerardin.b2b.batch.jobs.listeners.ComputeBatchStepExecutionListener;
+import org.ogerardin.b2b.batch.jobs.listeners.ComputeBatchStepItemWriteListener;
+import org.ogerardin.b2b.batch.jobs.listeners.InitTaskletExecutionListener;
 import org.ogerardin.b2b.batch.jobs.support.HashFilteringStrategy;
 import org.ogerardin.b2b.batch.jobs.support.LocalFileInfo;
 import org.ogerardin.b2b.domain.FileBackupStatusInfoProvider;
@@ -13,7 +14,6 @@ import org.ogerardin.b2b.hash.HashProvider;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.scope.context.JobContext;
-import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.support.CompositeItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +29,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Predicate;
 
 /**
  * Abstract superclass for jobs that accept a source of type {@link FilesystemSource}
@@ -41,6 +42,63 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
     public FilesystemSourceBackupJobConfiguration() {
         addStaticParameter("source.type", FilesystemSource.class.getName());
         addMandatoryParameter("source.roots");
+    }
+
+    /**
+     * A {@link Step} that computes the backup batch using local information
+     */
+    @Bean
+    @JobScope
+    protected Step computeBatchStep(
+            FilesystemItemReader filesystemItemReader,
+            BackupStatusUpdater backupStatusUpdater,
+            HashingItemProcessor hashingItemProcessor,
+            StatusComputingItemProcessor statusComputingItemProcessor,
+            BackupFlagComputingItemProcessor backupFlagComputingItemProcessor,
+            ComputeBatchStepItemWriteListener computeBatchStepItemWriteListener) {
+        return stepBuilderFactory
+                .get("computeBatchStep")
+                .<LocalFileInfo, FileBackupStatusInfo>chunk(properties.getListFilesChunkSize())
+                // read files from local filesystem
+                .reader(filesystemItemReader)
+                // compute FileBackupStatusInfo
+                .processor(new CompositeItemProcessor<LocalFileInfo, FileBackupStatusInfo>() {
+                    {
+                        setDelegates(Arrays.asList(
+                                hashingItemProcessor,               // compute hash of current file
+                                statusComputingItemProcessor,       // load or create corresponding FileBackupStatusInfo
+                                backupFlagComputingItemProcessor    // test if backup required
+
+                        ));
+                    }
+                })
+                // saved the FileBackupStatusInfo
+                .writer(backupStatusUpdater)
+                // update BackupSet with stats
+                .listener(computeBatchStepItemWriteListener)
+                .build();
+    }
+
+    @Bean
+    @JobScope
+    protected StatusComputingItemProcessor statusComputingItemProcessor(
+            FileBackupStatusInfoProvider fileBackupStatusInfoProvider
+    ) {
+        return new StatusComputingItemProcessor(fileBackupStatusInfoProvider);
+    }
+
+    @Bean
+    protected BackupFlagComputingItemProcessor backupFlagComputingItemProcessor(
+            Predicate<FileBackupStatusInfo> filteringStrategy
+    ) {
+        return new BackupFlagComputingItemProcessor(filteringStrategy);
+    }
+
+    @Bean
+    protected Predicate<FileBackupStatusInfo> filteringStrategy(
+            @Qualifier("javaMD5Calculator") HashProvider hashProvider
+    ) {
+        return new HashFilteringStrategy(hashProvider.name());
     }
 
     /**
@@ -66,35 +124,9 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
     protected FilesystemItemReader filesystemItemReader(
             @Value("#{jobParameters['source.roots']}") String sourceRootsParam
     ) throws IOException {
-        List<Path> roots = OBJECT_MAPPER.readValue(sourceRootsParam, new TypeReference<List<Path>>() {});
+        List<Path> roots = OBJECT_MAPPER.readValue(sourceRootsParam, new TypeReference<List<Path>>() {
+        });
         return new FilesystemItemReader(roots);
-    }
-
-    /**
-     * A job-scoped pass-through {@link ItemProcessor} that updates this job's total file and byte cound
-     */
-    @Bean
-    @JobScope
-    protected ItemProcessor<LocalFileInfo, LocalFileInfo> countingProcessor(BackupJobContext jobContext) {
-        return item -> {
-            long fileSize = item.getFileAttributes().size();
-            jobContext.getTotalFileStats().addFile(fileSize);
-            return item;
-        };
-    }
-
-    /**
-     * A job-scoped {@link ItemProcessor} that filters out {@link LocalFileInfo} items
-     * corresponding to a file that isn't different from the latest stored version, base on file hashes.
-     */
-    @Bean
-    @JobScope
-    protected FilteringItemProcessor filteringProcessor(
-            @Qualifier("javaMD5Calculator") HashProvider hashProvider,
-            FileBackupStatusInfoProvider fileBackupStatusInfoProvider
-    ) {
-        val filteringStrategy = new HashFilteringStrategy(fileBackupStatusInfoProvider, hashProvider);
-        return new FilteringItemProcessor(filteringStrategy);
     }
 
     @Bean
@@ -108,41 +140,24 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
         // to customize collection name for an entity we need to build a taylored MappingMongoEntityInformation
         val mappingContext = mongoOperations.getConverter().getMappingContext();
         //noinspection unchecked
-        val entity = (MongoPersistentEntity<FileBackupStatusInfo>) mappingContext.getPersistentEntity(FileBackupStatusInfo.class);
-        val entityInformation = new MappingMongoEntityInformation<FileBackupStatusInfo, String>(Objects.requireNonNull(entity), collectionName);
+        val entity = (MongoPersistentEntity<FileBackupStatusInfo>) mappingContext
+                .getPersistentEntity(FileBackupStatusInfo.class);
+        val entityInformation = new MappingMongoEntityInformation<FileBackupStatusInfo, String>(Objects
+                .requireNonNull(entity), collectionName);
 
         return new FileBackupStatusInfoRepository(entityInformation, mongoOperations);
-    }
-
-    /**
-     * A job-scoped composite {@link ItemProcessor} that does the following:
-     * - increment this job's total file and byte count using {@link #countingProcessor}
-     * - compute the file's hash using {@link HashingItemProcessor}
-     */
-    @Bean
-    @JobScope
-    protected ItemProcessor<LocalFileInfo, LocalFileInfo> countingAndHashingItemProcessor(
-            ItemProcessor<LocalFileInfo, LocalFileInfo> countingProcessor,
-            HashingItemProcessor hashingProcessor) {
-        return new CompositeItemProcessor<LocalFileInfo, LocalFileInfo>() {
-            {
-                setDelegates(Arrays.asList(
-                        countingProcessor,
-                        hashingProcessor
-                ));
-            }
-        };
     }
 
     @Bean
     @JobScope
     protected Step initBatchStep(
             BackupJobContext jobContext,
-            FileBackupStatusInfoProvider fileBackupStatusInfoProvider
-    ) {
+            FileBackupStatusInfoProvider fileBackupStatusInfoProvider,
+            InitTaskletExecutionListener initTaskletExecutionListener) {
         return stepBuilderFactory
                 .get("initBatchStep" + this.getClass().getSimpleName())
                 .tasklet(new InitBatchTasklet(fileBackupStatusInfoProvider, jobContext))
+                .listener(initTaskletExecutionListener)
                 .build();
     }
 
@@ -157,46 +172,12 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
                 .build();
     }
 
-    /**
-     * A {@link Step} that computes the backup batch using local information
-     * and stores it into the context
-     */
-    @Bean
-    @JobScope
-    protected Step computeBatchStep(
-            FilesystemItemReader filesystemItemReader,
-            ItemProcessor<LocalFileInfo, LocalFileInfo> countingAndHashingItemProcessor,
-            ComputeBatchStepExecutionListener computeBatchStepExecutionListener,
-            BackupStatusToucher backupStatusToucher
-    ) {
-        return stepBuilderFactory
-                .get("computeBatchStep")
-                .<LocalFileInfo, LocalFileInfo> chunk(10)
-                // read files from local filesystem
-                .reader(filesystemItemReader)
-                // filter out files that don't need backup.
-                .processor(countingAndHashingItemProcessor)
-                // store them in the context
-                .writer(backupStatusToucher)
-                // update BackupSet with stats
-                .listener(computeBatchStepExecutionListener)
-                .build();
-    }
-
     @Bean
     @JobScope
     protected BackupStatusUpdater backupStatusUpdater(
             FileBackupStatusInfoProvider fileBackupStatusInfoProvider
     ) {
         return new BackupStatusUpdater(fileBackupStatusInfoProvider);
-    }
-
-    @Bean
-    @JobScope
-    protected BackupStatusToucher backupStatusToucher(
-            FileBackupStatusInfoProvider fileBackupStatusInfoProvider
-    ) {
-        return new BackupStatusToucher(fileBackupStatusInfoProvider);
     }
 
 }

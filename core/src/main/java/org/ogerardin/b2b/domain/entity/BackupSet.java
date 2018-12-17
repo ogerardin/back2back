@@ -2,6 +2,7 @@ package org.ogerardin.b2b.domain.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
+import org.ogerardin.b2b.batch.jobs.support.FileSetStats;
 import org.ogerardin.b2b.domain.JobParametersPopulator;
 import org.ogerardin.b2b.mongo.cascade.CascadeSave;
 import org.springframework.batch.core.JobParameter;
@@ -39,18 +40,13 @@ public class BackupSet implements JobParametersPopulator {
     private Instant nextBackupTime;
 
     // total files/bytes in the source
-    private long fileCount;
-    private long size;
+    FileSetStats allFiles = new FileSetStats();
 
     // total files/bytes to backup during the current job run
-    //TODO use FileSetStats?
-    private long batchCount;
-    private long batchSize;
+    FileSetStats batchFiles = new FileSetStats();
 
     // remaining files/bytes to backup during the current job run
-    //TODO use FileSetStats?
-    private long toDoCount;
-    private long toDoSize;
+    FileSetStats toDoFiles = new FileSetStats();
 
     private String lastError;
 
@@ -76,10 +72,9 @@ public class BackupSet implements JobParametersPopulator {
     public void resetState() {
         currentBackupStartTime = null;
         nextBackupTime = null;
-        batchCount = 0;
-        batchSize = 0;
-        toDoCount = 0;
-        toDoSize = 0;
+        allFiles.reset();
+        batchFiles.reset();
+        toDoFiles.reset();
         lastError = null;
         status = "Inactive";
         jobName = null;

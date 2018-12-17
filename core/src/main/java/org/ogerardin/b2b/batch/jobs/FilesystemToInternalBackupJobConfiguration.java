@@ -75,7 +75,7 @@ public class FilesystemToInternalBackupJobConfiguration extends FilesystemSource
                 // handle 1 file at a time
                 .<FileBackupStatusInfo, FileBackupStatusInfo> chunk(1)
                 // read files from local backup status database
-                .reader(fileBackupStatusInfoProvider.reader())
+                .reader(fileBackupStatusInfoProvider.backupRequestedItemReader())
                 // perform backup
                 .processor(backupItemProcessor)
                 // store backup status

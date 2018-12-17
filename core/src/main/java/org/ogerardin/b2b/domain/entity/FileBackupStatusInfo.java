@@ -23,8 +23,7 @@ public class FileBackupStatusInfo {
     @Id
     private String path;
 
-    @Deprecated
-    private String md5hash;
+    private long size;
 
     /**
      * Hashes of the last backed up revision of the file
@@ -40,6 +39,11 @@ public class FileBackupStatusInfo {
      * {@code true} if the file has been deleted from the filesystem since last backup
      */
     private boolean deleted = false;
+
+    /**
+     * {@code true} if the corresponding file must be backed up in the next batch
+     */
+    private boolean backupRequested = true;
 
     private Instant lastSuccessfulBackup;
 
@@ -59,17 +63,19 @@ public class FileBackupStatusInfo {
     }
 
     @Deprecated
-    public FileBackupStatusInfo(String path, Map<String, String> lastSuccessfulBackupHashes) {
-        this.path = path;
-        this.lastSuccessfulBackupHashes = lastSuccessfulBackupHashes;
-    }
-
-    @Deprecated
     public FileBackupStatusInfo(String path, String md5hash, boolean deleted) {
         this.path = path;
-        this.md5hash = md5hash;
         this.deleted = deleted;
         this.lastSuccessfulBackupHashes.put("MD5", md5hash);
+    }
+
+    public FileBackupStatusInfo(Path path, long size) {
+        this(path.toString(), size);
+    }
+
+    public FileBackupStatusInfo(String path, long size) {
+        this.path = path;
+        this.size = size;
     }
 
     /**
@@ -100,4 +106,5 @@ public class FileBackupStatusInfo {
         // else file considered unchanged
         return false;
     }
+
 }

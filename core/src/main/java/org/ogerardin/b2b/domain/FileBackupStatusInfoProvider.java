@@ -4,7 +4,6 @@ import org.ogerardin.b2b.domain.entity.FileBackupStatusInfo;
 import org.springframework.batch.item.ItemReader;
 
 import java.nio.file.Path;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -32,24 +31,18 @@ public interface FileBackupStatusInfoProvider {
     void untouchAll();
 
     /**
-     * If the specified file is known, mark it as "not deleted", otherwise create an entry.
-     * In both cases set {@link FileBackupStatusInfo#currentHashes} to the specified hashes.
-     */
-    void touch(Path path, Map<String, String> newHashes);
-
-    /**
      * save a provided {@link FileBackupStatusInfo}
      */
-    void saveRevisionInfo(FileBackupStatusInfo revision);
+    void saveStatusInfo(FileBackupStatusInfo revision);
 
     /**
-     * @return an {@link ItemReader} that provides all items in no specific order
+     * @return an {@link ItemReader} that will read all items where backupRequested is true (in no particular order)
      */
-    ItemReader<FileBackupStatusInfo> reader();
+    ItemReader<FileBackupStatusInfo> backupRequestedItemReader();
 
     /**
      * Remove the entries for deleted files
      * @return the number of deleted entries
      */
-    long deletedDeleted();
+    long removeDeleted();
 }

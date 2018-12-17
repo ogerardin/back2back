@@ -1,27 +1,26 @@
 package org.ogerardin.b2b.batch.jobs.listeners;
 
-import org.ogerardin.b2b.batch.jobs.support.LocalFileInfo;
+import org.ogerardin.b2b.batch.jobs.support.FileSetStats;
 import org.ogerardin.b2b.domain.entity.BackupSet;
+import org.ogerardin.b2b.domain.entity.FileBackupStatusInfo;
 import org.springframework.batch.core.ItemWriteListener;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.nio.file.Path;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
 import java.util.List;
 
 @Component
 @JobScope
-public class FileBackupListener extends BackupSetAwareBean implements ItemWriteListener<LocalFileInfo> {
+public class FileBackupListener extends BackupSetAwareBean implements ItemWriteListener<FileBackupStatusInfo> {
 
     @Autowired
     BackupSetStatusPublisher backupSetStatusPublisher;
 
     @Override
-    public void beforeWrite(List<? extends LocalFileInfo> items) {
-        Path[] paths = getPaths(items);
+    public void beforeWrite(List<? extends FileBackupStatusInfo> items) {
+        String[] paths = getPaths(items);
         BackupSet backupSet = getBackupSet();
         backupSet.setStatus("Backing up " + Arrays.toString(paths));
 
@@ -30,36 +29,40 @@ public class FileBackupListener extends BackupSetAwareBean implements ItemWriteL
     }
 
     @Override
-    public void afterWrite(List<? extends LocalFileInfo> items) {
-        Path[] paths = getPaths(items);
+    public void afterWrite(List<? extends FileBackupStatusInfo> items) {
+        String[] paths = getPaths(items);
         BackupSet backupSet = getBackupSet();
+
         backupSet.setStatus("Finished backing up " + Arrays.toString(paths));
         // subtract written size and count from to do
-        long writtenSize = items.stream()
-                .map(LocalFileInfo::getFileAttributes)
-                .mapToLong(BasicFileAttributes::size)
-                .sum();
-
-        backupSet.setToDoSize(backupSet.getToDoSize() - writtenSize);
-        backupSet.setToDoCount(backupSet.getToDoCount() - items.size());
+        subtractFromToDo(items, backupSet);
 
         backupSetRepository.save(backupSet);
         backupSetStatusPublisher.publishStatus(backupSet);
     }
 
     @Override
-    public void onWriteError(Exception exception, List<? extends LocalFileInfo> items) {
-        Path[] paths = getPaths(items);
+    public void onWriteError(Exception exception, List<? extends FileBackupStatusInfo> items) {
+        String[] paths = getPaths(items);
         BackupSet backupSet = getBackupSet();
         backupSet.setStatus("ERROR backing up " + Arrays.toString(paths));
+        // subtract written size and count from to do
+        subtractFromToDo(items, backupSet);
 
         backupSetRepository.save(backupSet);
         backupSetStatusPublisher.publishStatus(backupSet);
     }
 
-    private Path[] getPaths(List<? extends LocalFileInfo> items) {
+    private void subtractFromToDo(List<? extends FileBackupStatusInfo> items, BackupSet backupSet) {
+        FileSetStats toDoFileStats = backupSet.getToDoFiles();
+        items.stream()
+                .mapToLong(FileBackupStatusInfo::getSize)
+                .forEach(toDoFileStats::subtractFile);
+    }
+
+    private String[] getPaths(List<? extends FileBackupStatusInfo> items) {
         return items.stream()
-                .map(LocalFileInfo::getPath)
-                .toArray(Path[]::new);
+                .map(FileBackupStatusInfo::getPath)
+                .toArray(String[]::new);
     }
 }

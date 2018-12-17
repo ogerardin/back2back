@@ -5,6 +5,4 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 
 public interface BackupSourceRepository extends MongoRepository<BackupSource, String> {
 
-    BackupSource findByName(String name);
-
 }

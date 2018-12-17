@@ -4,11 +4,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.ogerardin.b2b.domain.FileBackupStatusInfoProvider;
 import org.ogerardin.b2b.domain.entity.FileBackupStatusInfo;
-import org.ogerardin.b2b.hash.ByteArrayHashCalculator;
-import org.ogerardin.b2b.hash.HashProvider;
 
-import java.nio.file.Path;
-import java.util.Optional;
 import java.util.function.Predicate;
 
 /**
@@ -17,49 +13,41 @@ import java.util.function.Predicate;
  */
 @Slf4j
 @Data
-public class HashFilteringStrategy implements Predicate<LocalFileInfo> {
+public class HashFilteringStrategy implements Predicate<FileBackupStatusInfo> {
 
-    /** Provides a way to query information (most importantly file hash) abouth the stored file */
-    private final FileBackupStatusInfoProvider fileBackupStatusInfoProvider;
-
-    /** The hash engine to use. See implementations of {@link ByteArrayHashCalculator} */
-    private final HashProvider hashCalculator;
+    /** The hash algorythm to be used as reference */
+    private final String referenceHashName;
 
     /**
      * @return true if the local file with the specified path must be backed up
      */
     @Override
-    public boolean test(LocalFileInfo item) {
+    public boolean test(FileBackupStatusInfo item) {
 
-        Path path = item.getPath();
+        String path = item.getPath();
 
         // retrieve hash of stored file version
-        Optional<FileBackupStatusInfo> info = fileBackupStatusInfoProvider.getLatestStoredRevision(path);
-        if (!info.isPresent()) {
+        if (item.getCurrentHashes().isEmpty()) {
             // no stored information: the file is a new file
             log.debug("NEW FILE: {}", path);
             // backup requested
             return true;
         }
 
-
-        String hashName = hashCalculator.name();
-        String storedHash = info.get().getLastSuccessfulBackupHashes().get(hashName);
+        String storedHash = item.getLastSuccessfulBackupHashes().get(referenceHashName);
 
         if (storedHash == null) {
             // no stored hash for the current hashing algorithm (might happen if the hash provider has changed since last backup)
-            log.debug("NO {} HASH FOR: {}", hashName, path);
+            log.debug("NO {} HASH FOR: {}", referenceHashName, path);
             // backup requested (this will store the newly computed hash)
             return true;
         }
 
         // compare current file's hash with stored hash
-        String computedHash = item.getHashes().get(hashName);
+        String computedHash = item.getCurrentHashes().get(referenceHashName);
         if (storedHash.equalsIgnoreCase(computedHash)) {
-            // same hash, file can be skipped
+            // same hash, no need to backup
             log.debug("Unchanged: {}", path);
-            // mark the file as "not deleted"
-            fileBackupStatusInfoProvider.touch(path, item.getHashes());
             // backup NOT requested
             return false;
         }

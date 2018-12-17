@@ -21,8 +21,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
 
-import java.net.MalformedURLException;
-
 /**
  * Job configuration for a backup job that processes a source of type {@link FilesystemSource}
  * and backs up to a network peer.
@@ -77,7 +75,7 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
                 // handle 1 file at a time
                 .<FileBackupStatusInfo, FileBackupStatusInfo> chunk(1)
                 // read files from local backup status database
-                .reader(fileBackupStatusInfoProvider.reader())
+                .reader(fileBackupStatusInfoProvider.backupRequestedItemReader())
                 // perform backup
                 .processor(peerBackupItemProcessor)
                 // store backup status
@@ -96,7 +94,7 @@ public class FilesystemToPeerBackupJobConfiguration extends FilesystemSourceBack
     protected BackupItemProcessor peerBackupItemProcessor(
             @Value("#{jobParameters['target.hostname']}") String targetHostname,
             @Value("#{jobParameters['target.port']}") Integer targetPort
-    ) throws MalformedURLException {
+    ) {
         if (targetPort == null) {
             targetPort = properties.getDefaultPeerPort();
         }

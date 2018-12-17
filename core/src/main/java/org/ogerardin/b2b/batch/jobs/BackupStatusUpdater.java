@@ -9,6 +9,7 @@ import org.springframework.lang.NonNull;
 import java.util.List;
 
 /**
+ * A {@link ItemWriter} that just saves {@link FileBackupStatusInfo}s into a specified {@link FileBackupStatusInfoProvider}
  */
 @Slf4j
 class BackupStatusUpdater implements ItemWriter<FileBackupStatusInfo> {
@@ -22,7 +23,7 @@ class BackupStatusUpdater implements ItemWriter<FileBackupStatusInfo> {
     @Override
     public void write(@NonNull List<? extends FileBackupStatusInfo> items) {
         for (FileBackupStatusInfo item : items) {
-            fileBackupStatusInfoProvider.saveRevisionInfo(item);
+            fileBackupStatusInfoProvider.saveStatusInfo(item);
         }
     }
 }

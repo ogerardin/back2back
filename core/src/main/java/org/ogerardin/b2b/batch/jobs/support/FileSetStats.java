@@ -19,8 +19,18 @@ public class FileSetStats {
     public FileSetStats() {
     }
 
+    public void reset() {
+        fileCount = 0;
+        byteCount = 0;
+    }
+
     public void addFile(long size) {
         fileCount++;
         byteCount += size;
+    }
+
+    public void subtractFile(long size) {
+        fileCount--;
+        byteCount -= size;
     }
 }
