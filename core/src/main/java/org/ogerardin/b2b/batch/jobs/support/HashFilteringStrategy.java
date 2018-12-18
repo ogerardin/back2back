@@ -1,22 +1,26 @@
 package org.ogerardin.b2b.batch.jobs.support;
 
+import com.google.common.collect.Sets;
 import lombok.Data;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.ogerardin.b2b.domain.FileBackupStatusInfoProvider;
 import org.ogerardin.b2b.domain.entity.FileBackupStatusInfo;
+import org.springframework.stereotype.Component;
 
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.Predicate;
 
 /**
  * A {@link Predicate} that decides if a local file should be backep up based on comparing its computed hash to a stored
  * hash provided by a {@link FileBackupStatusInfoProvider}
  */
+@Component
 @Slf4j
 @Data
 public class HashFilteringStrategy implements Predicate<FileBackupStatusInfo> {
-
-    /** The hash algorythm to be used as reference */
-    private final String referenceHashName;
 
     /**
      * @return true if the local file with the specified path must be backed up
@@ -27,33 +31,37 @@ public class HashFilteringStrategy implements Predicate<FileBackupStatusInfo> {
         String path = item.getPath();
 
         // retrieve hash of stored file version
-        if (item.getCurrentHashes().isEmpty()) {
+        Map<String, String> currentHashes = item.getCurrentHashes();
+        Map<String, String> lastSuccessfulBackupHashes = item.getLastSuccessfulBackupHashes();
+
+        if (lastSuccessfulBackupHashes.isEmpty()) {
             // no stored information: the file is a new file
             log.debug("NEW FILE: {}", path);
             // backup requested
             return true;
         }
 
-        String storedHash = item.getLastSuccessfulBackupHashes().get(referenceHashName);
+        Set<String> commonHashNames = Sets.intersection(
+                lastSuccessfulBackupHashes.keySet(),
+                currentHashes.keySet()
+        );
 
-        if (storedHash == null) {
-            // no stored hash for the current hashing algorithm (might happen if the hash provider has changed since last backup)
-            log.debug("NO {} HASH FOR: {}", referenceHashName, path);
-            // backup requested (this will store the newly computed hash)
+        if (commonHashNames.isEmpty()) {
+            //no common hash type -> must assume possibly changed
             return true;
         }
 
-        // compare current file's hash with stored hash
-        String computedHash = item.getCurrentHashes().get(referenceHashName);
-        if (storedHash.equalsIgnoreCase(computedHash)) {
-            // same hash, no need to backup
-            log.debug("Unchanged: {}", path);
-            // backup NOT requested
-            return false;
+        for (String hashName : commonHashNames) {
+            @NonNull String lastBackupHash = lastSuccessfulBackupHashes.get(hashName);
+            @NonNull String currentHash = currentHashes.get(hashName);
+            if (!Objects.equals(lastBackupHash, currentHash)) {
+                // found a hash type with different values -> file changed
+                log.debug("{} differenc: saved {}, current {}: {}", hashName, lastBackupHash, currentHash, path);
+                return true;
+            }
         }
 
-        log.debug("CHANGED: {}", path);
-        // backup requested
-        return true;
+        // else file considered unchanged
+        return false;
     }
 }

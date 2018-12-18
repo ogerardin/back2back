@@ -10,14 +10,12 @@ import org.ogerardin.b2b.domain.FileBackupStatusInfoProvider;
 import org.ogerardin.b2b.domain.entity.FileBackupStatusInfo;
 import org.ogerardin.b2b.domain.entity.FilesystemSource;
 import org.ogerardin.b2b.domain.mongorepository.FileBackupStatusInfoRepository;
-import org.ogerardin.b2b.hash.HashProvider;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.scope.context.JobContext;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.support.CompositeItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.mongodb.core.MongoOperations;
@@ -29,7 +27,6 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Predicate;
 
 /**
  * Abstract superclass for jobs that accept a source of type {@link FilesystemSource}
@@ -89,17 +86,11 @@ public abstract class FilesystemSourceBackupJobConfiguration extends BackupJobCo
 
     @Bean
     protected BackupFlagComputingItemProcessor backupFlagComputingItemProcessor(
-            Predicate<FileBackupStatusInfo> filteringStrategy
+            HashFilteringStrategy filteringStrategy
     ) {
         return new BackupFlagComputingItemProcessor(filteringStrategy);
     }
 
-    @Bean
-    protected Predicate<FileBackupStatusInfo> filteringStrategy(
-            @Qualifier("javaMD5Calculator") HashProvider hashProvider
-    ) {
-        return new HashFilteringStrategy(hashProvider.name());
-    }
 
     /**
      * A job-scoped object that contains contextual data for the current job, most notably the list of files

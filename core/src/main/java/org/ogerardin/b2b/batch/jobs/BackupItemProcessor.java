@@ -42,20 +42,17 @@ class BackupItemProcessor implements ItemProcessor<FileBackupStatusInfo, FileBac
             if (item.isDeleted()) {
                 log.debug("MARKING AS DELETED: " + path);
                 storageService.delete(path);
+                item.setLastSuccessfulBackupHashes(Collections.emptyMap());
+                //entry will be deleted during cleanup step
             }
-            else if (item.fileChanged()){
+            else if (item.isBackupRequested()) {
                 log.debug("STORING: " + path);
                 storageService.store(path);
-                item.setLastSuccessfulBackup(now);
-                item.setLastBackupAttemptError(null);
                 item.setLastSuccessfulBackupHashes(item.getCurrentHashes());
-                item.setCurrentHashes(Collections.emptyMap());
+                item.setBackupRequested(false);
             }
-            else {
-                log.debug("UNCHANGED: " + path);
-                item.setLastSuccessfulBackupHashes(item.getCurrentHashes());
-                item.setCurrentHashes(Collections.emptyMap());
-            }
+            item.setLastSuccessfulBackup(now);
+            item.setLastBackupAttemptError(null);
         } catch (Exception e) {
             log.error("Failed to store file: " + path, e);
             item.setLastBackupAttemptError(e.toString());

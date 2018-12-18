@@ -21,8 +21,9 @@ public class StatusComputingItemProcessor implements ItemProcessor<LocalFileInfo
     public FileBackupStatusInfo process(LocalFileInfo item) {
         Path path = item.getPath();
         long size = item.getFileAttributes().size();
+
         Optional<FileBackupStatusInfo> maybeStatusInfo = fileBackupStatusInfoProvider.getLatestStoredRevision(path);
-        val statusInfo = maybeStatusInfo.orElseGet(() -> new FileBackupStatusInfo(path, size));
+        val statusInfo = maybeStatusInfo.orElseGet(() -> FileBackupStatusInfo.forNewFile(path, size));
         statusInfo.setDeleted(false);
         statusInfo.setCurrentHashes(item.getHashes());
         fileBackupStatusInfoProvider.saveStatusInfo(statusInfo);

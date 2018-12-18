@@ -1,8 +1,6 @@
 package org.ogerardin.b2b.domain.entity;
 
-import com.google.common.collect.Sets;
 import lombok.Data;
-import lombok.NonNull;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -10,8 +8,6 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
 
 /**
  * Meta-data about a backed up file.
@@ -54,57 +50,19 @@ public class FileBackupStatusInfo {
     public FileBackupStatusInfo() {
     }
 
-    public FileBackupStatusInfo(String path) {
-        this.path = path;
-    }
-
-    public FileBackupStatusInfo(Path path) {
-        this(path.toString());
-    }
-
-    @Deprecated
-    public FileBackupStatusInfo(String path, String md5hash, boolean deleted) {
-        this.path = path;
-        this.deleted = deleted;
-        this.lastSuccessfulBackupHashes.put("MD5", md5hash);
-    }
-
-    public FileBackupStatusInfo(Path path, long size) {
+    private FileBackupStatusInfo(Path path, long size) {
         this(path.toString(), size);
     }
 
-    public FileBackupStatusInfo(String path, long size) {
+    private FileBackupStatusInfo(String path, long size) {
         this.path = path;
         this.size = size;
     }
 
-    /**
-     * @return true if the file has changed since last backup, i.e. at least one of the common hash types between
-     *  {@link #lastSuccessfulBackupHashes} and {@link #currentHashes} has different values, or there are no
-     *  common hash types.
-     */
-    public boolean fileChanged() {
-        Set<String> commonHashNames = Sets.intersection(
-                lastSuccessfulBackupHashes.keySet(),
-                currentHashes.keySet()
-        );
-
-        if (commonHashNames.isEmpty()) {
-            // no common hash type -> must assume possibly changed
-            return true;
-        }
-
-        for (String hashName : commonHashNames) {
-            @NonNull String lastBackupHash = lastSuccessfulBackupHashes.get(hashName);
-            @NonNull String currentHash = currentHashes.get(hashName);
-            if (!Objects.equals(lastBackupHash, currentHash)) {
-                // found a hash type with different values -> file changed
-                return true;
-            }
-        }
-
-        // else file considered unchanged
-        return false;
+    public static FileBackupStatusInfo forNewFile(Path path, long size) {
+        FileBackupStatusInfo statusInfo = new FileBackupStatusInfo(path, size);
+        statusInfo.setBackupRequested(true);
+        statusInfo.setDeleted(false);
+        return statusInfo;
     }
-
 }

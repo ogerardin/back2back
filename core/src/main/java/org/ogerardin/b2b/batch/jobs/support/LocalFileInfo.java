@@ -23,7 +23,7 @@ public class LocalFileInfo {
 
     private Map<String, String> hashes = new HashMap<>();
 
-    public LocalFileInfo(Path path, BasicFileAttributes fileAttributes) {
+    private LocalFileInfo(Path path, BasicFileAttributes fileAttributes) {
         this.path = path;
         this.fileAttributes = fileAttributes;
     }
@@ -33,7 +33,6 @@ public class LocalFileInfo {
     }
 
     public LocalFileInfo(Path path) throws IOException {
-        this.path = path;
-        this.fileAttributes = Files.readAttributes(this.path, BasicFileAttributes.class);
+        this(path, Files.readAttributes(path, BasicFileAttributes.class));
     }
 }

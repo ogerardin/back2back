@@ -36,7 +36,8 @@ public interface FileBackupStatusInfoProvider {
     void saveStatusInfo(FileBackupStatusInfo revision);
 
     /**
-     * @return an {@link ItemReader} that will read all items where backupRequested is true (in no particular order)
+     * @return an {@link ItemReader} that will read all items where backupRequested or deleted is true
+     * (in no particular order)
      */
     ItemReader<FileBackupStatusInfo> backupRequestedItemReader();
 
@@ -45,4 +46,6 @@ public interface FileBackupStatusInfoProvider {
      * @return the number of deleted entries
      */
     long removeDeleted();
+
+    String[] deletedFiles();
 }

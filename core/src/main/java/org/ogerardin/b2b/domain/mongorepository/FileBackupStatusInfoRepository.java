@@ -15,7 +15,11 @@ import org.springframework.data.mongodb.repository.query.MongoEntityInformation;
 import org.springframework.data.mongodb.repository.support.SimpleMongoRepository;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
+
+import static org.springframework.data.mongodb.core.query.Criteria.where;
+import static org.springframework.data.mongodb.core.query.Query.query;
 
 /**
  * A local Mongo repository used to store metadata about remotely backed up files.
@@ -23,8 +27,7 @@ import java.util.Optional;
  */
 public class FileBackupStatusInfoRepository
         extends SimpleMongoRepository<FileBackupStatusInfo, String>
-    implements FileBackupStatusInfoProvider
-{
+        implements FileBackupStatusInfoProvider {
 
     private final MongoOperations mongoOperations;
     private final MongoEntityInformation<FileBackupStatusInfo, String> entityInformation;
@@ -43,7 +46,7 @@ public class FileBackupStatusInfoRepository
     @Override
     public void untouchAll() {
         MongoCollection<Document> collection = mongoOperations.getCollection(entityInformation.getCollectionName());
-        collection.updateMany(new BasicDBObject(), BasicDBObject.parse("{ \"$set\": {\"deleted\": \"true\"}}"));
+        collection.updateMany(new BasicDBObject(), BasicDBObject.parse("{ \"$set\": {\"deleted\": true}}"));
     }
 
     @Override
@@ -58,8 +61,14 @@ public class FileBackupStatusInfoRepository
                 .saveState(false)
                 .collection(entityInformation.getCollectionName())
                 .targetType(FileBackupStatusInfo.class)
-                .query(new Query(Criteria.where("backupRequested").is(Boolean.TRUE))
-                        .limit(Integer.MAX_VALUE))
+                // retrieve items where backupRequested == true or deleted == true
+                .query(new Query(new Criteria().orOperator(
+                        where("deleted").is(Boolean.TRUE),
+                        where("backupRequested").is(Boolean.TRUE)
+                    )
+                )
+                .limit(Integer.MAX_VALUE))
+                // no sorting necessary
                 .sorts(new HashMap<>())
                 .pageSize(10)  // fetch N at a time
                 .build();
@@ -70,6 +79,20 @@ public class FileBackupStatusInfoRepository
         MongoCollection<Document> collection = mongoOperations.getCollection(entityInformation.getCollectionName());
         DeleteResult deleteResult = collection.deleteMany(BasicDBObject.parse("{ \"deleted\": {\"$eq\": true}}"));
         return deleteResult.getDeletedCount();
+    }
+
+    @Override
+    public String[] deletedFiles() {
+        List<FileBackupStatusInfo> deleted = mongoOperations.find(
+                        query(where("deleted").is(Boolean.TRUE)),
+                        FileBackupStatusInfo.class,
+                        entityInformation.getCollectionName()
+                );
+        return deleted
+                .stream()
+                .map(FileBackupStatusInfo::getPath)
+                .toArray(String[]::new);
+
     }
 
 }

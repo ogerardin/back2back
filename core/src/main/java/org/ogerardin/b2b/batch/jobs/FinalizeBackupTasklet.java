@@ -8,6 +8,8 @@ import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.lang.NonNull;
 
+import java.util.Arrays;
+
 @Slf4j
 public class FinalizeBackupTasklet implements Tasklet {
 
@@ -22,8 +24,11 @@ public class FinalizeBackupTasklet implements Tasklet {
         log.info("Cleaning up...");
 
         // remove info about deleted files
+        if (log.isDebugEnabled()) {
+            log.debug("Deleted files: {}", Arrays.toString(fileBackupStatusInfoProvider.deletedFiles()));
+        }
         long deletedCount = fileBackupStatusInfoProvider.removeDeleted();
-        log.debug("Removed {} entries for deleted files", deletedCount);
+        log.info("Removed {} entries for deleted files", deletedCount);
 
         return RepeatStatus.FINISHED;
     }
