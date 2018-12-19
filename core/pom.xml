@@ -169,7 +169,7 @@
                                 <id>repackage</id>
                                 <configuration>
                                     <!-- Specifying a classifier makes sure we keep the original jar alongside the repackaged one. -->
-                                    <classifier>repackaged</classifier>
+                                    <classifier>standalone</classifier>
                                 </configuration>
                             </execution>
                         </executions>

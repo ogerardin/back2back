@@ -11,7 +11,7 @@ import java.nio.file.Paths;
 public class Config extends CompositeConfiguration {
 
     private static final String SERVICE_NAME = "back2back";
-    private static final String CORE_JAR = "back2back-bundle-repackaged.jar";
+    private static final String CORE_JAR = "back2back-bundle-standalone.jar";
 
     private static final Config CONFIG = new Config();
 

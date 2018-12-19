@@ -16,7 +16,7 @@ public class Updater {
         UpdatePerformer updatePerformer = UpdatePerformer.builder()
                 .context(context)
                 .step(new StopServiceAction("back2back"))
-                .step(new ReplaceFileAction("back2back-bundle-repackaged.jar"))
+                .step(new ReplaceFileAction("back2back-bundle-standalone.jar"))
                 .step(new StartServiceAction("back2back"))
                 .build();
 

@@ -54,13 +54,13 @@ Ectract the archive into a directory of your choice. This will be Back2back's ho
 
 Starting the daemon
 -------------------
-The daemon consists of a standalone executable jar named back2back-bundle-repackaged.jar. If Java is is correctly 
+The daemon consists of a standalone executable jar named back2back-bundle-standalone.jar. If Java is is correctly 
 configured on your system, you could start the daemon by double-clicking on the jar file's icon in the file explorer, but 
 it is not the recommended way because it doesn't have a proper GUI and you will not get feedback.
 
 To check that it starts correctly, open a command prompt, cd into the directory where the jar file resides, and type:
 
-    java -jar back2back-bundle-repackaged
+    java -jar back2back-bundle-standalone
 
 The daemon will start up and begin displaying log messages to the screen.
 During the first start, you need an internet connection because the daemon will download a copy of MongoDB, the database

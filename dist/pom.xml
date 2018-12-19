@@ -18,7 +18,7 @@
     <properties>
         <izpack.version>5.1.2</izpack.version>
         <nssm.version>2.24</nssm.version>
-        <back2back.core.jar>back2back-bundle-repackaged.jar</back2back.core.jar>
+        <back2back.core.jar>back2back-bundle-standalone.jar</back2back.core.jar>
         <back2back.tray-icon.jar>back2back-system-tray-onejar.jar</back2back.tray-icon.jar>
         <back2back.tray-icon.mainClass>com.simontuffs.onejar.Boot</back2back.tray-icon.mainClass>
         <back2back.service-name>back2back</back2back.service-name>
@@ -29,7 +29,7 @@
             <groupId>org.ogerardin</groupId>
             <artifactId>back2back-bundle</artifactId>
             <version>1.0-SNAPSHOT</version>
-            <classifier>repackaged</classifier>
+            <classifier>standalone</classifier>
             <!-- jar is standalone: we don't need transitive dependencies  -->
             <exclusions>
                 <exclusion>
