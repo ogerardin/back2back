@@ -13,6 +13,7 @@
     <artifactId>back2back-updater</artifactId>
 
     <description>
+        [EXPERIMENTAL]
         Implements the last part of the update process, i.e. the handover from the running version to the new version.
     </description>
 

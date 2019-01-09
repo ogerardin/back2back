@@ -16,7 +16,7 @@
     </description>
 
     <properties>
-        <izpack.version>5.1.2</izpack.version>
+        <izpack.version>5.1.3</izpack.version>
         <nssm.version>2.24</nssm.version>
         <back2back.core.jar>back2back-bundle-standalone.jar</back2back.core.jar>
         <back2back.tray-icon.jar>back2back-system-tray-onejar.jar</back2back.tray-icon.jar>

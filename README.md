@@ -9,8 +9,7 @@ The inspiration for this project is to provide a replacement for the "backup to 
 which is going away in october 2018: https://www.code42.com/news-releases/code42-focus-business/
 
 
-Goals and assumptions
------
+##Goals and assumptions
 - Local backup (from filesystem)
 - Peer-to-peer backup (and restore) through standard web protocols
 - No need for a centralized account (unlike CrashPlan). 
@@ -22,16 +21,14 @@ but this is a fairly common issue.
 service on Windows)
 
 
-Architecture
-------------
+##Architecture
 - Spring Boot application with Spring MVC
 - Embedded MongoDB for storing configuration and files (via GridFS)
 - Backup jobs implemented as Spring Batch jobs
 - Web interface using Vue.js
 
 
-Status
-------
+##Status
 Very preliminary stage: can backup files from a directory to GridFS and to the local peer through HTTP. Very 
 incomplete GUI.  
 
@@ -54,9 +51,9 @@ Ectract the archive into a directory of your choice. This will be Back2back's ho
 
 Starting the daemon
 -------------------
-The daemon consists of a standalone executable jar named back2back-bundle-standalone.jar. If Java is is correctly 
-configured on your system, you could start the daemon by double-clicking on the jar file's icon in the file explorer, but 
-it is not the recommended way because it doesn't have a proper GUI and you will not get feedback.
+The daemon consists of a standalone executable jar named back2back-bundle-standalone.jar. 
+DO NOT double-click on the jar file's icon : the daemon might start but you will miss important information printed to
+the console. 
 
 To check that it starts correctly, open a command prompt, cd into the directory where the jar file resides, and type:
 
@@ -81,10 +78,8 @@ A web page with Back2back's logo should open.
 
 Stopping the daemon
 -------------------
-To stop the daemon the cleanest way is to issue a shutdown command via the HTTP API. You can do this using
-the web interface (Admin/Shutdown), or from the command line using curl:
-
-    curl http://localhost:8080/api/app/shutdown
+If the daemon was started from a command prompt, you may type Ctrl-C.
+Otherwise open the web interface and go to Admin page, then click "Shutdown".
 
 Configuring the daemon for automatic start
 ------------------------------------------
@@ -96,7 +91,7 @@ boot. There are a number of ways to do this, depending on the operating system:
 Configuring as a Windows service
 --------------------------------
 The archive comes with a copy of [NSSM](http://nssm.cc).
-To install back2back daemon as a Windows service, just run:
+To install back2back daemon as a Windows service, run:
 
     installService.bat
 
@@ -109,7 +104,7 @@ To uninstall type:
 
 Configuring as a macOS Global Daemon
 ------------------------------------
-To install back2back daemon as a macOS "global daemon" using launchtl, just run:
+To install back2back daemon as a macOS "global daemon" using launchtl, run:
 
     sudo ./installDaemon.sh
 
