@@ -8,8 +8,10 @@
   </b-container>
 </template>
 
+<!--
 <script>
 </script>
+-->
 
 <!-- styling for the component -->
 <style>
