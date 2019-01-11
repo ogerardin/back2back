@@ -376,6 +376,39 @@
         </profile>
 
         <profile>
+            <id>generate-innosetup-installer</id>
+            <activation>
+                <os>
+                    <family>windows</family>
+                </os>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>1.6.0</version>
+                        <executions>
+                            <execution>
+                                <id>innosetup-compile</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>${project.basedir}/bin/InnoSetup/ISCC.exe</executable>
+                                    <arguments>
+                                        <argument>${project.basedir}/src/main/innosetup/install.iss</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
             <id>generate-launch4j-wrapper</id>
             <build>
                 <plugins>
