@@ -396,9 +396,11 @@
                                     <goal>exec</goal>
                                 </goals>
                                 <configuration>
-                                    <executable>${project.basedir}/bin/InnoSetup/ISCC.exe</executable>
+                                    <workingDirectory>${project.basedir}/src/main/innosetup</workingDirectory>
+                                    <executable>cmd</executable>
                                     <arguments>
-                                        <argument>${project.basedir}/src/main/innosetup/install.iss</argument>
+                                        <argument>/c</argument>
+                                        <argument>compile.cmd</argument>
                                     </arguments>
                                 </configuration>
                             </execution>

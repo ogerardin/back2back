@@ -1,0 +1,18 @@
+{
+  "homepage": "http://www.jrsoftware.org/isinfo.php",
+  "version": "5.6.1",
+  "license": "Inno Setup License",
+  "url": "http://www.jrsoftware.org/download.php/is-unicode.exe#innosetup-5.6.1-unicode.exe",
+  "hash": "27d49e9bc769e9d1b214c153011978db90dc01c2acd1ddcd9ed7b3fe3b96b538",
+  "innosetup": true,
+  "bin": [
+    "ISCC.exe"
+  ],
+  "checkver": {
+    "url": "http://www.jrsoftware.org/isdl.php",
+    "re": "innosetup-([\\d.]+)-unicode\\.exe"
+  },
+  "autoupdate": {
+    "url": "http://www.jrsoftware.org/download.php/is-unicode.exe#innosetup-$version-unicode.exe"
+  }
+}

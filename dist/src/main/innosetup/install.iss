@@ -26,7 +26,6 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 [Files]
 Source: "..\..\..\target\dependency\back2back-bundle-standalone.jar"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\..\..\target\dependency\back2back-system-tray-onejar.jar"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\..\..\target\dependency\back2back-updater-onejar.jar"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [INI]
