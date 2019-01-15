@@ -1,11 +1,10 @@
 @echo off
-REM
-REM Generate the Windows installer using Inno Setup
-REM Prerequisite: scoop must be installed
-REM
 
-REM Make sure Inno Setup command line compiler is installed
-cmd /c scoop install iscc.json
+REM Generate the Windows installer using Inno Setup (native)
+REM Prerequisites: scoop
+
+REM We use a custom Scoop Manifest to download and install Inno Setup
+cmd /c scoop install inno-setup.json
 
 REM Compile the installer
 iscc install.iss
