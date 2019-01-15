@@ -149,7 +149,6 @@
             <plugin>
                 <groupId>com.googlecode.maven-download-plugin</groupId>
                 <artifactId>download-maven-plugin</artifactId>
-                <version>1.4.0</version>
                 <executions>
                     <!-- Download NSSM from https://nssm.cc and unzip it.
                         If you are behind a proxy you may need to pass the corresponding options to maven:
@@ -175,7 +174,6 @@
 
             <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>
-                <version>1.8</version>
                 <!-- Dirty hack due to re-establish file permissions...
                     See https://issues.apache.org/jira/browse/MRESOURCES-132 -->
                 <executions>
@@ -237,7 +235,6 @@
                     <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>exec-maven-plugin</artifactId>
-                    <version>1.6.0</version>
                     <executions>
                         <!-- Use javapackager to generate bundle -->
                         <execution>
@@ -356,7 +353,6 @@
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>exec-maven-plugin</artifactId>
-                        <version>1.6.0</version>
                         <executions>
                             <execution>
                                 <id>pkgbuild-daemon</id>
@@ -387,7 +383,6 @@
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>exec-maven-plugin</artifactId>
-                        <version>1.6.0</version>
                         <executions>
                             <execution>
                                 <id>innosetup-compile</id>
@@ -401,6 +396,39 @@
                                     <arguments>
                                         <argument>/c</argument>
                                         <argument>compile.cmd</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>generate-innosetup-installer-wine</id>
+            <activation>
+                <os>
+                    <family>!windows</family>
+                </os>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>innosetup-compile</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <workingDirectory>${project.basedir}/src/main/innosetup</workingDirectory>
+                                    <executable>/bin/sh</executable>
+                                    <arguments>
+                                        <argument>compile.sh</argument>
                                     </arguments>
                                 </configuration>
                             </execution>
