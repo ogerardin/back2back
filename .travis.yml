@@ -3,6 +3,16 @@ language: java
 jdk:
 - oraclejdk8
 
+addons:
+  apt:
+    packages:
+    - wine
+    - unrar
+  homebrew:
+    packages:
+    - wine
+    - unrar
+
 #before_deploy:
 #- git config --local user.name "Olivier"
 #- git config --local user.email "ogerardin@yahoo.com"

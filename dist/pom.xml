@@ -426,7 +426,7 @@
                                 </goals>
                                 <configuration>
                                     <workingDirectory>${project.basedir}/src/main/innosetup</workingDirectory>
-                                    <executable>/bin/sh</executable>
+                                    <executable>/bin/bash</executable>
                                     <arguments>
                                         <argument>compile.sh</argument>
                                     </arguments>
