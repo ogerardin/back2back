@@ -23,20 +23,34 @@ PrivilegesRequired=none
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
+[Components]
+Name: "core"; Description: "Back2back core engine"; Types: full compact custom; Flags: fixed
+Name: "service"; Description: "Install as Windows service"; Types: full custom
+Name: "tray"; Description: "Tray Icon"; Types: full custom
+
 [Files]
-Source: "..\..\..\target\dependency\back2back-bundle-standalone.jar"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\..\..\target\dependency\back2back-system-tray-onejar.jar"; DestDir: "{app}"; Flags: ignoreversion
-; NOTE: Don't use "Flags: ignoreversion" on any shared system files
+Source: "..\..\..\target\dependency\back2back-bundle-standalone.jar"; DestDir: "{app}"; Flags: ignoreversion; Components: core
+Source: "..\..\..\target\classes\startEngine.bat"; DestDir: "{app}"; Flags: ignoreversion; Components: core
+Source: "..\..\..\target\dependency\back2back-system-tray-onejar.jar"; DestDir: "{app}"; Flags: ignoreversion; Components: tray
+Source: "..\..\..\target\classes\startTrayIcon.bat"; DestDir: "{app}"; Flags: ignoreversion; Components: tray
+Source: "..\..\..\target\nssm-2.24\*"; DestDir: "{app}"; Flags: ignoreversion; Components: service
+Source: "..\..\..\target\nssm-2.24\win32\*"; DestDir: "{app}"; Flags: ignoreversion; Components: service
+Source: "..\..\..\target\nssm-2.24\win64\*"; DestDir: "{app}"; Flags: ignoreversion; Components: service
+Source: "..\..\..\target\classes\installService.bat"; DestDir: "{app}"; Flags: ignoreversion; Components: service
+Source: "..\..\..\target\classes\removeService.bat"; DestDir: "{app}"; Flags: ignoreversion; Components: service
 
 [INI]
-Filename: "{app}\MyProg.url"; Section: "InternetShortcut"; Key: "URL"; String: "https://github.com/ogerardin/back2back"
+Filename: "{app}\back2back.url"; Section: "InternetShortcut"; Key: "URL"; String: "https://github.com/ogerardin/back2back"
 
 [Icons]
-Name: "{group}\{cm:ProgramOnTheWeb,back2back}"; Filename: "{app}\MyProg.url"
+Name: "{group}\{cm:ProgramOnTheWeb,back2back}"; Filename: "{app}\back2back.url"
 Name: "{group}\{cm:UninstallProgram,back2back}"; Filename: "{uninstallexe}"
 
 [Run]
+Filename: "{app}\startEngine.bat"; Description: "Start back2back now"; Flags: postinstall; Components: not service
+Filename: "{app}\installService.bat"; Description: "Install as service"; Flags: postinstall; Components: service
+Filename: "{app}\startTrayIcon.bat"; Description: "Start Tray Icon"; Flags: postinstall; Components: tray
 
 [UninstallDelete]
-Type: files; Name: "{app}\MyProg.url"
+Type: files; Name: "{app}\back2back.url"
 
