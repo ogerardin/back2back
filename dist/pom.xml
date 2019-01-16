@@ -395,7 +395,7 @@
                                     <executable>cmd</executable>
                                     <arguments>
                                         <argument>/c</argument>
-                                        <argument>compile.cmd</argument>
+                                        <argument>compile.bat</argument>
                                     </arguments>
                                 </configuration>
                             </execution>

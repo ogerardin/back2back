@@ -6,5 +6,5 @@ reg Query "HKLM\Hardware\Description\System\CentralProcessor\0" | find /i "x86" 
 set PATH=%B2BHOME%\nssm\win%BITNESS%;%PATH%
 
 nssm install @back2back.service-name@ "java -jar %B2BHOME%\@back2back.core.jar@"
-nssm set @back2back.service-name@ AppDirectory %B2BHOME%
+REM nssm set @back2back.service-name@ AppDirectory %B2BHOME%
 nssm start @back2back.service-name@

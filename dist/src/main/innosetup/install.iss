@@ -51,6 +51,69 @@ Filename: "{app}\startEngine.bat"; Description: "Start back2back now"; Flags: po
 Filename: "{app}\installService.bat"; Description: "Install as service"; Flags: postinstall; Components: service
 Filename: "{app}\startTrayIcon.bat"; Description: "Start Tray Icon"; Flags: postinstall; Components: tray
 
+[Code]
+function GetJavaMajorVersion(): integer;
+var
+  TempFile: string;
+  ResultCode: Integer;
+  S: AnsiString;
+  P: Integer;
+begin
+  Result := 0;
+
+  // execute java -version and redirect output to a temp file
+  TempFile := ExpandConstant('{tmp}\javaversion.txt');
+  if (not ExecAsOriginalUser(ExpandConstant('{cmd}'), '/c java -version 2> "' + TempFile + '"', '',SW_HIDE, ewWaitUntilTerminated, ResultCode)) 
+    or (ResultCode <> 0) then
+  begin
+    Log('Failed to execute java -version');
+    exit;
+  end;
+  
+  // read file into variable S
+  LoadStringFromFile(TempFile, S)
+  DeleteFile(TempFile);
+  Log(Format('java -version output: ' + #13#10 + '%s', [S]));
+
+  // extract version (between quotes)
+  P := Pos('"', S);
+  Delete(S, 1, P);
+  P := Pos('"', S);
+  SetLength(S, P - 1);
+  Log(Format('Extracted version: %s', [S]));
+
+  // extract major
+  if Copy(S, 1, 2) = '1.' then
+  begin
+    Delete(S, 1, 2)
+  end;
+  P := Pos('.', S);
+  SetLength(S, P - 1);
+  Log(Format('Major version: %s', [S]));
+
+  Result := StrToIntDef(S, 0);
+end;
+
+function InitializeSetup(): boolean;
+var
+  ResultCode: Integer;
+begin
+  if GetJavaMajorVersion >= 8 then
+  begin
+    Result := true;    
+    exit;
+  end;
+
+  if MsgBox('This application requires a Java Runtime Environment version 8 or newer to run. \
+    Please download and install the JRE and run this setup again.' 
+    + #13#10 + #13#10 
+    + 'Would you like to open the JRE download page now?', mbCriticalError, MB_YESNO) = idYes then 
+  begin
+    Result := false;
+    ShellExec('open', 'https://java.com/download/', '', '', SW_SHOWNORMAL, ewNoWait, ResultCode);
+  end;  
+end;
+
 [UninstallDelete]
 Type: files; Name: "{app}\back2back.url"
 
