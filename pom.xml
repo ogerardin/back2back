@@ -94,6 +94,12 @@
                 </plugin>
 
                 <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <version>1.6.0</version>
+                </plugin>
+
+                <plugin>
                     <groupId>com.jolira</groupId>
                     <artifactId>onejar-maven-plugin</artifactId>
                     <version>1.4.4</version>
@@ -125,6 +131,11 @@
                     <exclusion>
                         <groupId>com.google.guava</groupId>
                         <artifactId>guava</artifactId>
+                    </exclusion>
+                    <!-- Exclue come.sun:tools to avoid error with JDK 9+ -->
+                    <exclusion>
+                        <groupId>com.sun</groupId>
+                        <artifactId>tools</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
