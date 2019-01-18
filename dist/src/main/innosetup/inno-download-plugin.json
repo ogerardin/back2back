@@ -1,0 +1,19 @@
+{
+  "homepage": "https://mitrichsoftware.wordpress.com/inno-setup-tools/inno-download-plugin/",
+  "version": "1.5.1",
+  "license": {
+    "identifier": "Zlib license",
+    "url": "http://opensource.org/licenses/Zlib"
+  },
+  "url": "https://bitbucket.org/mitrich_k/inno-download-plugin/downloads/idpsetup-1.5.1.exe",
+  "hash": "e7a7013f533e1f8f9ebbb5138c5c208af0c58c80590b72acabdbb337af8fd060",
+  "innosetup": true,
+  "bin": [
+  ],
+  "checkver": {
+    "re": "Latest version is ([\\d.]+)"
+  },
+  "autoupdate": {
+    "url": "https://bitbucket.org/mitrich_k/inno-download-plugin/downloads/idpsetup-$version.exe"
+  }
+}

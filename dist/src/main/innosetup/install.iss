@@ -1,5 +1,12 @@
 ;suppress inspection "DuplicateKeyInSection" for whole file
 
+;
+; Inno Setup configuration file for back2back Windows installer
+;
+; TODO: select free port if default is taken
+; TODO: option to download MongoDB (or use existing instance)
+
+
 [Setup]
 AppName=back2back
 AppVerName=back2back 1.0
