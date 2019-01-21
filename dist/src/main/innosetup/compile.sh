@@ -58,4 +58,4 @@ fi
 
 #Invoke Inno Setup command line compiler (using Wine)
 popd
-wine ${EXTRACTDIR}/inno-setup/ISCC.exe install.iss
+wine ${INNO_SETUP_HOME}/ISCC.exe $1

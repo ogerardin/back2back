@@ -4,24 +4,28 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+<!--
     <parent>
         <artifactId>back2back</artifactId>
         <groupId>org.ogerardin</groupId>
         <version>1.0-SNAPSHOT</version>
     </parent>
+-->
 
+    <groupId>org.ogerardin</groupId>
     <artifactId>back2back-dist</artifactId>
+    <version>1.0-SNAPSHOT</version>
     <description>
         This module is responsible for generating the final distributable packages (installer and such).
     </description>
 
     <properties>
-        <izpack.version>5.1.3</izpack.version>
-        <nssm.version>2.24</nssm.version>
         <back2back.core.jar>back2back-bundle-standalone.jar</back2back.core.jar>
         <back2back.tray-icon.jar>back2back-system-tray-onejar.jar</back2back.tray-icon.jar>
         <back2back.tray-icon.mainClass>com.simontuffs.onejar.Boot</back2back.tray-icon.mainClass>
         <back2back.service-name>back2back</back2back.service-name>
+        <nssm.version>2.24</nssm.version>
+        <izpack-version>5.1.3</izpack-version>
     </properties>
 
     <dependencies>
@@ -69,10 +73,59 @@
 
     </dependencies>
 
+
     <build>
+
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>3.1.0</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-antrun-plugin</artifactId>
+                    <version>1.8</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <version>3.1.1</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-assembly-plugin</artifactId>
+                    <version>3.1.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>com.googlecode.maven-download-plugin</groupId>
+                    <artifactId>download-maven-plugin</artifactId>
+                    <version>1.4.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.izpack</groupId>
+                    <artifactId>izpack-maven-plugin</artifactId>
+                    <version>${izpack-version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>build-helper-maven-plugin</artifactId>
+                    <version>3.0.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <version>1.6.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>com.akathist.maven.plugins.launch4j</groupId>
+                    <artifactId>launch4j-maven-plugin</artifactId>
+                    <version>1.7.23</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
 
         <!-- Project resources (other than dependencies). They will go into target/classes -->
         <resources>
+            <!-- Filtered resources -->
             <resource>
                 <directory>${basedir}/src/main/resources</directory>
                 <filtering>true</filtering>
@@ -83,6 +136,7 @@
                     <include>**/*.plist</include>
                 </includes>
             </resource>
+            <!-- Non-filtered resources-->
             <resource>
                 <directory>${basedir}/src/main/resources</directory>
                 <excludes>
@@ -97,6 +151,16 @@
                 <directory>..</directory>
                 <includes>
                     <include>LICENSE.txt</include>
+                </includes>
+            </resource>
+            <!-- Special processing of Inno Setup script
+                TODO: This should be filtered using windows-1252, see https://stackoverflow.com/questions/11144704/configure-encoding-for-different-filetypes-in-maven -->
+            <resource>
+                <directory>${basedir}/src/main/innosetup</directory>
+                <targetPath>${project.build.directory}</targetPath>
+                <filtering>true</filtering>
+                <includes>
+                    <include>**/*.iss</include>
                 </includes>
             </resource>
         </resources>
@@ -194,11 +258,12 @@
                 </executions>
             </plugin>
 
-
         </plugins>
     </build>
 
     <profiles>
+
+        <!-- This profile generates distributable archives (zip and tar.gz) -->
         <profile>
             <id>generate-archive</id>
             <activation>
@@ -228,6 +293,11 @@
             </build>
         </profile>
 
+        <!--
+            EXPERIMENTAL: This profile generates a Java bundle using "javapackager".
+            FIXME: currently will not work with JDK 9+
+            See https://medium.com/@adam_carroll/java-packager-with-jdk11-31b3d620f4a8
+        -->
         <profile>
             <id>generate-java-bundle</id>
             <build>
@@ -244,7 +314,7 @@
                                 <goal>exec</goal>
                             </goals>
                             <configuration>
-                                <!-- HACK ALERT: This will only work with Java 1.8- if we're running with a JRE
+                                <!-- HACK ALERT: This will only work with Java 1.8- and if we're running with a JRE
                                     that is inside a JDK !!! -->
                                 <executable>${java.home}/../bin/javapackager</executable>
                                 <!--<workingDirectory>${project.build.directory}</workingDirectory>-->
@@ -271,6 +341,9 @@
             </build>
         </profile>
 
+        <!--
+            This profile generates a platform-independent installer using IzPack (http://izpack.org/)
+        -->
         <profile>
             <id>generate-izpack-installer</id>
             <activation>
@@ -307,7 +380,6 @@
                     <plugin>
                         <groupId>org.codehaus.izpack</groupId>
                         <artifactId>izpack-maven-plugin</artifactId>
-                        <version>${izpack.version}</version>
                         <executions>
                             <execution>
                                 <phase>package</phase>
@@ -330,7 +402,7 @@
                             <dependency>
                                 <groupId>org.codehaus.izpack</groupId>
                                 <artifactId>izpack-panel</artifactId>
-                                <version>${izpack.version}</version>
+                                <version>${izpack-version}</version>
                             </dependency>
                             <!-- custom panels here -->
                         </dependencies>
@@ -341,6 +413,9 @@
             </build>
         </profile>
 
+        <!--
+            EXPERIMENTAL: This profile generates a macOS application bundle
+        -->
         <profile>
             <id>generate-mac-installer</id>
             <activation>
@@ -371,6 +446,9 @@
             </build>
         </profile>
 
+        <!--
+            This profile generates a Windows installer using Inno Setup on a Windows platform
+        -->
         <profile>
             <id>generate-innosetup-installer</id>
             <activation>
@@ -396,6 +474,7 @@
                                     <arguments>
                                         <argument>/c</argument>
                                         <argument>compile.bat</argument>
+                                        <argument>${project.build.directory}/install.iss</argument>
                                     </arguments>
                                 </configuration>
                             </execution>
@@ -427,6 +506,9 @@
             </build>
         </profile>
 
+        <!--
+            This profile generates a Windows installer using Inno Setup and Wine on a non-Windows platform
+        -->
         <profile>
             <id>generate-innosetup-installer-wine</id>
             <activation>
@@ -451,6 +533,7 @@
                                     <executable>/bin/bash</executable>
                                     <arguments>
                                         <argument>compile.sh</argument>
+                                        <argument>${project.build.directory}/install.iss</argument>
                                     </arguments>
                                 </configuration>
                             </execution>
@@ -488,7 +571,6 @@
                     <plugin>
                         <groupId>com.akathist.maven.plugins.launch4j</groupId>
                         <artifactId>launch4j-maven-plugin</artifactId>
-                        <version>1.7.23</version>
                         <executions>
                             <execution>
                                 <id>launch4j-wrapper</id>

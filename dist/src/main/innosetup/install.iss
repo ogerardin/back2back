@@ -9,20 +9,20 @@
 
 [Setup]
 AppName=back2back
-AppVerName=back2back 1.0
+AppVerName=back2back ${project.version}
 AppPublisher=Olivier Gérardin
 AppPublisherURL=https://github.com/ogerardin/back2back
 AppSupportURL=https://github.com/ogerardin/back2back
 AppUpdatesURL=https://github.com/ogerardin/back2back
 DefaultDirName={pf}\back2back
 DefaultGroupName=back2back
-LicenseFile=..\..\..\..\LICENSE.txt
+LicenseFile=classes\LICENSE.txt
 OutputBaseFilename=back2back-setup
 ;Compression=lzma
 ; For debugging only
 Compression=none
 ;SolidCompression=yes
-OutputDir=..\..\..\target
+OutputDir=${project.build.directory}
 ; For debugging only
 PrivilegesRequired=none
 DisableWelcomePage=no
@@ -43,13 +43,13 @@ Name: "mongodb"; Description: "Pre-install MongoDB (requires internet connection
 Name: "{app}\mongodb"; Components: mongodb
 
 [Files]
-Source: "..\..\..\target\dependency\back2back-bundle-standalone.jar"; DestDir: "{app}"; Flags: ignoreversion; Components: core
-Source: "..\..\..\target\classes\startEngine.bat"; DestDir: "{app}"; Flags: ignoreversion; Components: core
-Source: "..\..\..\target\dependency\back2back-system-tray-onejar.jar"; DestDir: "{app}"; Flags: ignoreversion; Components: tray
-Source: "..\..\..\target\classes\startTrayIcon.bat"; DestDir: "{app}"; Flags: ignoreversion; Components: tray
-Source: "..\..\..\target\nssm-2.24\*"; DestDir: "{app}\nssm"; Flags: ignoreversion recursesubdirs; Components: service
-Source: "..\..\..\target\classes\installService.bat"; DestDir: "{app}"; Flags: ignoreversion; Components: service
-Source: "..\..\..\target\classes\removeService.bat"; DestDir: "{app}"; Flags: ignoreversion; Components: service
+Source: "dependency\back2back-bundle-standalone.jar"; DestDir: "{app}"; Flags: ignoreversion; Components: core
+Source: "classes\startEngine.bat"; DestDir: "{app}"; Flags: ignoreversion; Components: core
+Source: "dependency\back2back-system-tray-onejar.jar"; DestDir: "{app}"; Flags: ignoreversion; Components: tray
+Source: "classes\startTrayIcon.bat"; DestDir: "{app}"; Flags: ignoreversion; Components: tray
+Source: "nssm-2.24\*"; DestDir: "{app}\nssm"; Flags: ignoreversion recursesubdirs; Components: service
+Source: "classes\installService.bat"; DestDir: "{app}"; Flags: ignoreversion; Components: service
+Source: "classes\removeService.bat"; DestDir: "{app}"; Flags: ignoreversion; Components: service
 
 [INI]
 Filename: "{app}\back2back.url"; Section: "InternetShortcut"; Key: "URL"; String: "https://github.com/ogerardin/back2back"
@@ -177,9 +177,6 @@ begin
         Unzip(ExpandConstant('{tmp}\mongodb.zip'), ExpandConstant('{app}\mongodb'))
     end;
 end;
-
-
-
 
 
 [UninstallDelete]

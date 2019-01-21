@@ -30,4 +30,4 @@ find /c "%INNO_DOWNLOAD_PLUGIN_HOME%" "%ISSPPBUILTINS_FILE%" >NUL || (
 )
 
 REM Compile the installer using the command-line compiler (ISCC.exe)
-iscc install.iss
+iscc %1
