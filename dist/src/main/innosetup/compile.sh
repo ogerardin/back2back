@@ -3,30 +3,16 @@
 # Generate the back2back Windows installer using Inno Setup compiler and Wine (for Linux and macOS)
 # Prerequisites: wine, wget, unrar
 #
+# TODO cache downloads, maybe use Maven with download-maven-plugin ?
 
-
-if ! wine --version ; then
-    echo "Missing prerequisite: wine" 2>&1
-    exit
-fi
-
-if ! unrar >/dev/null ; then
-    echo "Missing prerequisite: unrar" 2>&1
-    exit
-fi
-
-if ! wget --version >/dev/null ; then
-    echo "Missing prerequisite: wget" 2>&1
-    exit
-fi
+which wine  || { echo "Missing prerequisite: wine" 2>&1 ; exit; }
+which unrar || { echo "Missing prerequisite: unrar" 2>&1 ; exit; }
+which wget  || { echo "Missing prerequisite: wget" 2>&1 ; exit; }
 
 
 EXTRACTDIR=../../../target
 
 pushd ${EXTRACTDIR}
-
-#Get the current directory as seen from Wine
-WINE_PWD=$(wine cmd /c cd | tr -d '\r\n')
 
 #Get and extract Inno Unpacker
 wget "https://downloads.sourceforge.net/project/innounp/innounp/innounp%200.47/innounp047.rar?r=https%3A%2F%2Fsourceforge.net%2Fprojects%2Finnounp%2Ffiles%2Flatest%2Fdownload&ts=1547509813" -O innounp.rar
@@ -45,12 +31,14 @@ wget "https://bitbucket.org/mitrich_k/inno-download-plugin/downloads/idpsetup-1.
 wine innounp.exe -x -y idpsetup.exe
 rm -r \{tmp\}
 mv \{app\} inno-download-plugin
-INNO_DOWNLOAD_PLUGIN_HOME_WINE=$WINE_PWD\\inno-download-plugin
-echo INNO_DOWNLOAD_PLUGIN_HOME=${INNO_DOWNLOAD_PLUGIN_HOME_WINE}
+INNO_DOWNLOAD_PLUGIN_HOME=${PWD}/inno-download-plugin
+echo INNO_DOWNLOAD_PLUGIN_HOME=${INNO_DOWNLOAD_PLUGIN_HOME}
 
 #Append Inno Download plugin directory
 ISSPPBUILTINS_FILE=${INNO_SETUP_HOME}/ISPPBuiltins.iss
 echo ISSPPBUILTINS_FILE=${ISSPPBUILTINS_FILE}
+INNO_DOWNLOAD_PLUGIN_HOME_WINE=$(winepath -w ${INNO_DOWNLOAD_PLUGIN_HOME})
+echo INNO_DOWNLOAD_PLUGIN_HOME_WINE=${INNO_DOWNLOAD_PLUGIN_HOME_WINE}
 if ! grep -q inno-download-plugin ${ISSPPBUILTINS_FILE} ; then
     echo Updating ${ISSPPBUILTINS_FILE}
     echo \#pragma include __INCLUDE__ + \"\;\" + \"${INNO_DOWNLOAD_PLUGIN_HOME_WINE}\" >> ${ISSPPBUILTINS_FILE}
@@ -58,4 +46,4 @@ fi
 
 #Invoke Inno Setup command line compiler (using Wine)
 popd
-wine ${INNO_SETUP_HOME}/ISCC.exe $1
+wine ${INNO_SETUP_HOME}/ISCC.exe $(winepath -w $1)

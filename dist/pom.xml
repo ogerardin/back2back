@@ -564,6 +564,9 @@
             </build>
         </profile>
 
+        <!--
+            EXPERIMENTAL: generate a windows executable that wraps the IzPack installer
+        -->
         <profile>
             <id>generate-launch4j-wrapper</id>
             <build>
