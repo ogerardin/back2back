@@ -25,6 +25,7 @@ EXTRACTDIR=../../../target
 
 pushd ${EXTRACTDIR}
 
+#Get the current directory as seen from Wine
 WINE_PWD=$(wine cmd /c cd | tr -d '\r\n')
 
 #Get and extract Inno Unpacker

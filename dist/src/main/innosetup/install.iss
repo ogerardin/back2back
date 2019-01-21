@@ -25,6 +25,10 @@ Compression=none
 OutputDir=..\..\..\target
 ; For debugging only
 PrivilegesRequired=none
+DisableWelcomePage=no
+
+;include for Inno Download Plugin
+#include <idp.iss>
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -33,6 +37,10 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "core"; Description: "Back2back core engine"; Types: full compact custom; Flags: fixed
 Name: "service"; Description: "Install as Windows service"; Types: full custom
 Name: "tray"; Description: "Tray Icon"; Types: full custom
+Name: "mongodb"; Description: "Pre-install MongoDB (requires internet connection)"
+
+[Dirs]
+Name: "{app}\mongodb"; Components: mongodb
 
 [Files]
 Source: "..\..\..\target\dependency\back2back-bundle-standalone.jar"; DestDir: "{app}"; Flags: ignoreversion; Components: core
@@ -56,6 +64,30 @@ Filename: "{app}\installService.bat"; Description: "Install as service"; Flags: 
 Filename: "{app}\startTrayIcon.bat"; Description: "Start Tray Icon"; Flags: postinstall; Components: tray
 
 [Code]
+
+const
+  SHCONTCH_NOPROGRESSBOX = 4;
+  SHCONTCH_RESPONDYESTOALL = 16;
+
+procedure UnZip(ZipPath, TargetPath: string); 
+var
+  Shell: Variant;
+  ZipFile: Variant;
+  TargetFolder: Variant;
+begin
+  Shell := CreateOleObject('Shell.Application');
+
+  ZipFile := Shell.NameSpace(ZipPath);
+  if VarIsClear(ZipFile) then
+    RaiseException(Format('ZIP file "%s" does not exist or cannot be opened', [ZipPath]));
+
+  TargetFolder := Shell.NameSpace(TargetPath);
+  if VarIsClear(TargetFolder) then
+    RaiseException(Format('Target path "%s" does not exist', [TargetPath]));
+
+  TargetFolder.CopyHere(ZipFile.Items, SHCONTCH_RESPONDYESTOALL);
+end;
+
 function GetJavaMajorVersion(): integer;
 var
   TempFile: string;
@@ -117,6 +149,38 @@ begin
     ShellExec('open', 'https://java.com/download/', '', '', SW_SHOWNORMAL, ewNoWait, ResultCode);
   end;  
 end;
+
+procedure InitializeWizard;
+begin
+    idpDownloadAfter(wpReady);
+end;
+
+procedure CurPageChanged(CurPageID: Integer);
+begin
+  if CurPageID = wpReady then
+  begin
+    // User can navigate to 'Ready to install' page several times, so we 
+    // need to clear file list to ensure that only needed files are added.
+    idpClearFiles;
+
+    if IsComponentSelected('mongodb') then
+    begin
+      idpAddFile('https://fastdl.mongodb.org/win32/mongodb-win32-x86_64-2008plus-ssl-4.0.5.zip', ExpandConstant('{tmp}\mongodb.zip'));
+    end;
+  end;
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+    if CurStep = ssPostInstall then 
+    begin
+        Unzip(ExpandConstant('{tmp}\mongodb.zip'), ExpandConstant('{app}\mongodb'))
+    end;
+end;
+
+
+
+
 
 [UninstallDelete]
 Type: files; Name: "{app}\back2back.url"
