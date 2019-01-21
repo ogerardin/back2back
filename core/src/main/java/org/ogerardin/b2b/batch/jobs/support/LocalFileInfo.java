@@ -5,6 +5,7 @@ import lombok.Data;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -33,6 +34,6 @@ public class LocalFileInfo {
     }
 
     public LocalFileInfo(Path path) throws IOException {
-        this(path, Files.readAttributes(path, BasicFileAttributes.class));
+        this(path, Files.readAttributes(path, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS));
     }
 }
