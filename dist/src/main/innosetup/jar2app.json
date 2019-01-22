@@ -1,0 +1,18 @@
+{
+  "homepage": "https://github.com/Jorl17/jar2app",
+  "version": "49eb2c5fc29b7239486b3756d185a1d63e1f97ab",
+  "license": {
+    "identifier": "GPL 2.0",
+    "url": "https://github.com/Jorl17/jar2app/blob/master/LICENSE"
+  },
+  "url": "https://github.com/Jorl17/jar2app/archive/49eb2c5fc29b7239486b3756d185a1d63e1f97ab.zip#/jar2app.zip",
+  "depend": [
+    "python"
+  ],
+  "bin": [
+    [ "jar2app", "python", "jar2app.py"]
+  ],
+  "autoupdate": {
+    "url": "https://github.com/Jorl17/jar2app/archive/$version.zip"
+  }
+}
