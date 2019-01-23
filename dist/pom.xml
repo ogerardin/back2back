@@ -474,7 +474,7 @@
                                     <arguments>
                                         <argument>/c</argument>
                                         <argument>compile.bat</argument>
-                                        <argument>${project.build.directory}/install.iss</argument>
+                                        <argument>${project.build.directory}/back2back.iss</argument>
                                     </arguments>
                                 </configuration>
                             </execution>
@@ -613,6 +613,47 @@
                 </plugins>
             </build>
         </profile>
+
+        <!--
+            This profile generates a Mac app bundle using jar2app on a Windows platform
+        -->
+        <profile>
+            <id>generate-mac-appbundle</id>
+            <activation>
+                <os>
+                    <family>windows</family>
+                </os>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>jar2app</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <workingDirectory>${project.basedir}/src/main/jar2app</workingDirectory>
+                                    <executable>cmd</executable>
+                                    <arguments>
+                                        <argument>/c</argument>
+                                        <argument>makeappbundle</argument>
+                                        <argument>${project.build.directory}/dependency/${back2back.core.jar}</argument>
+                                        <argument>${project.build.directory}/back2back.app</argument>
+                                        <argument>-v</argument> <argument>${project.version}</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
     </profiles>
 
 
