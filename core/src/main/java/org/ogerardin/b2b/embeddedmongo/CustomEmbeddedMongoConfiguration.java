@@ -8,14 +8,12 @@ import de.flapdoodle.embed.mongo.config.ExtractedArtifactStoreBuilder;
 import de.flapdoodle.embed.mongo.config.IMongodConfig;
 import de.flapdoodle.embed.mongo.config.RuntimeConfigBuilder;
 import de.flapdoodle.embed.process.config.io.ProcessOutput;
-import de.flapdoodle.embed.process.config.store.IDownloadConfig;
-import de.flapdoodle.embed.process.distribution.Distribution;
 import de.flapdoodle.embed.process.exceptions.DistributionException;
 import de.flapdoodle.embed.process.io.IStreamProcessor;
 import de.flapdoodle.embed.process.io.Processors;
 import de.flapdoodle.embed.process.io.Slf4jLevel;
 import de.flapdoodle.embed.process.io.progress.Slf4jProgressListener;
-import lombok.Getter;
+import de.flapdoodle.embed.process.store.Downloader;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.slf4j.Logger;
@@ -30,6 +28,7 @@ import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.env.PropertySource;
 
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -58,7 +57,6 @@ public class CustomEmbeddedMongoConfiguration {
 
     /**
      * Override default configuration bean.
-     * First try to obtain MongoDB from classpath, then if it failed try default.
      */
     @Bean(initMethod = "start", destroyMethod = "stop")
     public MongodExecutable embeddedMongoServer(IMongodConfig mongodConfig) {
@@ -73,11 +71,15 @@ public class CustomEmbeddedMongoConfiguration {
 
     }
 
+    /**
+     * Return an instance of {@link MongodExecutable}.
+     * First try to obtain MongoDB from classpath, then if it failed try default.
+     */
     public static MongodExecutable getMongodExecutable(IMongodConfig mongodConfig) {
-        // Try to obtain a bundled version of MongoDB.
+        // Try from classpath (bundled MongoDB)
         try {
             val runtimeConfig = new CustomRuntimeConfigBuilder()
-                    .defaultsWithBundled(Command.MongoD, MONGO_LOGGER)
+                    .fromClasspath(Command.MongoD, MONGO_LOGGER)
                     .build();
             val mongodStarter = MongodStarter.getInstance(runtimeConfig);
             val executable = mongodStarter.prepare(mongodConfig);
@@ -87,9 +89,22 @@ public class CustomEmbeddedMongoConfiguration {
             log.info("MongoDB not available as bundled: {}", e.toString());
         }
 
+        // Try from filesystem
+        try {
+            val runtimeConfig = new CustomRuntimeConfigBuilder()
+                    .fromFilesystem(Command.MongoD, MONGO_LOGGER)
+                    .build();
+            val mongodStarter = MongodStarter.getInstance(runtimeConfig);
+            val executable = mongodStarter.prepare(mongodConfig);
+            return executable;
+        } catch (DistributionException e) {
+            // failed to start using bundle configuration
+            log.info("MongoDB not available in filesystem: {}", e.toString());
+        }
+
         // If it failed, try to use the default downloader
         val runtimeConfig = new CustomRuntimeConfigBuilder()
-                .defaultsWithLogger(Command.MongoD, MONGO_LOGGER)
+                .defaultsWithLoggerAndProxy(Command.MongoD, MONGO_LOGGER)
                 .build();
         val mongodStarter = MongodStarter.getInstance(runtimeConfig);
         val executable = mongodStarter.prepare(mongodConfig);
@@ -130,8 +145,7 @@ public class CustomEmbeddedMongoConfiguration {
          * @return A {@link RuntimeConfigBuilder} set to use a custom output procesor and
          *          a proxy obtained through {@link ProxyHelper}
          */
-        @Override
-        public RuntimeConfigBuilder defaultsWithLogger(Command command, Logger logger) {
+        public RuntimeConfigBuilder defaultsWithLoggerAndProxy(Command command, Logger logger) {
             super.defaultsWithLogger(command, logger);
             processOutput().overwriteDefault(getOutputProcessor(logger));
 
@@ -154,21 +168,27 @@ public class CustomEmbeddedMongoConfiguration {
             return this;
         }
 
-        public RuntimeConfigBuilder defaultsWithBundled(Command command, Logger logger) {
-            return defaultsWithBundled(command, logger, null);
+        public RuntimeConfigBuilder fromClasspath(Command command, Logger logger) {
+            String baseUrl = "classpath:/bundled/mongodb/";
+            return defaultsWithBaseUrl(command, logger, null, baseUrl);
+        }
+
+        public RuntimeConfigBuilder fromFilesystem(Command command, Logger logger) {
+            String baseUrl = Paths.get("mongodb").toUri().toString() + "/";
+            return defaultsWithBaseUrl(command, logger, null, baseUrl);
         }
 
         /**
          * @return A {@link RuntimeConfigBuilder} set to use a custom output procesor and
-         *          obtain the distributable as a resource from the classpath.
+         *          obtain the distributable as a resource from a given path.
          */
-        public RuntimeConfigBuilder defaultsWithBundled(Command command, Logger logger, CustomDownloader downloader) {
-            defaultsWithLogger(command, logger);
+        public RuntimeConfigBuilder defaultsWithBaseUrl(Command command, Logger logger, Downloader downloader, String path) {
+            defaultsWithLoggerAndProxy(command, logger);
 
             // a custom download config where the base URL points to a classpath resource
             val downloadConfig = new DownloadConfigBuilder()
                     .defaultsForCommand(command)
-                    .downloadPath("classpath:/bundled/mongodb/")
+                    .downloadPath(path)
                     .progressListener(new NopProgressListener())
                     .build();
 
@@ -195,19 +215,5 @@ public class CustomEmbeddedMongoConfiguration {
         }
 
     }
-
-
-    @Getter
-    static class CustomDownloader extends de.flapdoodle.embed.process.store.Downloader {
-        private String downloadUrl;
-        @Override
-        public String getDownloadUrl(IDownloadConfig runtime, Distribution distribution) {
-            downloadUrl = super.getDownloadUrl(runtime, distribution);
-            return downloadUrl;
-        }
-
-    }
-
-
 
 }
