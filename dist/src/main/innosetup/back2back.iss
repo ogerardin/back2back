@@ -69,25 +69,6 @@ const
   SHCONTCH_NOPROGRESSBOX = 4;
   SHCONTCH_RESPONDYESTOALL = 16;
 
-procedure UnZip(ZipPath, TargetPath: string); 
-var
-  Shell: Variant;
-  ZipFile: Variant;
-  TargetFolder: Variant;
-begin
-  Shell := CreateOleObject('Shell.Application');
-
-  ZipFile := Shell.NameSpace(ZipPath);
-  if VarIsClear(ZipFile) then
-    RaiseException(Format('ZIP file "%s" does not exist or cannot be opened', [ZipPath]));
-
-  TargetFolder := Shell.NameSpace(TargetPath);
-  if VarIsClear(TargetFolder) then
-    RaiseException(Format('Target path "%s" does not exist', [TargetPath]));
-
-  TargetFolder.CopyHere(ZipFile.Items, SHCONTCH_RESPONDYESTOALL);
-end;
-
 function GetJavaMajorVersion(): integer;
 var
   TempFile: string;
@@ -165,18 +146,19 @@ begin
 
     if IsComponentSelected('mongodb') then
     begin
-      idpAddFile('https://fastdl.mongodb.org/win32/mongodb-win32-x86_64-2008plus-ssl-4.0.5.zip', ExpandConstant('{tmp}\mongodb.zip'));
+      //TODO the download URL and distribution paths should be obtained by running org.ogerardin.b2b.embeddedmongo.StandaloneMongoRunner.Info
+      idpAddFile('https://fastdl.mongodb.org/win32/mongodb-win32-x86_64-2008plus-ssl-4.0.5.zip', ExpandConstant('{tmp}\win32\mongodb-win32-x86_64-2008plus-ssl-4.0.5.zip'));
     end;
   end;
 end;
 
-procedure CurStepChanged(CurStep: TSetupStep);
-begin
-    if CurStep = ssPostInstall then 
-    begin
-        Unzip(ExpandConstant('{tmp}\mongodb.zip'), ExpandConstant('{app}\mongodb'))
-    end;
-end;
+//procedure CurStepChanged(CurStep: TSetupStep);
+//begin
+//    if CurStep = ssPostInstall then
+//    begin
+//        Unzip(ExpandConstant('{tmp}\mongodb.zip'), ExpandConstant('{app}\mongodb'))
+//    end;
+//end;
 
 
 [UninstallDelete]
