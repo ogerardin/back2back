@@ -193,7 +193,7 @@ begin
       Log(Format('DownloadUrl=%s', [DownloadUrl]));
       Log(Format('DistributionPath=%s', [DistributionPath]));
 
-      FullDistributionPath := ExpandConstant('{app}\mongodb\') + DistributionPath;
+      FullDistributionPath := ExpandConstant('{app}\') + DistributionPath;
       Log(Format('FullDistributionPath=%s', [FullDistributionPath]));
 
       // Make sure the target directory exists

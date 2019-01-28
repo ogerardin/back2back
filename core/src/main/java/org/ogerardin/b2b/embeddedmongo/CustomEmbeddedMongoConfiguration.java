@@ -28,6 +28,7 @@ import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.env.PropertySource;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
@@ -43,6 +44,8 @@ public class CustomEmbeddedMongoConfiguration {
 
     private static final Logger MONGO_LOGGER = LoggerFactory
             .getLogger(CustomEmbeddedMongoConfiguration.class.getPackage().getName() + ".EmbeddedMongo");
+
+    static final Path MONGODB_DISTRIBUTION_DIR = Paths.get("mongodb");
 
     private final ApplicationContext context;
 
@@ -73,7 +76,10 @@ public class CustomEmbeddedMongoConfiguration {
 
     /**
      * Return an instance of {@link MongodExecutable}.
-     * First try to obtain MongoDB from classpath, then if it failed try default.
+     * Tries the following strategies (in this order) to obtain the MongoDB distributable archive (first to succeed wins)
+     * - Bundled (archive as a resource in the classpath)
+     * - File (archive as a file on filesystem)
+     * - Default behaviour (download from internet)
      */
     public static MongodExecutable getMongodExecutable(IMongodConfig mongodConfig) {
         // Try from classpath (bundled MongoDB)
@@ -174,7 +180,7 @@ public class CustomEmbeddedMongoConfiguration {
         }
 
         public RuntimeConfigBuilder fromFilesystem(Command command, Logger logger) {
-            String baseUrl = Paths.get("mongodb").toUri().toString() + "/";
+            String baseUrl = MONGODB_DISTRIBUTION_DIR.toUri().toString() + "/";
             return defaultsWithBaseUrl(command, logger, null, baseUrl);
         }
 
