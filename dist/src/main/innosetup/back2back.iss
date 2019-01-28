@@ -69,6 +69,35 @@ const
   SHCONTCH_NOPROGRESSBOX = 4;
   SHCONTCH_RESPONDYESTOALL = 16;
 
+function GetMongoInfo(): TArrayOfString;
+var
+  TempFile: string;
+  ResultCode: Integer;
+  Lines: TArrayOfString;
+begin
+  Result := [];
+
+  ExtractTemporaryFile('back2back-bundle-standalone.jar');
+
+  TempFile := ExpandConstant('{tmp}\mongoinfo.txt');
+  // Run class org.ogerardin.b2b.embeddedmongo.EmbeddedMongoInfo to obtain the download URLand local path expected by EmbeddedMongo.
+  // Since the jar is packaged by the Spring Boot Maven plugin, we can't invoke the class directly, we need to
+  // invoke org.springframework.boot.loader.PropertiesLauncher and supply the actual class to invoke as a property.
+  if (not ExecAsOriginalUser(ExpandConstant('{cmd}'),
+      '/c java -cp ' + ExpandConstant('"{tmp}\back2back-bundle-standalone.jar"')
+      + ' -Dloader.main=org.ogerardin.b2b.embeddedmongo.EmbeddedMongoInfo org.springframework.boot.loader.PropertiesLauncher > "' + TempFile + '"',
+      '', SW_HIDE, ewWaitUntilTerminated, ResultCode))
+    or (ResultCode <> 0) then
+  begin
+    Log('Failed to execute java org.ogerardin.b2b.embeddedmongo.EmbeddedMongoInfo');
+    exit;
+  end;
+
+  LoadStringsFromFile(TempFile, Lines)
+  DeleteFile(TempFile);
+  Result := Lines;
+end;
+
 function GetJavaMajorVersion(): integer;
 var
   TempFile: string;
@@ -137,6 +166,11 @@ begin
 end;
 
 procedure CurPageChanged(CurPageID: Integer);
+var
+  MongoInfo: TArrayOfString;
+  DownloadUrl: AnsiString;
+  DistributionPath: AnsiString;
+  FullDistributionPath: AnsiString;
 begin
   if CurPageID = wpReady then
   begin
@@ -146,19 +180,30 @@ begin
 
     if IsComponentSelected('mongodb') then
     begin
-      //TODO the download URL and distribution paths should be obtained by running org.ogerardin.b2b.embeddedmongo.StandaloneMongoRunner.Info
-      idpAddFile('https://fastdl.mongodb.org/win32/mongodb-win32-x86_64-2008plus-ssl-4.0.5.zip', ExpandConstant('{tmp}\win32\mongodb-win32-x86_64-2008plus-ssl-4.0.5.zip'));
+      // Query mongo specifics
+      MongoInfo := GetMongoInfo();
+      if (GetArrayLength(MongoInfo) <> 2) then
+      begin
+        MsgBox('Setup failed to determine the required version of MongoDB to download.', mbError, MB_OK);
+        exit;
+      end;
+
+      DownloadUrl := MongoInfo[0];
+      DistributionPath := MongoInfo[1];
+      Log(Format('DownloadUrl=%s', [DownloadUrl]));
+      Log(Format('DistributionPath=%s', [DistributionPath]));
+
+      FullDistributionPath := ExpandConstant('{app}\mongodb\') + DistributionPath;
+      Log(Format('FullDistributionPath=%s', [FullDistributionPath]));
+
+      // Make sure the target directory exists
+      ForceDirectories(ExtractFilePath(FullDistributionPath));
+
+      // Schedule download
+      idpAddFile(DownloadUrl, FullDistributionPath);
     end;
   end;
 end;
-
-//procedure CurStepChanged(CurStep: TSetupStep);
-//begin
-//    if CurStep = ssPostInstall then
-//    begin
-//        Unzip(ExpandConstant('{tmp}\mongodb.zip'), ExpandConstant('{app}\mongodb'))
-//    end;
-//end;
 
 
 [UninstallDelete]
