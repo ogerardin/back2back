@@ -132,7 +132,7 @@
                         <groupId>com.google.guava</groupId>
                         <artifactId>guava</artifactId>
                     </exclusion>
-                    <!-- Exclue come.sun:tools to avoid error with JDK 9+ -->
+                    <!-- Exclude come.sun:tools to avoid error with JDK 9+ -->
                     <exclusion>
                         <groupId>com.sun</groupId>
                         <artifactId>tools</artifactId>

@@ -23,7 +23,7 @@ public class StandaloneMongoRunner {
         // register handler for "classpath:" URLs
         TomcatURLStreamHandlerFactory.register();
 
-        IFeatureAwareVersion version = EmbeddedMongoInfo.getMongoVersion();
+        IFeatureAwareVersion version = EmbeddedMongoInfo.getMongoVersion("config/application.properties");
 
         IMongodConfig mongodConfig = new MongodConfigBuilder()
                 .version(version)
