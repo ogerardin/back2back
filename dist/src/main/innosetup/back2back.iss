@@ -4,7 +4,6 @@
 ; Inno Setup configuration file for back2back Windows installer
 ;
 ; TODO: select free port if default is taken
-; TODO: option to download MongoDB (or use existing instance)
 
 
 [Setup]
@@ -64,10 +63,6 @@ Filename: "{app}\installService.bat"; Description: "Install as service"; Flags: 
 Filename: "{app}\startTrayIcon.bat"; Description: "Start Tray Icon"; Flags: postinstall; Components: tray
 
 [Code]
-
-const
-  SHCONTCH_NOPROGRESSBOX = 4;
-  SHCONTCH_RESPONDYESTOALL = 16;
 
 function GetMongoInfo(): TArrayOfString;
 var
