@@ -4,17 +4,15 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-<!--
     <parent>
         <artifactId>back2back</artifactId>
         <groupId>org.ogerardin</groupId>
         <version>1.0-SNAPSHOT</version>
+        <relativePath>../shared</relativePath>
     </parent>
--->
 
-    <groupId>org.ogerardin</groupId>
     <artifactId>back2back-dist</artifactId>
-    <version>1.0-SNAPSHOT</version>
+
     <description>
         This module is responsible for generating the final distributable packages (installer and such).
     </description>
@@ -24,7 +22,6 @@
         <back2back.tray-icon.jar>back2back-system-tray-onejar.jar</back2back.tray-icon.jar>
         <back2back.tray-icon.mainClass>com.simontuffs.onejar.Boot</back2back.tray-icon.mainClass>
         <back2back.service-name>back2back</back2back.service-name>
-        <nssm.version>2.24</nssm.version>
         <izpack-version>5.1.3</izpack-version>
     </properties>
 
@@ -393,7 +390,7 @@
                                     <baseDir>${project.build.directory}</baseDir>
                                     <installFile>${project.basedir}/src/main/izpack/install.xml</installFile>
                                     <classifier>install</classifier>
-                                    <enableOverrideArtifact>true</enableOverrideArtifact>
+                                    <!--<enableOverrideArtifact>true</enableOverrideArtifact>-->
                                     <!--<finalName>${project.parent.artifactId}-install</finalName>-->
                                 </configuration>
                             </execution>

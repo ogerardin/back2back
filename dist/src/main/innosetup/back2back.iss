@@ -8,7 +8,7 @@
 
 [Setup]
 AppName=back2back
-AppVerName=back2back ${project.version}
+AppVerName=back2back @project.version@
 AppPublisher=Olivier Gérardin
 AppPublisherURL=https://github.com/ogerardin/back2back
 AppSupportURL=https://github.com/ogerardin/back2back
@@ -21,7 +21,7 @@ OutputBaseFilename=back2back-setup
 ; For debugging only
 Compression=none
 ;SolidCompression=yes
-OutputDir=${project.build.directory}
+OutputDir=.
 ; For debugging only
 PrivilegesRequired=none
 DisableWelcomePage=no

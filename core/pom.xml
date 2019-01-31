@@ -8,6 +8,7 @@
         <groupId>org.ogerardin</groupId>
         <artifactId>back2back</artifactId>
         <version>1.0-SNAPSHOT</version>
+        <relativePath>../shared</relativePath>
     </parent>
 
     <artifactId>back2back-core</artifactId>

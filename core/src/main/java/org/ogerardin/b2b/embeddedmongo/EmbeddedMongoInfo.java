@@ -45,7 +45,7 @@ public class EmbeddedMongoInfo {
                 .defaultsForCommand(Command.MongoD)
                 .build();
 
-        IFeatureAwareVersion mongoVersion = getMongoVersion("config/application.properties");
+        val mongoVersion = getMongoVersion("config/application.properties");
         val distribution = CustomEmbeddedMongoConfiguration.detectDistribution(mongoVersion);
 
         String distributionPath = downloadConfig.getPackageResolver().getPath(distribution);
