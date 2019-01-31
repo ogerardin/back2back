@@ -6,7 +6,6 @@ import de.flapdoodle.embed.mongo.distribution.Feature;
 import de.flapdoodle.embed.mongo.distribution.IFeatureAwareVersion;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.mongo.distribution.Versions;
-import de.flapdoodle.embed.process.distribution.Distribution;
 import de.flapdoodle.embed.process.distribution.GenericVersion;
 import de.flapdoodle.embed.process.store.Downloader;
 import lombok.NonNull;
@@ -47,7 +46,7 @@ public class EmbeddedMongoInfo {
                 .build();
 
         IFeatureAwareVersion mongoVersion = getMongoVersion("config/application.properties");
-        Distribution distribution = Distribution.detectFor(mongoVersion);
+        val distribution = CustomEmbeddedMongoConfiguration.detectDistribution(mongoVersion);
 
         String distributionPath = downloadConfig.getPackageResolver().getPath(distribution);
         String downloadUrl = new Downloader().getDownloadUrl(downloadConfig, distribution);

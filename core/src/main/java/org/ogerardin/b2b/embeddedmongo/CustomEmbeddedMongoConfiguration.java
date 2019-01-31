@@ -7,6 +7,7 @@ import de.flapdoodle.embed.mongo.config.DownloadConfigBuilder;
 import de.flapdoodle.embed.mongo.config.ExtractedArtifactStoreBuilder;
 import de.flapdoodle.embed.mongo.config.IMongodConfig;
 import de.flapdoodle.embed.mongo.config.RuntimeConfigBuilder;
+import de.flapdoodle.embed.mongo.distribution.IFeatureAwareVersion;
 import de.flapdoodle.embed.process.config.IRuntimeConfig;
 import de.flapdoodle.embed.process.config.io.ProcessOutput;
 import de.flapdoodle.embed.process.distribution.BitSize;
@@ -114,9 +115,17 @@ public class CustomEmbeddedMongoConfiguration {
 
     private static MongodExecutable getMongodExecutable(IMongodConfig mongodConfig, IRuntimeConfig runtimeConfig) {
         val mongodStarter = MongodStarter.getInstance(runtimeConfig);
-        val distribution = new Distribution(mongodConfig.version(), Platform.detect(), getOsBitness());
+        val distribution = detectDistribution(mongodConfig.version());
         val executable = mongodStarter.prepare(mongodConfig, distribution);
         return executable;
+    }
+
+    /**
+     * Replacement for {@link Distribution#detectFor}
+     * See https://github.com/flapdoodle-oss/de.flapdoodle.embed.process/issues/32
+     */
+    static Distribution detectDistribution(IFeatureAwareVersion version) {
+        return new Distribution(version, Platform.detect(), getOsBitness());
     }
 
     private static BitSize getOsBitness() {
