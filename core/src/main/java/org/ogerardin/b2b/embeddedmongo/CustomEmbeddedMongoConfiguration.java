@@ -7,7 +7,11 @@ import de.flapdoodle.embed.mongo.config.DownloadConfigBuilder;
 import de.flapdoodle.embed.mongo.config.ExtractedArtifactStoreBuilder;
 import de.flapdoodle.embed.mongo.config.IMongodConfig;
 import de.flapdoodle.embed.mongo.config.RuntimeConfigBuilder;
+import de.flapdoodle.embed.process.config.IRuntimeConfig;
 import de.flapdoodle.embed.process.config.io.ProcessOutput;
+import de.flapdoodle.embed.process.distribution.BitSize;
+import de.flapdoodle.embed.process.distribution.Distribution;
+import de.flapdoodle.embed.process.distribution.Platform;
 import de.flapdoodle.embed.process.exceptions.DistributionException;
 import de.flapdoodle.embed.process.io.IStreamProcessor;
 import de.flapdoodle.embed.process.io.Processors;
@@ -71,7 +75,6 @@ public class CustomEmbeddedMongoConfiguration {
         }
 
         return getMongodExecutable(mongodConfig);
-
     }
 
     /**
@@ -81,40 +84,52 @@ public class CustomEmbeddedMongoConfiguration {
      * - File (archive as a file on filesystem)
      * - Default behaviour (download from internet)
      */
-    public static MongodExecutable getMongodExecutable(IMongodConfig mongodConfig) {
+    static MongodExecutable getMongodExecutable(IMongodConfig mongodConfig) {
         // Try from classpath (bundled MongoDB)
         try {
-            val runtimeConfig = new CustomRuntimeConfigBuilder()
+            val runtimeConfig1 = new CustomRuntimeConfigBuilder()
                     .fromClasspath(Command.MongoD, MONGO_LOGGER)
                     .build();
-            val mongodStarter = MongodStarter.getInstance(runtimeConfig);
-            val executable = mongodStarter.prepare(mongodConfig);
-            return executable;
+            return getMongodExecutable(mongodConfig, runtimeConfig1);
         } catch (DistributionException e) {
-            // failed to start using bundle configuration
             log.info("MongoDB not available as bundled: {}", e.toString());
         }
 
         // Try from filesystem
         try {
-            val runtimeConfig = new CustomRuntimeConfigBuilder()
+            val runtimeConfig2 = new CustomRuntimeConfigBuilder()
                     .fromFilesystem(Command.MongoD, MONGO_LOGGER)
                     .build();
-            val mongodStarter = MongodStarter.getInstance(runtimeConfig);
-            val executable = mongodStarter.prepare(mongodConfig);
-            return executable;
+            return getMongodExecutable(mongodConfig, runtimeConfig2);
         } catch (DistributionException e) {
-            // failed to start using bundle configuration
             log.info("MongoDB not available in filesystem: {}", e.toString());
         }
 
-        // If it failed, try to use the default downloader
-        val runtimeConfig = new CustomRuntimeConfigBuilder()
+        // If previous attempts failed, try to use the default downloader
+        val runtimeConfig0 = new CustomRuntimeConfigBuilder()
                 .defaultsWithLoggerAndProxy(Command.MongoD, MONGO_LOGGER)
                 .build();
+        return getMongodExecutable(mongodConfig, runtimeConfig0);
+    }
+
+    private static MongodExecutable getMongodExecutable(IMongodConfig mongodConfig, IRuntimeConfig runtimeConfig) {
         val mongodStarter = MongodStarter.getInstance(runtimeConfig);
-        val executable = mongodStarter.prepare(mongodConfig);
+        val distribution = new Distribution(mongodConfig.version(), Platform.detect(), getOsBitness());
+        val executable = mongodStarter.prepare(mongodConfig, distribution);
         return executable;
+    }
+
+    private static BitSize getOsBitness() {
+        if (Platform.detect() == Platform.Windows) {
+            // We want the atual OS bitness (not the JVM bitness)
+            // See https://stackoverflow.com/a/5940770/170637
+            String arch = System.getenv("PROCESSOR_ARCHITECTURE");
+            String wow64Arch = System.getenv("PROCESSOR_ARCHITEW6432");
+            return (((arch != null) && arch.endsWith("64"))
+                    || ((wow64Arch != null) && wow64Arch.endsWith("64")))
+                    ? BitSize.B64 : BitSize.B32;
+        }
+        return BitSize.detect();
     }
 
     // copied from org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration.setEmbeddedPort
@@ -189,7 +204,7 @@ public class CustomEmbeddedMongoConfiguration {
          *          obtain the distributable as a resource from a given path.
          */
         public RuntimeConfigBuilder defaultsWithBaseUrl(Command command, Logger logger, Downloader downloader, String path) {
-            defaultsWithLoggerAndProxy(command, logger);
+            defaultsWithLogger(command, logger);
 
             // a custom download config where the base URL points to a classpath resource
             val downloadConfig = new DownloadConfigBuilder()
