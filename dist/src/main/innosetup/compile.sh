@@ -5,6 +5,10 @@
 #
 # TODO cache downloads, maybe use Maven with download-maven-plugin ?
 
+echo '###'
+echo '### Checking dependencies...'
+echo '###'
+
 which wine  || { echo "Missing prerequisite: wine" 2>&1 ; exit; }
 which unrar || { echo "Missing prerequisite: unrar" 2>&1 ; exit; }
 which wget  || { echo "Missing prerequisite: wget" 2>&1 ; exit; }
@@ -14,9 +18,17 @@ EXTRACTDIR=../../../target
 
 pushd ${EXTRACTDIR}
 
+echo '###'
+echo '### Downloading and extracting Inno Unpacker...'
+echo '###'
+
 #Get and extract Inno Unpacker
 wget "https://downloads.sourceforge.net/project/innounp/innounp/innounp%200.47/innounp047.rar?r=https%3A%2F%2Fsourceforge.net%2Fprojects%2Finnounp%2Ffiles%2Flatest%2Fdownload&ts=1547509813" -O innounp.rar
 unrar x -o+ innounp.rar
+
+echo '###'
+echo '### Downloading and unpacking Inno Setup...'
+echo '###'
 
 #Get and unpack latest version of Inno Setup
 wget "http://www.jrsoftware.org/download.php/is-unicode.exe" -O is-unicode.exe
@@ -25,6 +37,10 @@ rm -r \{tmp\}
 mv \{app\} inno-setup
 INNO_SETUP_HOME=${PWD}/inno-setup
 echo INNO_SETUP_HOME=${INNO_SETUP_HOME}
+
+echo '###'
+echo '### Downloading and unpacking Inno Download Plugin...'
+echo '###'
 
 #Get and unpack Inno Download Plugin
 wget "https://bitbucket.org/mitrich_k/inno-download-plugin/downloads/idpsetup-1.5.1.exe" -O idpsetup.exe
@@ -44,6 +60,12 @@ if ! grep -q inno-download-plugin ${ISSPPBUILTINS_FILE} ; then
     echo \#pragma include __INCLUDE__ + \"\;\" + \"${INNO_DOWNLOAD_PLUGIN_HOME_WINE}\" >> ${ISSPPBUILTINS_FILE}
 fi
 
+echo '###'
+echo '### Invoking Inno script compiler (ISCC)...'
+echo '###'
+SCRIPT=$1
+SCRIPT_WINE=$(winepath -w $SCRIPT)
+
 #Invoke Inno Setup command line compiler (using Wine)
 popd
-wine ${INNO_SETUP_HOME}/ISCC.exe $(winepath -w $1)
+wine ${INNO_SETUP_HOME}/ISCC.exe "${SCRIPT_WINE}"
