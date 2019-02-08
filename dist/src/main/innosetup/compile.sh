@@ -63,8 +63,10 @@ fi
 echo '###'
 echo '### Invoking Inno script compiler (ISCC)...'
 echo '###'
-SCRIPT=$1
+SCRIPT="$1"
+echo SCRIPT=${SCRIPT}
 SCRIPT_WINE=$(winepath -w $SCRIPT)
+echo SCRIPT_WINE=${SCRIPT_WINE}
 
 #Invoke Inno Setup command line compiler (using Wine)
 popd
