@@ -39,7 +39,7 @@ class MongoSlf4jStreamProcessor implements IStreamProcessor {
                 .replaceAll("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d{3}(\\+\\d{4})? ", "");
 
         Slf4jLevel level = defaultLevel;
-        if (line.charAt(1) == ' ') {
+        if (line.length() >= 2 && line.charAt(1) == ' ') {
             Character mongoLevel = line.charAt(0);
             Slf4jLevel mappedLevel = LEVEL_MAP.get(mongoLevel);
             if (mappedLevel != null) {

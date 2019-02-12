@@ -66,7 +66,9 @@ public class Main {
     @Scheduled(fixedRateString = "${org.ogerardin.b2b.job-sync-rate}")
     @ConditionalOnBean(JobStarter.class)
     public void scheduledSync() {
-        jobStarter.syncJobs();
+        if (jobStarter != null) {
+            jobStarter.syncJobs();
+        }
     }
 
 

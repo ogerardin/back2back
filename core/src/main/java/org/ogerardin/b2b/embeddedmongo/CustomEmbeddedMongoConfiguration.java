@@ -214,6 +214,7 @@ public class CustomEmbeddedMongoConfiguration {
          */
         public RuntimeConfigBuilder defaultsWithBaseUrl(Command command, Logger logger, Downloader downloader, String path) {
             defaultsWithLogger(command, logger);
+            processOutput().overwriteDefault(getOutputProcessor(logger));
 
             // a custom download config where the base URL points to a classpath resource
             val downloadConfig = new DownloadConfigBuilder()
