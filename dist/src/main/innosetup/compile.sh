@@ -13,8 +13,8 @@ which wine  || { echo "Missing prerequisite: wine" 2>&1 ; exit -1; }
 which unrar || { echo "Missing prerequisite: unrar" 2>&1 ; exit -1; }
 which wget  || { echo "Missing prerequisite: wget" 2>&1 ; exit -1; }
 
-winecfg
-echo WINEARCH=$(cat ~/.wine/system.reg | grep -m 1 '#arch' | cut -d '=' -f2)
+#winecfg
+#echo WINEARCH=$(cat ~/.wine/system.reg | grep -m 1 '#arch' | cut -d '=' -f2)
 
 echo '###'
 echo '### Downloading and extracting Inno Unpacker...'
@@ -64,4 +64,5 @@ SCRIPT_WINE=$(winepath -w $SCRIPT)
 echo SCRIPT_WINE=${SCRIPT_WINE}
 
 #Invoke Inno Setup command line compiler (using Wine)
+ls -l $SCRIPT
 wine ${INNO_SETUP_HOME}/ISCC.exe "${SCRIPT_WINE}"
