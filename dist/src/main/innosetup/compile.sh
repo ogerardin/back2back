@@ -9,28 +9,24 @@ echo '###'
 echo '### Checking dependencies...'
 echo '###'
 
-which wine  || { echo "Missing prerequisite: wine" 2>&1 ; exit; }
-which unrar || { echo "Missing prerequisite: unrar" 2>&1 ; exit; }
-which wget  || { echo "Missing prerequisite: wget" 2>&1 ; exit; }
+which wine  || { echo "Missing prerequisite: wine" 2>&1 ; exit -1; }
+which unrar || { echo "Missing prerequisite: unrar" 2>&1 ; exit -1; }
+which wget  || { echo "Missing prerequisite: wget" 2>&1 ; exit -1; }
 
-
-EXTRACTDIR=../../../target
-
-pushd ${EXTRACTDIR}
+winecfg
+echo WINEARCH=$(cat ~/.wine/system.reg | grep -m 1 '#arch' | cut -d '=' -f2)
 
 echo '###'
 echo '### Downloading and extracting Inno Unpacker...'
 echo '###'
 
-#Get and extract Inno Unpacker
 wget "https://downloads.sourceforge.net/project/innounp/innounp/innounp%200.47/innounp047.rar?r=https%3A%2F%2Fsourceforge.net%2Fprojects%2Finnounp%2Ffiles%2Flatest%2Fdownload&ts=1547509813" -O innounp.rar
-unrar x -o+ innounp.rar
+unrar x -o+ innounp.rar || { echo "Failed to unrar innounp.rar" 2>&1 ; exit -1; }
 
 echo '###'
 echo '### Downloading and unpacking Inno Setup...'
 echo '###'
 
-#Get and unpack latest version of Inno Setup
 wget "http://www.jrsoftware.org/download.php/is-unicode.exe" -O is-unicode.exe
 wine innounp.exe -x -y is-unicode.exe
 rm -r \{tmp\}
@@ -42,7 +38,6 @@ echo '###'
 echo '### Downloading and unpacking Inno Download Plugin...'
 echo '###'
 
-#Get and unpack Inno Download Plugin
 wget "https://bitbucket.org/mitrich_k/inno-download-plugin/downloads/idpsetup-1.5.1.exe" -O idpsetup.exe
 wine innounp.exe -x -y idpsetup.exe
 rm -r \{tmp\}
@@ -69,5 +64,4 @@ SCRIPT_WINE=$(winepath -w $SCRIPT)
 echo SCRIPT_WINE=${SCRIPT_WINE}
 
 #Invoke Inno Setup command line compiler (using Wine)
-popd
 wine ${INNO_SETUP_HOME}/ISCC.exe "${SCRIPT_WINE}"
