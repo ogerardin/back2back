@@ -507,6 +507,7 @@
         <!--
             This profile generates a Windows installer using Inno Setup and Wine on a non-Windows platform
         -->
+<!--
         <profile>
             <id>generate-innosetup-installer-wine</id>
             <activation>
@@ -561,6 +562,7 @@
                 </plugins>
             </build>
         </profile>
+-->
 
         <!--
             EXPERIMENTAL: generate a windows executable that wraps the IzPack installer
