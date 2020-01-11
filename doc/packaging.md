@@ -49,11 +49,11 @@ IzPack
 IzPack (http://izpack.org/) generates a cross-platform Java installer that will work on all target platforms, provided
 there is a JRE installed. However it has some inconveniences:
 * the look and feel is not native  
-* it doesn't provide a native executable (although this could be worked around using a native wrapper)
+* it doesn't provide a native executable (although this could be achieved using a native wrapper)
 * it doesn't integrate with the OS in an idiomatic way
 * it doesn't handle well the steps that require specific priviledges
 * it's only extensible through additional panels
-As such, it's not a satisfactory solution and should be considered only as a fallback
+As such, it's not a satisfactory solution and should be considered only as a fallback.
 
 launch4j
 --------
@@ -79,9 +79,9 @@ scoop (https://scoop.sh/). These apps are not available in the default bucket, s
 (dist/src/main/innosetup/*.json)
 * Wine: 
     1) we download and extract innounp, a utility to unpack Inno Setup installers. It's a Windows executable so we will 
-    need WIne to run it
+    need Wine to run it
     2) we download the installer for Inno Setup and unpack it using Wine + innounp
-    3) we download the installer for Inno Download Plugin and unpack it using Wine +innounp
+    3) we download the installer for Inno Download Plugin and unpack it using Wine + innounp
     4) we run the Inno Compiler using Wine
     
 Mac
@@ -102,4 +102,3 @@ We should at least provide a .deb package
 TO BE DONE
 
   
- 

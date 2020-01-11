@@ -510,6 +510,7 @@
         <profile>
             <id>generate-innosetup-installer-wine</id>
             <activation>
+                <activeByDefault>false</activeByDefault>
                 <os>
                     <family>!windows</family>
                 </os>

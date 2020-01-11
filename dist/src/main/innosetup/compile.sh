@@ -3,6 +3,7 @@
 # Generate the back2back Windows installer using Inno Setup compiler and Wine (for Linux and macOS)
 # Prerequisites: wine, wget, unrar
 #
+# FIXME wine doesn't work in macOS Catalina... and wine64 can't run 32 bits programs
 # TODO cache downloads, maybe use Maven with download-maven-plugin ?
 
 echo '###'

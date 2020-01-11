@@ -52,8 +52,8 @@
                             <goal>install-node-and-npm</goal>
                         </goals>
                         <configuration>
-                            <nodeVersion>v10.15.1</nodeVersion>
-                            <npmVersion>6.4.1</npmVersion>
+                            <nodeVersion>v12.14.1</nodeVersion>
+                            <npmVersion>6.13.4</npmVersion>
                         </configuration>
                     </execution>
 
@@ -64,6 +64,16 @@
                         </goals>
                         <configuration>
                             <arguments>install</arguments>
+                        </configuration>
+                    </execution>
+
+                    <execution>
+                        <id>npm sass</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>rebuild node-sass</arguments>
                         </configuration>
                     </execution>
 
